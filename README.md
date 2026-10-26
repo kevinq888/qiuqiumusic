@@ -6,7 +6,19 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://qiuqiumusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.7（当前版本）
+### v1.2.8（当前版本）
+
+- 新版本发现由每 6 小时改为运行期间约每分钟检查，切回窗口、电脑唤醒或恢复网络时补查，无需重启应用。
+- 顶部常驻“检查更新”按钮，可手动立即检查；检查失败会提示重试。
+- 后台优先使用刷新缓存的官方发布清单，并限制 GitHub API 回退频率；更新检查不会覆盖正在安装的进度和错误提示。
+
+| 系统 | 下载 |
+| --- | --- |
+| macOS（Apple 芯片） | [秋秋音乐-1.2.8-macos-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.8/qiuqiumusic-1.2.8-macos-arm64.dmg) |
+| macOS（Intel） | [秋秋音乐-1.2.8-macos-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.8/qiuqiumusic-1.2.8-macos-x64.dmg) |
+| Windows（64 位） | [秋秋音乐-1.2.8-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.8/qiuqiumusic-1.2.8-windows-x64.exe) |
+
+### v1.2.7
 
 - 修复连续切歌后本地音频连接被占满，导致已缓存歌曲一直加载或超时的问题。
 - 桌面音频使用独立的本地传输链路，并读完响应后释放连接；无需清理缓存、歌单或收藏。

@@ -13,7 +13,19 @@ app.whenReady().then(async () => {
     await until(() => BrowserWindow.getAllWindows().some(w => w.webContents.getURL() === 'qiuqiu://app/'));
     const main = BrowserWindow.getAllWindows().find(w => w.webContents.getURL() === 'qiuqiu://app/');
     await until(() => main.webContents.executeJavaScript(`!!window.qiuqiuUpdater && !!document.querySelector('#desktop-update')`));
-    assert.ok(await main.webContents.executeJavaScript(`document.querySelector('#desktop-update').hidden`));
+    assert.ok(await main.webContents.executeJavaScript(`!document.querySelector('#desktop-update').hidden && document.querySelector('#desktop-update').textContent === '检查更新'`));
+    let checks = 0, onlineChecks = 0, finishCheck;
+    ipcMain.removeHandler('desktop:update-check');
+    ipcMain.handle('desktop:update-check', () => { checks++; return new Promise(resolve => { finishCheck = resolve; }); });
+    ipcMain.removeHandler('desktop:update-online');
+    ipcMain.handle('desktop:update-online', () => { onlineChecks++; return { status: 'idle', currentVersion: '1.2.0' }; });
+    await main.webContents.executeJavaScript(`document.querySelector('#desktop-update').click();document.querySelector('#desktop-update').click()`);
+    await until(() => checks === 1);
+    assert.ok(await main.webContents.executeJavaScript(`document.querySelector('#desktop-update').disabled && document.querySelector('#desktop-update').textContent === '检查更新中…'`));
+    finishCheck({ status: 'idle', currentVersion: '1.2.0' });
+    await until(() => main.webContents.executeJavaScript(`document.querySelector('#desktop-update').textContent === '已是最新版' && !document.querySelector('#desktop-update').disabled`));
+    await main.webContents.executeJavaScript(`window.dispatchEvent(new Event('online'))`);
+    await until(() => onlineChecks === 1);
     let installs = 0;
     ipcMain.removeHandler('desktop:update-install');
     ipcMain.handle('desktop:update-install', () => { installs++; return { status: 'downloading', currentVersion: '1.2.0', version: '1.3.0', progress: 0 }; });
@@ -34,7 +46,7 @@ app.whenReady().then(async () => {
     await sleep(200);
     assert.ok(await main.webContents.executeJavaScript(`document.documentElement.scrollWidth <= innerWidth`));
     passed = true;
-    console.log('PASS native bridge, update notice, one-click deduplication, download progress, SPA persistence, retry and header layout');
+    console.log('PASS persistent manual check, check deduplication, online IPC, live update notice, install deduplication, progress, SPA persistence, retry and header layout');
     ipcMain.emit('floating:quit');
   } catch (error) { console.error(error); app.exit(1); }
 });
