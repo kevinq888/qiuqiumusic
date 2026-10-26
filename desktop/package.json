@@ -1,6 +1,6 @@
 {
   "name": "qiuqiumusic-desktop",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "private": true,
   "description": "秋秋音乐本地桌面播放器",
   "main": "main.js",
@@ -12,7 +12,8 @@
     "build:all": "node scripts/build-desktop.cjs all",
     "test:local": "node scripts/test-local.cjs",
     "test:update": "node --test scripts/update.test.cjs",
-    "test:audio": "node --test scripts/audio-recovery.test.cjs"
+    "test:audio": "node --test scripts/audio-recovery.test.cjs",
+    "test:media": "electron scripts/test-cached-m4a.cjs"
   },
   "devDependencies": {
     "electron": "^37.2.6",

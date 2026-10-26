@@ -41,6 +41,20 @@ async function startLocalApp() {
     options.signal = request.signal;
     if (url.pathname.startsWith('/media/')) options.cache = 'no-store';
     if (request.method !== 'GET' && request.method !== 'HEAD') options.body = await request.arrayBuffer();
+    // Do not proxy media through Chromium's own HTTP connection pool. When
+    // the media decoder cancels/restarts Range reads (especially M4A with a
+    // tail moov atom), protocol.handle can leave net.fetch bodies unread.
+    // Six abandoned responses then block every subsequent loopback request.
+    // Drain each local Range response before handing it to the decoder. Merely
+    // changing pools would still leave abandoned response streams alive. Audio
+    // is already on disk here; buffering this read releases the socket even if
+    // Electron never propagates the decoder's cancellation to the response body.
+    if (url.pathname.startsWith('/media/')) {
+      const response = await fetch(base + url.pathname + url.search, options);
+      return new Response(await response.arrayBuffer(), {
+        status: response.status, statusText: response.statusText, headers: response.headers,
+      });
+    }
     return net.fetch(base + url.pathname + url.search, options);
   });
 }
