@@ -633,6 +633,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
 .cache-meter[data-cache-state="cached"] i{width:100%;background:linear-gradient(90deg,var(--forest),color-mix(in srgb,var(--forest) 55%,var(--mint)))}
 .cache-meter[data-cache-state="downloading"] i{width:100%;background:linear-gradient(90deg,transparent,var(--orange),transparent);background-size:45% 100%;background-repeat:no-repeat;animation:cache-sweep 1.05s linear infinite}
 .queue-items .personal-song .personal-main .cache-meter{width:100%;flex:none}
+.queue-panel .queue-head-actions{display:flex;gap:8px;flex:none}
 .queue-panel .queue-items{flex:1;min-height:0}
 /* 清单面板比其他卡片更实，避免底下列表透出来显花 */
 .queue-panel{background:linear-gradient(145deg,color-mix(in srgb,var(--white) 97%,transparent),color-mix(in srgb,var(--white) 93%,transparent))}
@@ -1142,6 +1143,11 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
     animation:queue-sheet-in .24s var(--ease);
   }
   @keyframes queue-sheet-in{from{transform:translateY(18px);opacity:.4}to{transform:translateY(0);opacity:1}}
+  /* 覆盖电脑端悬浮清单定位，手机端固定为底部抽屉 */
+  .player-host.is-expanded .queue-panel{
+    left:0;right:0;bottom:0;top:auto;width:auto;transform:none;z-index:76;
+    max-height:78dvh;
+  }
   .queue-handle{display:block;width:44px;height:4px;flex:none;margin:2px auto 10px;border-radius:999px;background:color-mix(in srgb,var(--ink) 18%,transparent)}
   .queue-head h2{font-size:19px;display:flex;align-items:baseline;gap:6px}
   .queue-head h2 b{font-size:12px;font-weight:800;color:var(--muted)}
