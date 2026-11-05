@@ -37,12 +37,20 @@ const detailOverrides = {
 };
 
 function parseTitle(title) {
-  const idx = title.indexOf('-');
-  if (idx > 0) {
-    return { artist: title.slice(0, idx).trim(), song: title.slice(idx + 1).trim() };
+  const match = title.match(/-+/);
+  if (match && match.index > 0) {
+    return {
+      artist: title.slice(0, match.index).trim(),
+      song: title.slice(match.index + match[0].length).replace(/^\(\d{5,}\)/, '').trim(),
+    };
   }
   return { artist: '', song: title.trim() };
 }
+
+// 真实专辑封面（scripts/fetch-covers.js 抓取后保存在本地，缺失时回退到渐变首字块）
+const coversPath = path.join(__dirname, '..', 'data', 'covers.json');
+let covers = {};
+try { covers = JSON.parse(fs.readFileSync(coversPath, 'utf8')); } catch {}
 
 const songs = new Map();
 function addSong(id, title, extra = {}) {
@@ -58,6 +66,7 @@ function addSong(id, title, extra = {}) {
     song: prev.song || song,
     date: prev.date || extra.date || '',
     quality: prev.quality || extra.quality || '高品质',
+    cover: prev.cover || covers[id] || '',
     ...(detailOverrides[id] || {}),
   });
 }

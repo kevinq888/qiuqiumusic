@@ -1,12 +1,12 @@
 // 秋秋音乐 Service Worker：静态资源缓存优先，页面网络优先；音频 Cache API 缓存（一周过期），
 // 第二次播放直接读本地缓存，不再发起网络请求。
-const CACHE = 'qiuqiumusic.v30';
+const CACHE = 'qiuqiumusic.v32';
 const ASSETS = [
   '/',
-  '/projects/source_code/css/site.css?v=20261105-netease14',
-  '/projects/source_code/js/app.js?v=20261105-netease14',
-  '/projects/source_code/js/desktop-download.js?v=20261105-netease14',
-  '/projects/source_code/js/desktop-update.js?v=20261105-netease14',
+  '/projects/source_code/css/site.css?v=20261105-netease16',
+  '/projects/source_code/js/app.js?v=20261105-netease16',
+  '/projects/source_code/js/desktop-download.js?v=20261105-netease16',
+  '/projects/source_code/js/desktop-update.js?v=20261105-netease16',
   '/projects/source_code/picture/logo.svg',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
@@ -39,7 +39,8 @@ self.addEventListener('fetch', event => {
   }
   // 其余实时内容不走缓存：搜索、榜单、详情揭示接口
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/download/desktop/') ||
-      url.pathname.startsWith('/ranking/') || url.pathname.startsWith('/search.php')) return;
+      url.pathname.startsWith('/ranking/') || url.pathname.startsWith('/search.php') ||
+      url.pathname.startsWith('/cover/')) return;
   // 静态资源：缓存优先
   if (url.pathname.startsWith('/projects/') || url.pathname.startsWith('/icons/') ||
       url.pathname === '/manifest.webmanifest' || url.pathname === '/sw.js') {

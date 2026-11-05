@@ -1330,3 +1330,167 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   .desktop-download-button{background:var(--subtle);border-color:var(--line);color:var(--forest)}
   .desktop-download-button .icon{width:16px;height:16px}
 }
+
+/* ============================================================
+   2026-11-05 反馈修复：
+   1) 桌面播放条压缩一半高度（歌名移到进度条区域）
+   2) 播放列表总数与当前第几首分开显示
+   3) 排行榜高亮行与普通行左右/字号对齐
+   4) 首页「每日推荐」与「今日好音乐」不再重叠
+   5) 真实专辑封面
+   6) 中性半透明毛玻璃主题
+   ============================================================ */
+
+/* ---------- 真实专辑封面 ---------- */
+.song-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2}
+.song-card-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;z-index:2}
+.np-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;z-index:2}
+.np-cover.has-cover b{display:none}
+.mini-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;z-index:2}
+.mini-cover.has-cover b{display:none}
+.song-card-play{z-index:3}
+
+/* ---------- 桌面端播放条：单行紧凑，约 56px ---------- */
+.player-timeline>.np-dock-title{display:none}
+@media(min-width:681px){
+  .player-host.is-expanded .player-panel{
+    grid-template-columns:minmax(0,1fr) minmax(0,1.45fr) auto;
+    gap:14px;
+    padding:8px 24px calc(8px + env(safe-area-inset-bottom));
+  }
+  /* 歌曲名移到原先「极高音质」的位置（进度条左侧），标题区只留状态与歌手 */
+  .player-host.is-expanded .player-panel-head{display:block;min-width:0}
+  .player-host.is-expanded .player-panel-head h2{display:none}
+  .player-host.is-expanded .player-panel-head small{
+    display:block;max-width:100%;font-size:10px;line-height:1.5;letter-spacing:-.01em;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .player-host.is-expanded .player-panel-head .np-artist-line{display:flex;align-items:center;gap:6px;margin-top:1px}
+  .player-host.is-expanded .player-panel-head .np-artist-line span{
+    font-size:12px;font-weight:700;line-height:1.4;color:rgba(255,255,255,.72);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .player-host.is-expanded .player-panel-head .np-follow{display:none}
+  .player-host.is-expanded .player-timeline{
+    grid-template-columns:minmax(0,1fr) auto minmax(70px,1.5fr) auto;
+    grid-template-areas:"title cur seek dur";
+    gap:8px;padding:6px 12px;
+  }
+  .player-host.is-expanded #player-dock-title{
+    display:block;grid-area:title;width:auto;min-width:0;max-width:none;
+    text-align:left;font-size:12px;font-weight:800;line-height:1.3;color:#fff;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .player-host.is-expanded #player-current-time{grid-area:cur;width:auto;min-width:30px;font-size:11px}
+  .player-host.is-expanded #player-seek{grid-area:seek;min-width:0}
+  .player-host.is-expanded #player-duration{grid-area:dur;width:auto;min-width:30px;font-size:11px}
+  .player-host.is-expanded .np-quality{display:none}
+  .player-host.is-expanded .player-options{gap:6px}
+  .player-host.is-expanded #player-shortcuts{display:none}
+  .player-host.is-expanded .player-actions{gap:4px}
+  .player-host.is-expanded .player-transport{padding-right:8px}
+  .player-host.is-expanded .player-actions button{width:34px;min-width:34px;height:34px}
+  .player-host.is-expanded .player-actions button .icon{width:16px;height:16px}
+  .player-host.is-expanded .player-actions .mode-button{min-width:34px;padding:0 6px}
+  .player-host.is-expanded .player-options #player-queue{width:auto;min-width:auto;padding:0 9px;gap:5px;border-radius:999px;font-size:11px}
+  .queue-position{
+    display:inline-flex;align-items:center;height:34px;padding:0 9px;border-radius:999px;
+    background:rgba(255,255,255,.09);color:rgba(255,255,255,.7);
+    font-size:11px;font-weight:800;white-space:nowrap;flex:none;
+  }
+  .queue-position[hidden]{display:none}
+}
+@media(min-width:681px) and (max-width:1050px){
+  .player-host.is-expanded .player-panel{
+    grid-template-columns:minmax(0,.85fr) minmax(0,1.5fr) auto;
+    gap:9px;padding:7px 14px calc(7px + env(safe-area-inset-bottom));
+  }
+  .player-host.is-expanded .player-actions{grid-column:auto;justify-content:flex-end}
+  .player-host.is-expanded #player-shortcuts,
+  .player-host.is-expanded #player-favorite,
+  .player-host.is-expanded .mode-label{display:none}
+  /* 窄一点时列表按钮只留图标，把「当前第几首」单独放出来，两者仍然分开 */
+  .player-host.is-expanded .player-options .mode-button{display:none}
+  .player-host.is-expanded #player-queue #queue-count{display:none}
+  .player-host.is-expanded #player-queue{padding:0;width:34px;min-width:34px}
+  .player-host.is-expanded .queue-position{display:inline-flex}
+}
+@media(max-width:680px){
+  .queue-position{display:none}
+  .player-timeline>.np-dock-title{display:none}
+}
+
+/* ---------- 排行榜：高亮行与普通行使用同一左起点和字号 ---------- */
+.chart-top1{padding:8px;gap:10px}
+.chart-top1-info strong{font-size:13px}
+.chart-top1-info small{margin-top:1px;font-size:11px}
+.chart-mini-row{padding:8px;gap:10px;min-height:44px}
+.rank-badge{width:28px;height:28px;padding:0;line-height:1;font-size:12px}
+
+/* ---------- 平板宽度：主视觉独占整行，避免侧栏把标题挤成碎行 ---------- */
+@media(min-width:681px) and (max-width:900px){
+  .home-top{display:block}
+  .home-side{display:none}
+  .hero-copy{padding:40px 0 30px 40px}
+  .hero h1{font-size:clamp(32px,4.6vw,40px);line-height:1.22}
+  .hero p{max-width:none}
+}
+
+/* ---------- 首页每日推荐：给徽章留出独立空间 ---------- */
+@media(min-width:901px){
+  .hero-copy{padding:64px 0 22px 40px}
+  .hero-badge{position:absolute;left:40px;top:22px;margin:0}
+  .hero-kicker{padding-top:0}
+}
+
+/* ---------- 毛玻璃主题：中性灰白、半透明，不带任何彩色 ---------- */
+[data-theme="glass"]{
+  --ink:#24262a;--muted:#6f7276;--forest:#3a3c40;
+  --mint:rgba(255,255,255,.55);--cream:#d9dade;
+  --line:rgba(64,66,72,.2);--orange:#7d8187;
+  --white:rgba(255,255,255,.72);--hero:rgba(255,255,255,.4);
+  --subtle:rgba(255,255,255,.46);--footer:#25272b;
+  --shadow:0 18px 46px rgba(28,30,34,.13);
+}
+[data-theme="glass"] body{
+  background:
+    radial-gradient(circle at 12% 0,#fbfbfc 0,transparent 46%),
+    radial-gradient(circle at 92% 6%,#f1f2f4 0,transparent 42%),
+    radial-gradient(circle at 70% 94%,#e3e4e7 0,transparent 44%),
+    linear-gradient(150deg,#ededf0,#d8d9dd);
+  background-attachment:fixed;
+}
+[data-theme="glass"] .panel,
+[data-theme="glass"] .collection-card,
+[data-theme="glass"] .artist-card,
+[data-theme="glass"] .keyword-grid a,
+[data-theme="glass"] .search-form,
+[data-theme="glass"] .install-card,
+[data-theme="glass"] .theme-sheet-card,
+[data-theme="glass"] .side-card{
+  background:linear-gradient(145deg,rgba(255,255,255,.64),rgba(255,255,255,.36));
+  border-color:rgba(255,255,255,.72);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.66),0 18px 46px rgba(28,30,34,.12);
+  backdrop-filter:blur(26px) saturate(110%);
+  -webkit-backdrop-filter:blur(26px) saturate(110%);
+}
+[data-theme="glass"] .hero{
+  background:linear-gradient(135deg,rgba(255,255,255,.62),rgba(255,255,255,.3));
+  border-color:rgba(255,255,255,.76);
+  backdrop-filter:blur(28px) saturate(110%);
+  -webkit-backdrop-filter:blur(28px) saturate(110%);
+}
+[data-theme="glass"] .side-download{background:linear-gradient(140deg,#3a3c40,#1f2023);border-color:transparent;color:#fff}
+[data-theme="glass"] .queue-panel,
+[data-theme="glass"] .player-panel{
+  background:rgba(250,250,252,.9);
+  border-color:rgba(255,255,255,.8);
+  backdrop-filter:blur(30px) saturate(108%);
+  -webkit-backdrop-filter:blur(30px) saturate(108%);
+}
+[data-theme="glass"] .site-header{background:rgba(32,33,36,.72);backdrop-filter:blur(22px) saturate(110%);-webkit-backdrop-filter:blur(22px) saturate(110%)}
+@media(max-width:680px){
+  [data-theme="glass"] .mobile-tabbar{background:rgba(247,247,248,.92);border-top-color:rgba(255,255,255,.72)}
+  [data-theme="glass"] .mini-player{background:rgba(248,248,249,.9);border-color:rgba(255,255,255,.8)}
+}
+

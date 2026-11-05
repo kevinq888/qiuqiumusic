@@ -7,7 +7,7 @@
   const PLAY_MODE_KEY = 'qiuqiumusic.playmode';
   const PLAY_MODES = ['sequence', 'repeat-all', 'repeat-one'];
   const PLAY_MODE_NAMES = { sequence: '顺序播放', 'repeat-all': '列表循环', 'repeat-one': '单曲循环' };
-  const THEME_COLORS = { mint: '#f1f8f5', sky: '#f2f8fc', lilac: '#f8f5fb', sunset: '#fdf6ef', sakura: '#fdf3f6', dark: '#0f1a17', glass: '#e9eef7' };
+  const THEME_COLORS = { mint: '#f1f8f5', sky: '#f2f8fc', lilac: '#f8f5fb', sunset: '#fdf6ef', sakura: '#fdf3f6', dark: '#0f1a17', glass: '#e9eaed' };
   const tabId = Math.random().toString(36).slice(2);
   const channel = 'BroadcastChannel' in window ? new BroadcastChannel('qiuqiumusic.playback.v1') : null;
   const host = document.getElementById('site-player');
@@ -39,6 +39,10 @@
   const miniBar = document.getElementById('mini-progress-bar');
   const npCover = document.getElementById('np-cover');
   const npInitial = document.getElementById('np-initial');
+  const npCoverImg = document.getElementById('np-cover-img');
+  const miniCoverImg = document.getElementById('mini-cover-img');
+  const dockTitle = document.getElementById('player-dock-title');
+  const queuePosition = document.getElementById('queue-position');
   const artistNode = document.getElementById('player-artist');
   const queueBackdrop = document.getElementById('queue-backdrop');
   let installPrompt = null;
@@ -308,6 +312,7 @@
     const song = { id: String(button.dataset[idKey]), title: button.dataset[titleKey] };
     const artist = button.dataset.playArtist || button.dataset.songArtist;
     if (artist) song.artist = artist;
+    if (button.dataset.playCover) song.cover = button.dataset.playCover;
     return song;
   }
   // 源站标题多为「歌手-(编号)歌名」，部分含连续连字符（谭咏麟--一生中最爱）
@@ -329,14 +334,38 @@
     if (song?.artist) return song.artist;
     return splitTitle(song).artist || '秋秋音乐';
   }
-  function initialOf(song) {
-    const match = displayTitle(song).match(/[A-Za-z0-9\u4e00-\u9fa5]/);
-    return match ? match[0] : '♪';
-  }
+  // 封面图加载失败时回退到渐变首字块，避免出现空白卡片
+  document.addEventListener('error', event => {
+    const img = event.target;
+    if (!img || img.tagName !== 'IMG') return;
+    const wrapper = img.closest('.song-cover, .song-card-art, .np-cover, .mini-cover');
+    if (!wrapper) return;
+    wrapper.classList.remove('has-cover');
+    img.remove();
+  }, true);
   function coverHue(value) {
     let hash = 0;
     for (const char of String(value || '')) hash = (hash * 31 + char.charCodeAt(0)) % 360;
     return hash;
+  }
+  // 外部图床有防盗链，统一走站内 /cover/ 代理；已是站内地址则原样使用
+  function coverSrc(cover) {
+    if (!cover) return '';
+    const url = String(cover).replace(/^http:/, 'https:');
+    return url.startsWith('/') ? url : `/cover/${encodeURIComponent(url)}`;
+  }
+  // 有真实封面时显示图片，缺失时回退到渐变首字块
+  function setCoverImage(img, wrapper, cover) {
+    if (!img || !wrapper) return;
+    const url = coverSrc(cover);
+    wrapper.classList.toggle('has-cover', !!url);
+    if (url) {
+      if (img.getAttribute('src') !== url) img.src = url;
+      img.hidden = false;
+    } else {
+      img.removeAttribute('src');
+      img.hidden = true;
+    }
   }
   function contains(list, song) { return list.some(item => item.id === song.id); }
   function setBulkButton(button, label, completed) {
@@ -565,11 +594,18 @@
     // 计数徽标无条件刷新；清单有歌时播放键保持可用，解决"清单有歌却显示 0 首且无法播放"
     document.getElementById('player-play-pause').disabled = !current && !queue.length;
     const index = current ? queue.findIndex(song => song.id === current.id) + 1 : 0;
-    document.getElementById('queue-count').textContent = queue.length ? `${index}/${queue.length}` : '0';
+    // 「播放列表」按钮只显示清单总数，当前第几首单独展示，避免两个信息挤在同一胶囊
+    document.getElementById('queue-count').textContent = `共 ${queue.length} 首`;
+    const queueIndex = document.getElementById('queue-index');
+    if (queueIndex) queueIndex.textContent = String(index);
+    if (queuePosition) {
+      queuePosition.hidden = !index;
+      queuePosition.textContent = index ? `第 ${index} 首` : '';
+    }
     const queueTotal = document.getElementById('queue-total');
     if (queueTotal) queueTotal.textContent = String(queue.length);
     queueButton.setAttribute('aria-label', queue.length
-      ? `播放清单，当前第 ${index || 1} 首，共 ${queue.length} 首`
+      ? `播放清单，共 ${queue.length} 首，当前第 ${index || 1} 首`
       : '播放清单，暂无曲目');
     syncQueueHighlight();
     updateCacheMeters();
@@ -580,20 +616,27 @@
       artistNode.textContent = '秋秋音乐';
       miniTitle.textContent = '选择一首歌';
       miniArtist.textContent = '秋秋音乐';
+      if (dockTitle) dockTitle.textContent = '选择一首歌';
+      setCoverImage(npCoverImg, npCover);
+      setCoverImage(miniCoverImg, miniCover);
       return;
     }
     if (!initializing && !minimizedByUser && !host.classList.contains('is-expanded')) expand();
     const artist = artistOf(current);
-    titleNode.textContent = displayTitle(current);
+    const title = displayTitle(current);
+    titleNode.textContent = title;
     artistNode.textContent = artist;
-    miniTitle.textContent = displayTitle(current);
+    miniTitle.textContent = title;
     miniArtist.textContent = artist;
+    if (dockTitle) dockTitle.textContent = title;
+    setCoverImage(npCoverImg, npCover, current.cover);
+    setCoverImage(miniCoverImg, miniCover, current.cover);
     const hue = coverHue(current.id);
     npCover.style.setProperty('--hue', hue);
     miniCover.style.setProperty('--hue', hue);
     host.style.setProperty('--hue', hue);
-    npInitial.textContent = initialOf(current);
-    miniInitial.textContent = initialOf(current);
+    npInitial.textContent = '♪';
+    miniInitial.textContent = '♪';
     document.getElementById('player-favorite').classList.toggle('selected', contains(favorites, current));
     host.classList.toggle('is-playing', isPlaying);
     host.classList.toggle('is-remote', owner !== tabId);
@@ -706,7 +749,7 @@
       reloadPlayback = true;
       setBuffering(false);
       isPlaying = false;
-      if (error.name !== 'AbortError') playbackError = '音源暂时不可用，点击播放重试或切换下一首';
+      if (error.name !== 'AbortError') playbackError = '音源不可用，请切换下一首';
       updatePlayer();
       announce();
     });
@@ -784,7 +827,7 @@
         : '';
       const title = displayTitle(song);
       const artist = artistOf(song);
-      return `<div class="personal-song${isCurrent ? ' is-current' : ''}" data-song-id="${escapeHtml(song.id)}"${isCurrent ? ' aria-current="true"' : ''}><span class="personal-index">${String(index + 1).padStart(2, '0')}</span><div class="personal-main"><button type="button" data-play-id="${escapeHtml(song.id)}" data-play-title="${escapeHtml(song.title)}" data-play-artist="${escapeHtml(artist)}"><span class="personal-title">${escapeHtml(title)}</span><small class="personal-artist">${escapeHtml(artist)}</small></button>${meter}</div><button type="button" data-${kind === 'favorites' ? 'favorite' : 'remove'}-id="${escapeHtml(song.id)}" data-song-title="${escapeHtml(song.title)}" aria-label="${kind === 'favorites' ? '取消收藏' : '从播放清单移除'} ${escapeHtml(song.title)}">×</button></div>`;
+      return `<div class="personal-song${isCurrent ? ' is-current' : ''}" data-song-id="${escapeHtml(song.id)}"${isCurrent ? ' aria-current="true"' : ''}><span class="personal-index">${String(index + 1).padStart(2, '0')}</span><div class="personal-main"><button type="button" data-play-id="${escapeHtml(song.id)}" data-play-title="${escapeHtml(song.title)}" data-play-artist="${escapeHtml(artist)}"${song.cover ? ` data-play-cover="${escapeHtml(coverSrc(song.cover))}"` : ''}><span class="personal-title">${escapeHtml(title)}</span><small class="personal-artist">${escapeHtml(artist)}</small></button>${meter}</div><button type="button" data-${kind === 'favorites' ? 'favorite' : 'remove'}-id="${escapeHtml(song.id)}" data-song-title="${escapeHtml(song.title)}" aria-label="${kind === 'favorites' ? '取消收藏' : '从播放清单移除'} ${escapeHtml(song.title)}">×</button></div>`;
     }).join('');
   }
   function renderCollections() {
@@ -810,11 +853,25 @@
     updatePlayer();
     updateCacheMeters();
   }
+  // 只同步导航高亮，不重建顶栏/分类条/底部导航，避免整页“刷新一下”的观感
+  function syncNavState(pathname) {
+    const active = pathname === '/search.php' ? '/keyword.html' : pathname;
+    document.querySelectorAll('.main-nav a, .subnav a, .mobile-tabbar a').forEach(link => {
+      link.classList.toggle('active', new URL(link.getAttribute('href'), location.href).pathname === active);
+    });
+  }
   async function navigate(url, { replace = false, pop = false } = {}) {
     const target = new URL(url, location.href);
     if (target.origin !== location.origin) { location.href = target.href; return; }
     const id = ++navigationId;
-    showLoading(target.pathname === '/search.php' ? '正在搜索音乐…' : target.searchParams.has('page') ? '正在加载歌曲列表…' : '正在打开页面…');
+    const label = target.pathname === '/search.php' ? '正在搜索音乐…' : target.searchParams.has('page') ? '正在加载歌曲列表…' : '正在打开页面…';
+    let loadingShown = false;
+    // 无感刷新：请求足够快时不弹加载层，避免每次点击都闪一下
+    const loadingTimer = setTimeout(() => {
+      if (id !== navigationId) return;
+      loadingShown = true;
+      showLoading(label);
+    }, 200);
     try {
       const response = await fetch(target.href, { headers: { 'X-Requested-With': 'qiuqiumusic' } });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -827,14 +884,8 @@
       const css = document.querySelector('link[href*="/projects/source_code/css/site.css"]');
       if (newCss && css && css.getAttribute('href') !== newCss) css.setAttribute('href', newCss);
       document.querySelector('main.main-content').innerHTML = page.querySelector('main.main-content').innerHTML;
-      document.querySelector('.site-header').innerHTML = page.querySelector('.site-header').innerHTML;
-      // 分类条与手机底部导航也随页面切换，保证高亮状态同步
-      const subnav = document.querySelector('.subnav');
-      const newSubnav = page.querySelector('.subnav');
-      if (subnav && newSubnav) subnav.replaceWith(newSubnav);
-      const tabbar = document.querySelector('.mobile-tabbar');
-      const newTabbar = page.querySelector('.mobile-tabbar');
-      if (tabbar && newTabbar) tabbar.replaceWith(newTabbar);
+      syncNavState(target.pathname);
+      document.body.classList.remove('nav-open');
       document.title = page.title;
       if (!pop) history[replace ? 'replaceState' : 'pushState']({}, '', target.href);
       window.scrollTo({ top: 0, behavior: 'instant' });
@@ -846,12 +897,16 @@
       renderCollections();
     } catch {
       if (id === navigationId) {
+        clearTimeout(loadingTimer);
+        loadingShown = true;
+        showLoading('页面暂时无法打开，请稍后重试');
         loading.classList.add('is-error');
-        loading.querySelector('.route-loading-text').textContent = '页面暂时无法打开，请稍后重试';
         await new Promise(resolve => setTimeout(resolve, 1200));
       }
     } finally {
-      await hideLoading(id);
+      clearTimeout(loadingTimer);
+      if (loadingShown) await hideLoading(id);
+      else if (id === navigationId) loading.hidden = true;
     }
   }
   function internalLink(link) {
@@ -1098,7 +1153,7 @@
     setBuffering(false);
     if (owner === tabId) {
       isPlaying = false;
-      playbackError = '音源暂时不可用，点击播放重试或切换下一首';
+      playbackError = '音源不可用，请切换下一首';
       updatePlayer(); announce();
     }
   });

@@ -106,6 +106,12 @@ const server = http.createServer((req, res) => {
   // 静态资源
   if (serveStatic(req, res, p)) return;
 
+  // 封面代理：QQ 音乐 / 网易云图床都有防盗链，浏览器直连会被拒绝，这里由服务端带 Referer 取回
+  if (p.startsWith('/cover/')) {
+    serveCover(res, p.slice('/cover/'.length));
+    return;
+  }
+
   // 音频：优先读本地磁盘缓存（一周未命中自动清理），未命中由服务器带 Referer 拉取上游全量落盘，
   // 之后第二次播放直接从磁盘读取，不再访问外网；Range 拖动进度由本地文件切片实现。
   if (p.startsWith('/media/') && p.endsWith('.m4a')) {
@@ -345,6 +351,59 @@ function pipeAudioFile(filePath, res, options) {
   input.on('error', () => res.destroy());
   res.once('close', () => input.destroy());
   input.pipe(res);
+}
+
+// 封面代理：只允许已知图床，成功结果常驻内存（最多 400 张），失败返回 502 让前端回退到音符占位块
+const coverCache = new Map();
+const COVER_HOSTS = ['y.qq.com', 'p1.music.126.net', 'p2.music.126.net', 'p3.music.126.net', 'p4.music.126.net', 'img3.kuwo.cn'];
+function serveCover(res, rawTarget) {
+  let target;
+  try { target = new URL(decodeURIComponent(rawTarget)); } catch { target = null; }
+  if (!target || target.protocol !== 'https:' || !COVER_HOSTS.includes(target.hostname)) {
+    send(res, 400, 'Bad cover', 'text/plain; charset=utf-8');
+    return;
+  }
+  // 网易云原图常有几 MB，加 param 让图床直接给 300×300，减少流量
+  if (target.hostname.endsWith('music.126.net') && !target.searchParams.has('param')) {
+    target.searchParams.set('param', '300y300');
+  }
+  const cached = coverCache.get(target.href);
+  if (cached) {
+    res.writeHead(200, { 'Content-Type': cached.type, 'Cache-Control': 'public, max-age=604800, immutable' });
+    res.end(cached.body);
+    return;
+  }
+  const referer = target.hostname.endsWith('.qq.com') ? 'https://y.qq.com/'
+    : target.hostname.endsWith('kuwo.cn') ? 'https://www.kuwo.cn/' : 'https://music.163.com/';
+  const upstream = https.get(target.href, {
+    headers: { Referer: referer, 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36', Accept: 'image/*' },
+    timeout: 15000,
+  }, up => {
+    const type = String(up.headers['content-type'] || '').split(';')[0];
+    if (up.statusCode !== 200 || !type.startsWith('image/')) {
+      up.resume();
+      send(res, 502, 'Cover unavailable', 'text/plain; charset=utf-8');
+      return;
+    }
+    const chunks = [];
+    let size = 0;
+    up.on('data', chunk => {
+      size += chunk.length;
+      if (size > 4 * 1024 * 1024) { up.destroy(); return; }
+      chunks.push(chunk);
+    });
+    up.on('end', () => {
+      const body = Buffer.concat(chunks);
+      if (!body.length) return send(res, 502, 'Cover unavailable', 'text/plain; charset=utf-8');
+      if (coverCache.size >= 400) coverCache.delete(coverCache.keys().next().value);
+      coverCache.set(target.href, { type, body });
+      res.writeHead(200, { 'Content-Type': type, 'Cache-Control': 'public, max-age=604800, immutable' });
+      res.end(body);
+    });
+    up.on('error', () => {});
+  });
+  upstream.on('timeout', () => upstream.destroy());
+  upstream.on('error', () => send(res, 502, 'Cover unavailable', 'text/plain; charset=utf-8'));
 }
 
 // A failed/aborted upstream response must never become an unhandled stream
