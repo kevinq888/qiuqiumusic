@@ -1,7 +1,7 @@
 const { seed, getSong, proxyMediaUrl } = require('./store');
 
 const SITE = '秋秋音乐';
-const ASSET_VERSION = '20261022-install-wait';
+const ASSET_VERSION = '20261105-netease11';
 function esc(value) {
   return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -9,7 +9,10 @@ function esc(value) {
 function icon(name) {
   const paths = {
     search: '<circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/>',
-    play: '<path d="m8 5 11 7-11 7z"/>',
+    play: '<path fill="currentColor" stroke="none" d="M7 4.5v15l12-7.5z"/>',
+    pause: '<path fill="currentColor" stroke="none" d="M7.5 4.5h3.2v15H7.5zM13.3 4.5h3.2v15h-3.2z"/>',
+    prev: '<path fill="currentColor" stroke="none" d="M6 5h2v14H6zM18.5 5.4v13.2L9.3 12z"/>',
+    next: '<path fill="currentColor" stroke="none" d="M16 5h2v14h-2zM5.5 5.4v13.2L14.7 12z"/>',
     flame: '<path d="M12 22c4.4 0 7-3.3 7-7.3 0-3-1.7-5.4-4.5-7.8.2 3-1.3 4-2.3 4.3.7-3.7-.6-6.5-3.7-9.2.3 3.8-1.5 5.8-3.1 8C4.5 11.3 5 12.7 5 14.7 5 18.7 7.7 22 12 22z"/>',
     spark: '<path d="m12 2 1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8zM19 17l.6 1.4L21 19l-1.4.6L19 21l-.6-1.4L17 19l1.4-.6z"/>',
     clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
@@ -25,18 +28,80 @@ function icon(name) {
     save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
     sequence: '<path d="M4 6h16M4 12h16M4 18h10"/>',
     repeat: '<path d="m17 2 3 3-3 3M20 5H7a4 4 0 0 0-4 4v2m4 11-3-3 3-3m-3 3h13a4 4 0 0 0 4-4v-2"/>',
+    menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+    chevronDown: '<path d="m6 9 6 6 6-6"/>',
+    list: '<path d="M4 7h13M4 12h13M4 17h9"/><path fill="currentColor" stroke="none" d="M18 14.4v6.6l5-3.3z"/>',
+    home: '<path d="m3 10.2 9-7 9 7V20a1 1 0 0 1-1 1h-5v-6.5H9V21H4a1 1 0 0 1-1-1z"/>',
+    noteBadge: '<rect x="4" y="3" width="16" height="18" rx="3.2"/><path d="M8 8.5h8M8 12.5h8M8 16.5h5"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4.5 20c0-4 3.4-6.2 7.5-6.2s7.5 2.2 7.5 6.2"/>',
+    comment: '<path d="M20.5 11.2a8.2 8.2 0 0 1-8.2 8.2H8.6L4 22l1-3.7A8.2 8.2 0 1 1 20.5 11.2Z"/><path d="M8.4 9.4h7.2M8.4 12.9h4.6"/>',
+    dots: '<circle cx="12" cy="5.2" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="18.8" r="1.5" fill="currentColor" stroke="none"/>',
+    trash: '<path d="M4 7h16M9.5 7V4.2h5V7M6.5 7l.9 13.4h9.2l.9-13.4"/>',
+    scan: '<path d="M4 9V5h4M20 9V5h-4M4 15v4h4M20 15v4h-4"/><path d="M3 12h18"/>',
   };
   return `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.note}</svg>`;
 }
+// 无真实封面时用歌曲 id 生成稳定色相，让每个封面色块都可区分
+function coverHue(value) {
+  let hash = 0;
+  for (const char of String(value)) hash = (hash * 31 + char.charCodeAt(0)) % 360;
+  return hash;
+}
+function cleanTitle(song) {
+  // 源站部分标题带抓取编号，如 "周杰伦-(1781417012)晴天"：展示时去掉编号前缀
+  return String(song.title || '').replace(/^\(\d{5,}\)/, '').trim();
+}
+function splitTitle(song) {
+  const title = cleanTitle(song);
+  const match = title.match(/-+/);
+  if (!match || match.index <= 0) return { artist: '', song: title };
+  return {
+    artist: title.slice(0, match.index).trim(),
+    song: title.slice(match.index + match[0].length).replace(/^\(\d{5,}\)/, '').trim(),
+  };
+}
+function displayTitle(song) {
+  if (song.song) return String(song.song);
+  return splitTitle(song).song || cleanTitle(song);
+}
+function artistOf(song) {
+  if (song.artist) return song.artist;
+  return splitTitle(song).artist || '秋秋音乐';
+}
+function initialOf(song) {
+  const text = String(displayTitle(song) || '').trim();
+  const match = text.match(/[A-Za-z0-9\u4e00-\u9fa5]/);
+  return match ? match[0] : '♪';
+}
+function coverMark(song, className = 'song-cover') {
+  return `<span class="${className}" style="--hue:${coverHue(song.id || song.title)}" aria-hidden="true"><i></i><b>${esc(initialOf(song))}</b></span>`;
+}
+function songData(song) {
+  return `data-play-id="${esc(song.id)}" data-play-title="${esc(song.title)}" data-play-artist="${esc(artistOf(song))}"`;
+}
 function songLink(song, label) {
-  return `<a class="song-link" href="/library/${esc(song.id)}.html" data-play-id="${esc(song.id)}" data-play-title="${esc(song.title)}" title="播放 ${esc(song.title)}">${label || esc(song.title)}</a>`;
+  return `<a class="song-link" href="/library/${esc(song.id)}.html" ${songData(song)} title="播放 ${esc(song.title)}">${label || esc(displayTitle(song))}</a>`;
 }
 function pageHead(title, description = '听见喜欢的声音。秋秋音乐，发现与分享好音乐。') {
   return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f1f8f5"><meta name="description" content="${esc(description)}"><meta name="keywords" content="秋秋音乐,qiuqiumusic,在线音乐,音乐播放"><title>${SITE} · ${esc(title)}</title><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="秋秋音乐"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="icon" href="/projects/source_code/picture/logo.svg" type="image/svg+xml"><link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png"><link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png"><script>try{document.documentElement.dataset.theme=localStorage.getItem('qiuqiumusic.theme')||'mint'}catch{}</script><link rel="stylesheet" href="/projects/source_code/css/site.css?v=${ASSET_VERSION}"><script src="/projects/source_code/js/desktop-download.js?v=${ASSET_VERSION}" defer></script><script src="/projects/source_code/js/desktop-update.js?v=${ASSET_VERSION}" defer></script><script src="/projects/source_code/js/app.js?v=${ASSET_VERSION}" defer></script></head><body>`;
 }
+// 顶栏：电脑端深色导航 + 红色调分类条；手机端只保留菜单、标识与搜索入口
 function nav(active = '') {
-  const links = [['/', '发现'], ['/charts', '排行榜'], ['/navigation/1/', '最近更新'], ['/navigation/2/', '歌单'], ['/hotsgr.html', '歌手'], ['/keyword.html', '热搜'], ['/my-music', '我的音乐']];
-  return `<header class="site-header"><div class="shell nav-shell"><a class="brand" href="/" aria-label="秋秋音乐首页"><img src="/projects/source_code/picture/logo.svg" alt="" width="44" height="44"><span><strong>秋秋音乐</strong><small>qiuqiumusic</small></span></a><nav class="main-nav" aria-label="主导航">${links.map(([url, text]) => `<a href="${url}" class="${active === url ? 'active' : ''}">${text}</a>`).join('')}</nav><button id="nav-scroll-next" class="nav-scroll-next" type="button" aria-label="向右查看更多导航">${icon('arrow')}</button><div class="header-actions"><div class="desktop-download-wrap" hidden><a id="desktop-download" aria-label="下载桌面版" class="desktop-download-button" href="https://github.com/kevinq888/qiuqiumusic/releases/latest" data-desktop-package hidden aria-controls="desktop-download-choices" aria-expanded="false">${icon('download')}<span class="download-label">下载桌面版</span></a><div id="desktop-download-choices" class="desktop-download-choices" hidden><strong>选择你的 Mac 芯片</strong><a href="/download/desktop/macos-arm64" data-desktop-package>Apple 芯片 <small>M1 / M2 / M3 / M4 / M5</small></a><a href="/download/desktop/macos-x64" data-desktop-package>Intel 芯片 <small>Intel Mac</small></a><p>下载后双击打开安装包，按提示完成安装。</p></div></div><button class="install-button" id="install-app" type="button" aria-label="保存秋秋音乐链接">${icon('save')}<span>保存链接</span></button><div class="theme-picker"><button class="theme-trigger" id="theme-mobile-trigger" type="button" aria-label="切换皮肤" aria-haspopup="dialog" aria-expanded="false"><span class="theme-trigger-mark" aria-hidden="true">◐</span><span id="theme-mobile-label">薄荷绿</span></button></div></div></div></header>`;
+  const links = [['/', '发现音乐'], ['/charts', '排行榜'], ['/navigation/1/', '最近更新'], ['/navigation/2/', '歌单'], ['/hotsgr.html', '歌手'], ['/keyword.html', '热搜'], ['/my-music', '我的音乐']];
+  const tabs = [['/', '推荐'], ['/charts', '排行榜'], ['/navigation/2/', '歌单'], ['/hotsgr.html', '歌手'], ['/navigation/1/', '新歌'], ['/keyword.html', '热搜']];
+  return `<header class="site-header"><div class="shell nav-shell"><button class="mobile-menu" id="mobile-menu" type="button" aria-label="打开导航" aria-expanded="false" aria-controls="main-nav">${icon('menu')}</button><a class="brand" href="/" aria-label="秋秋音乐首页"><img src="/projects/source_code/picture/logo.svg" alt="" width="40" height="40"><span><strong>秋秋音乐</strong><small>qiuqiumusic</small></span></a><a class="mobile-search" href="/keyword.html" aria-label="搜索音乐">${icon('search')}<span>搜索歌曲、歌手</span>${icon('scan')}</a><nav class="main-nav" id="main-nav" aria-label="主导航">${links.map(([url, text]) => `<a href="${url}" class="${active === url ? 'active' : ''}">${text}</a>`).join('')}</nav><button id="nav-scroll-next" class="nav-scroll-next" type="button" aria-label="向右查看更多导航">${icon('arrow')}</button><form class="nav-search" action="/search.php" method="get" role="search"><label class="sr-only" for="nav-search-input">搜索歌曲或歌手</label><input id="nav-search-input" name="q" type="search" placeholder="搜索歌曲/歌手"><button type="submit" aria-label="搜索">${icon('search')}</button></form><div class="header-actions"><div class="desktop-download-wrap" hidden><a id="desktop-download" aria-label="下载桌面版" class="desktop-download-button" href="https://github.com/kevinq888/qiuqiumusic/releases/latest" data-desktop-package hidden aria-controls="desktop-download-choices" aria-expanded="false">${icon('download')}<span class="download-label">下载桌面版</span></a><div id="desktop-download-choices" class="desktop-download-choices" hidden><strong>选择你的 Mac 芯片</strong><a href="/download/desktop/macos-arm64" data-desktop-package>Apple 芯片 <small>M1 / M2 / M3 / M4 / M5</small></a><a href="/download/desktop/macos-x64" data-desktop-package>Intel 芯片 <small>Intel Mac</small></a><p>下载后双击打开安装包，按提示完成安装。</p></div></div><button class="install-button" id="install-app" type="button" aria-label="保存秋秋音乐链接">${icon('save')}<span>保存链接</span></button><div class="theme-picker"><button class="theme-trigger" id="theme-mobile-trigger" type="button" aria-label="切换皮肤" aria-haspopup="dialog" aria-expanded="false"><span class="theme-trigger-mark" aria-hidden="true">◐</span><span id="theme-mobile-label">薄荷绿</span></button></div></div></div></header><nav class="subnav" aria-label="分类导航">${tabs.map(([url, text]) => `<a href="${url}" class="${active === url ? 'active' : ''}">${text}</a>`).join('')}</nav>`;
+}
+// 手机端底部导航：首页 / 搜索 / 笔记 / 我的
+function mobileTabbar(active = '') {
+  const tabs = [
+    ['/', '首页', 'home'],
+    ['/keyword.html', '搜索', 'search'],
+    ['/navigation/2/', '笔记', 'noteBadge'],
+    ['/my-music', '我的', 'user'],
+  ];
+  const map = { '/search.php': '/keyword.html' };
+  const current = map[active] || active;
+  return `<nav class="mobile-tabbar" aria-label="底部导航">${tabs.map(([url, text, iconName]) => `<a href="${url}" class="${current === url ? 'active' : ''}">${icon(iconName)}<span>${text}</span></a>`).join('')}</nav>`;
 }
 function searchForm(q = '') {
   return `<form class="search-form" action="/search.php" method="get" role="search"><label class="sr-only" for="song-search">搜索歌曲或歌手</label>${icon('search')}<input id="song-search" name="q" type="search" value="${esc(q)}" placeholder="搜索歌曲、歌手，开启好心情" required><button type="submit">搜索音乐 ${icon('arrow')}</button></form>`;
@@ -47,8 +112,9 @@ function searchIntro(title, description, query = '', notice = '') {
 function footer() {
   return `<footer class="site-footer"><div class="shell footer-content footer-simple"><span class="footer-copy">© ${new Date().getFullYear()} qiuqiumusic</span><span class="footer-tagline">秋秋音乐，让每一次播放，都刚好合你心意。</span></div></footer>`;
 }
+// 播放器：电脑端底部播放栏 + 手机端迷你胶囊 / 全屏播放页，共用同一套控件
 function player() {
-  return `<aside class="player-host" id="site-player" aria-label="音乐播放器"><button class="vinyl-toggle" id="player-toggle" type="button" aria-label="展开播放器" aria-expanded="false"><span class="vinyl-disc"><span class="vinyl-label">${icon('vinylNote')}</span></span></button><section class="player-panel" id="player-panel" aria-label="当前播放" hidden><div class="player-panel-head"><div><small>秋秋音乐 · <span id="player-state">待命中</span></small><h2 id="player-title">选择一首歌</h2></div><button id="player-collapse" class="icon-button" type="button" aria-label="收起播放器">${icon('minimize')}</button></div><audio id="player-audio" preload="none" aria-hidden="true" tabindex="-1"></audio><div class="player-timeline" id="player-timeline"><span id="player-current-time">0:00</span><input id="player-seek" type="range" min="0" max="0" step="0.1" value="0" aria-label="播放进度" disabled><span id="player-duration">--:--</span></div><div class="player-remote-progress" id="player-remote-progress" hidden><span id="player-remote-time">0:00 / --:--</span><progress id="player-remote-bar" max="1" value="0" aria-label="另一标签页的播放进度"></progress></div><div class="player-actions"><div class="player-transport"><button id="player-prev" type="button" aria-label="上一首" disabled>⏮</button><button id="player-play-pause" type="button" aria-label="播放或暂停" disabled>⏯</button><button id="player-next" type="button" aria-label="下一首" disabled>⏭</button></div><div class="player-options"><button id="player-mode" class="mode-button" type="button" data-mode="sequence" aria-label="播放模式：顺序播放，点击切换" title="顺序播放"><span class="mode-icon mode-sequence">${icon('sequence')}</span><span class="mode-icon mode-repeat">${icon('repeat')}</span><span class="mode-icon mode-one">${icon('repeat')}<b>1</b></span><span class="mode-label">顺序播放</span></button><button id="player-favorite" type="button" aria-label="收藏当前歌曲" disabled>${icon('heart')}</button><button id="player-queue" type="button" aria-label="播放清单" aria-controls="queue-panel" aria-expanded="false">${icon('note')} <span id="queue-count">0</span></button></div></div></section><button id="player-collapse-desktop" class="player-collapse-desktop" type="button" aria-label="最小化播放器">${icon('minimize')}</button><section class="queue-panel" id="queue-panel" aria-label="播放清单" hidden><div class="queue-head"><div><small>我的歌单 <b id="queue-cache-summary" class="queue-cache-summary" hidden>已缓存 0/0</b></small><h2>播放清单</h2></div><button id="queue-close" class="icon-button" type="button" aria-label="关闭播放清单">×</button></div><div id="queue-items" class="queue-items"></div><p class="queue-note">加入清单后自动逐首缓存，一周未播放的曲目会自动清理。</p></section></aside>`;
+  return `<aside class="player-host" id="site-player" aria-label="音乐播放器"><button class="vinyl-toggle" id="player-toggle" type="button" aria-label="展开播放器" aria-expanded="false"><span class="vinyl-disc"><span class="vinyl-label">${icon('vinylNote')}</span></span></button><div class="mini-player" id="mini-player" hidden><button class="mini-open" id="mini-open" type="button" aria-label="打开播放页"><span class="mini-cover" id="mini-cover"><b id="mini-initial">♪</b></span><span class="mini-meta"><strong id="mini-title">选择一首歌</strong><small id="mini-artist">秋秋音乐</small></span></button><button class="mini-play" id="mini-play" type="button" aria-label="播放或暂停"><span class="tp-icon tp-play">${icon('play')}</span><span class="tp-icon tp-pause">${icon('pause')}</span></button><button class="mini-queue" id="mini-queue" type="button" aria-label="播放清单">${icon('list')}</button><span class="mini-progress" aria-hidden="true"><i id="mini-progress-bar"></i></span></div><section class="player-panel" id="player-panel" aria-label="当前播放" hidden><div class="np-top"><button id="player-collapse" class="np-icon" type="button" aria-label="收起播放页">${icon('chevronDown')}</button><span class="np-top-title">正在播放</span><button class="np-icon" type="button" data-queue-toggle aria-label="播放清单">${icon('list')}</button></div><div class="np-art" aria-hidden="true"><span class="np-arm"></span><div class="np-disc"><span class="np-cover" id="np-cover"><b id="np-initial">♪</b></span></div></div><div class="player-panel-head"><div><small>秋秋音乐 · <span id="player-state">待命中</span></small><h2 id="player-title">选择一首歌</h2><div class="np-artist-line"><span id="player-artist">秋秋音乐</span><button class="np-follow" id="player-follow" type="button">关注</button></div></div><button id="player-collapse-desktop" class="icon-button" type="button" aria-label="收起播放器">${icon('minimize')}</button></div><audio id="player-audio" preload="none" aria-hidden="true" tabindex="-1"></audio><div class="player-timeline" id="player-timeline"><span id="player-current-time">0:00</span><input id="player-seek" type="range" min="0" max="0" step="0.1" value="0" aria-label="播放进度" disabled><span id="player-duration">--:--</span><span class="np-quality">极高音质</span></div><div class="player-remote-progress" id="player-remote-progress" hidden><span id="player-remote-time">0:00 / --:--</span><progress id="player-remote-bar" max="1" value="0" aria-label="另一标签页的播放进度"></progress></div><div class="player-actions"><div class="player-transport"><button id="player-prev" type="button" aria-label="上一首" disabled class="tp-prev">${icon('prev')}</button><button id="player-play-pause" type="button" aria-label="播放或暂停" disabled><span class="tp-icon tp-play">${icon('play')}</span><span class="tp-icon tp-pause">${icon('pause')}</span></button><button id="player-next" type="button" aria-label="下一首" disabled>${icon('next')}</button></div><div class="player-options"><button id="player-mode" class="mode-button" type="button" data-mode="sequence" aria-label="播放模式：顺序播放，点击切换" title="顺序播放"><span class="mode-icon mode-sequence">${icon('sequence')}</span><span class="mode-icon mode-repeat">${icon('repeat')}</span><span class="mode-icon mode-one">${icon('repeat')}<b>1</b></span><span class="mode-label">顺序播放</span></button><button id="player-favorite" type="button" aria-label="收藏当前歌曲" disabled>${icon('heart')}</button><button id="player-queue" type="button" aria-label="播放清单" aria-controls="queue-panel" aria-expanded="false">${icon('list')} <span id="queue-count">0</span></button></div></div></section><div class="queue-backdrop" id="queue-backdrop" data-queue-close hidden></div><section class="queue-panel" id="queue-panel" aria-label="播放清单" hidden><span class="queue-handle" aria-hidden="true"></span><div class="queue-head"><div><small>我的歌单 <b id="queue-cache-summary" class="queue-cache-summary" hidden>已缓存 0/0</b></small><h2>当前播放 <b id="queue-total">0</b></h2></div><div class="queue-head-actions"><button id="queue-clear" class="icon-button" type="button" aria-label="清空播放清单">${icon('trash')}</button><button id="queue-close" class="icon-button" type="button" aria-label="关闭播放清单">×</button></div></div><p class="queue-source">来自：秋秋音乐 · 心动模式</p><div id="queue-items" class="queue-items"></div><p class="queue-note">加入清单后自动逐首缓存，一周未播放的曲目会自动清理。</p><div class="queue-foot"><button id="queue-mode" class="queue-pill" type="button"><span class="mode-icon">${icon('sequence')}</span><span id="queue-mode-label">顺序播放</span></button><button class="queue-pill queue-pill-ghost" type="button" data-queue-close>收起清单</button></div></section></aside>`;
 }
 function loadingOverlay() {
   return `<div class="route-loading" id="route-loading" role="status" aria-live="polite" aria-label="正在加载" hidden><div class="route-loading-card"><span class="route-loading-record" aria-hidden="true"><span>${icon('music')}</span></span><strong class="route-loading-text">正在加载，请稍候…</strong><small>好音乐，马上就来</small></div></div>`;
@@ -57,11 +123,11 @@ function installDialog() {
   return `<div class="install-dialog" id="install-dialog" hidden><div class="install-backdrop" data-install-close></div><section class="install-card" role="dialog" aria-modal="true" aria-labelledby="install-title" aria-describedby="install-instructions"><button class="install-close" type="button" data-install-close aria-label="关闭">×</button><div class="install-card-icon"><img src="/icons/icon-192.png" alt=""></div><span class="eyebrow">随时打开秋秋音乐</span><h2 id="install-title">保存秋秋音乐链接</h2><p id="install-instructions"></p><div class="install-actions"><button class="install-copy-link" id="install-copy-link" type="button" hidden>复制网站链接</button><button class="install-done" type="button" data-install-close>知道了</button></div></section></div>`;
 }
 function themeSheet() {
-  const choices = [['mint', '薄荷绿', '#58b79d'], ['sky', '晴空蓝', '#70b1df'], ['lilac', '晨雾紫', '#a890ce'], ['sunset', '日落橙', '#e99b69'], ['sakura', '樱花粉', '#e796ae'], ['dark', '暗夜黑', '#19352d']];
+  const choices = [['mint', '薄荷绿', '#58b79d'], ['sky', '晴空蓝', '#70b1df'], ['lilac', '晨雾紫', '#a890ce'], ['sunset', '日落橙', '#e99b69'], ['sakura', '樱花粉', '#e796ae'], ['dark', '暗夜黑', '#19352d'], ['glass', '毛玻璃', '#d5deec']];
   return `<div class="theme-sheet" id="theme-sheet" hidden><button class="theme-sheet-backdrop" type="button" data-theme-close aria-label="关闭皮肤选择"></button><section class="theme-sheet-card" role="dialog" aria-modal="true" aria-labelledby="theme-sheet-title"><div class="theme-sheet-head"><div><small>挑选喜欢的色彩</small><h2 id="theme-sheet-title">切换皮肤</h2></div><button class="theme-sheet-close" type="button" data-theme-close aria-label="关闭">×</button></div><div class="theme-choices">${choices.map(([value, label, color]) => `<button class="theme-choice" type="button" data-theme-choice="${value}" style="--theme-swatch:${color}" aria-pressed="false"><span class="theme-swatch" aria-hidden="true"></span><span>${label}</span><span class="theme-check" aria-hidden="true">✓</span></button>`).join('')}</div></section></div>`;
 }
 function layout(title, body, active = '', description) {
-  return `${pageHead(title, description)}${nav(active)}<main class="shell main-content">${body}</main>${footer()}${player()}${loadingOverlay()}${installDialog()}${themeSheet()}</body></html>`;
+  return `${pageHead(title, description)}${nav(active)}<main class="shell main-content">${body}</main>${footer()}${player()}${mobileTabbar(active)}${loadingOverlay()}${installDialog()}${themeSheet()}</body></html>`;
 }
 function section(title, eyebrow, content, more, iconName = 'spark', className = '', action = '') {
   return `<section class="panel ${className}"><div class="panel-heading"><div class="heading-icon">${icon(iconName)}</div><div><span class="eyebrow">${esc(eyebrow)}</span><h2>${esc(title)}</h2></div>${action}${more ? `<a class="more-link" href="${more}">查看更多 ${icon('arrow')}</a>` : ''}</div>${content}</section>`;
@@ -79,27 +145,38 @@ function songRows(items, start = 1, { date = false, trend = null, plays = false 
   return `<div class="song-list">${items.map((song, index) => {
     const n = start + index;
     const medal = trend ? rankClass(n) : (index < 3 && start === 1 ? 'top-rank' : '');
-    return `<div class="song-row"><span class="song-rank ${medal}">${String(n).padStart(2, '0')}</span>${trend ? trendBadge(trend.get(String(song.id))) : ''}<div class="song-main">${songLink(song)}<small>${esc(song.artist || song.title.split('-')[0] || '秋秋音乐')}</small></div>${plays && song.plays ? `<span class="song-plays">${song.plays} 次点播</span>` : ''}${date && song.date ? `<span class="song-date">${esc(song.date)}</span>` : ''}<button class="song-action favorite-button" type="button" data-favorite-id="${esc(song.id)}" data-song-title="${esc(song.title)}" aria-label="收藏 ${esc(song.title)}">${icon('heart')}</button><button class="song-action add-button" type="button" data-add-id="${esc(song.id)}" data-song-title="${esc(song.title)}" aria-label="加入播放清单 ${esc(song.title)}">${icon('plus')}</button><button class="play-button" type="button" data-play-id="${esc(song.id)}" data-play-title="${esc(song.title)}" aria-label="播放 ${esc(song.title)}">${icon('play')}</button></div>`;
+    return `<div class="song-row"><span class="song-rank ${medal}">${String(n).padStart(2, '0')}</span>${coverMark(song)}<div class="song-main">${songLink(song)}<small>${esc(artistOf(song))}</small></div>${trend ? trendBadge(trend.get(String(song.id))) : ''}${plays && song.plays ? `<span class="song-plays">${song.plays} 次点播</span>` : ''}${date && song.date ? `<span class="song-date">${esc(song.date)}</span>` : ''}<button class="song-action favorite-button" type="button" data-favorite-id="${esc(song.id)}" data-song-title="${esc(song.title)}" aria-label="收藏 ${esc(song.title)}">${icon('heart')}</button><button class="song-action add-button" type="button" data-add-id="${esc(song.id)}" data-song-title="${esc(song.title)}" data-song-artist="${esc(artistOf(song))}" aria-label="加入播放清单 ${esc(song.title)}">${icon('plus')}</button><button class="play-button" type="button" ${songData(song)} aria-label="播放 ${esc(song.title)}">${icon('play')}</button></div>`;
   }).join('')}</div>`;
+}
+// 卡片式歌曲网格：电脑端四列、手机端三列，接近网易云「热门推荐」的封面卡片
+function songCards(items) {
+  return `<div class="song-cards">${items.map(song => `<article class="song-card" ${songData(song)}><span class="song-card-art" style="--hue:${coverHue(song.id || song.title)}"><span class="song-card-grain"></span><b>${esc(initialOf(song))}</b><span class="song-card-play">${icon('play')}</span></span><strong class="song-card-title">${esc(displayTitle(song))}</strong><small class="song-card-artist">${esc(artistOf(song))}</small></article>`).join('')}</div>`;
+}
+function featurePanel(title, eyebrow, content, more, tabs = [], iconName = 'flame') {
+  return `<section class="panel feature-panel"><div class="panel-heading"><div class="heading-icon">${icon(iconName)}</div><div><span class="eyebrow">${esc(eyebrow)}</span><h2>${esc(title)}</h2></div>${tabs.length ? `<div class="feature-tabs">${tabs.map((tab, i) => `<a href="/search.php?q=${encodeURIComponent(tab)}" class="${i === 0 ? 'active' : ''}">${esc(tab)}</a>`).join('')}</div>` : ''}<a class="more-link" href="${more}">更多 ${icon('arrow')}</a></div>${content}</section>`;
 }
 function bulkAction(items) {
   return items.length ? `<button class="add-all-button" type="button" data-add-page aria-live="polite" aria-label="一键将本页 ${items.length} 首歌曲加入播放清单"><span class="add-all-icon">${icon('plus')}</span><span class="add-all-text">一键加入歌单</span><span class="add-all-count">${items.length} 首</span></button>` : '';
 }
 function homePage(live = {}) {
-  const hot = seed.hot_tags.slice(0, 16).map(song => `<a href="/library/${esc(song.id)}.html" class="mood-tag" data-play-id="${esc(song.id)}" data-play-title="${esc(song.title)}">${esc(song.title)}</a>`).join('');
-  const intro = `<section class="hero"><div class="hero-copy"><span class="hero-kicker">每日好音乐 <span>✦</span></span><h1>让喜欢的音乐，<br><em>刚好遇见你。</em></h1><p>从此刻的心情出发，听一首属于今天的歌。</p>${searchForm()}<div class="hero-notes"><span>${icon('headphones')} 随时在线聆听</span><span>${icon('spark')} 每日发现新声</span></div></div><div class="hero-graphic" aria-hidden="true"><div class="disc"><div class="disc-inner"><img src="/projects/source_code/picture/logo.svg" alt=""></div></div><span class="float-note note-one">♫</span><span class="float-note note-two">♪</span><span class="graphic-caption">听见此刻的喜欢。</span></div></section>`;
-  const featured = section('此刻热门', '此刻流行', `<div class="mood-tags">${hot}</div>`, '/viewmor.html', 'flame', 'trending-panel');
+  const hot = seed.hot_tags.slice(0, 16).map(song => `<a href="/library/${esc(song.id)}.html" class="mood-tag" ${songData(song)}>${esc(displayTitle(song))}</a>`).join('');
+  const hero = `<section class="hero"><span class="hero-badge">每日推荐</span><div class="hero-copy"><span class="hero-kicker">今日好音乐 <span>✦</span></span><h1>让喜欢的音乐，<br><em>刚好遇见你。</em></h1><p>从此刻的心情出发，听一首属于今天的歌。</p>${searchForm()}<div class="hero-notes"><span>${icon('headphones')} 随时在线聆听</span><span>${icon('spark')} 每日发现新声</span></div></div><div class="hero-graphic" aria-hidden="true"><div class="disc"><div class="disc-inner"><img src="/projects/source_code/picture/logo.svg" alt=""></div></div><span class="float-note note-one">♫</span><span class="float-note note-two">♪</span><span class="graphic-caption">听见此刻的喜欢。</span></div></section>`;
+  const side = `<aside class="home-side"><div class="side-card side-download"><span class="side-eyebrow">桌面客户端</span><h3>把音乐带到桌面</h3><p>独立窗口、悬浮黑胶，开机就能听。</p><a class="side-primary" href="https://github.com/kevinq888/qiuqiumusic/releases/latest">${icon('download')} 下载客户端</a><div class="side-links"><a href="/charts">排行榜</a><a href="/navigation/2/">精选歌单</a><a href="/hotsgr.html">人气歌手</a></div></div><div class="side-card side-theme"><div class="side-theme-head"><span class="side-eyebrow">主题皮肤</span><span id="side-theme-name">薄荷绿</span></div><p>七套配色，随时把界面换成今天的心情。</p><button class="side-theme-open" type="button" data-open-theme>切换皮肤 ${icon('arrow')}</button></div></aside>`;
+  const entries = `<div class="entry-grid"><a class="entry entry-a" href="/charts"><b>排行榜</b><small>每日更新</small><span class="entry-art">${icon('flame')}</span></a><a class="entry entry-b" href="/navigation/2/"><b>歌单</b><small>精选合集</small><span class="entry-art">${icon('note')}</span></a><a class="entry entry-c" href="/hotsgr.html"><b>歌手</b><small>熟悉的名字</small><span class="entry-art">${icon('user')}</span></a><a class="entry entry-d" href="/keyword.html"><b>热搜</b><small>大家正在听</small><span class="entry-art">${icon('search')}</span></a></div>`;
   const latestItems = live.latest?.length ? live.latest : seed.nav1;
   const recItems = live.recommend?.length ? live.recommend : seed.rank_recommend;
   const hotItems = live.hot?.length ? live.hot : seed.rank_hot;
-  // 各区块之间去重：源站同一首歌可能存在多个条目，按标题去重更符合浏览观感
-  const seen = new Set();
-  const dedup = list => list.filter(song => !seen.has(song.title) && seen.add(song.title));
-  const latest = section('最近更新', '新歌上架', songRows(dedup(latestItems).slice(0, 8), 1, { date: true }), '/navigation/1/', 'clock');
-  const rec = section('推荐歌曲', '为你推荐', songRows(dedup(recItems).slice(0, 6)), '/ranking/recommend', 'spark');
-  const popular = section('热门歌曲', '热门点播', songRows(dedup(hotItems).slice(0, 6)), '/ranking/hot', 'flame');
-  // 热歌与新歌板块靠前，方便打开首页先看到；标签云与推荐随后。
-  return layout('发现好音乐', `${intro}<div class="home-grid">${popular}${latest}</div><div class="home-grid ranking-grid">${featured}${rec}</div>`, '/');
+  // 去重：源站同一首歌可能存在多个条目，同一区块内按标题去重，避免卡片重复
+  const unique = list => {
+    const seen = new Set();
+    return list.filter(song => !seen.has(song.title) && seen.add(song.title));
+  };
+  const recommended = featurePanel('热门推荐', '此刻流行', songCards(unique(hotItems).slice(0, 8)), '/ranking/hot', ['华语', '流行', '摇滚', '民谣', '电子'], 'flame');
+  const latest = featurePanel('最近更新', '新歌上架', songCards(unique(latestItems).slice(0, 8)), '/navigation/1/', ['新歌', '推荐', '原创'], 'clock');
+  const featured = section('此刻热门', '此刻流行', `<div class="mood-tags">${hot}</div>`, '/viewmor.html', 'flame', 'trending-panel');
+  const rec = section('为你推荐', '猜你喜欢', songRows(unique(recItems).slice(0, 7)), '/ranking/recommend', 'spark');
+  const popular = section('热门点播', '热门歌曲', songRows(unique(hotItems).slice(0, 7)), '/ranking/hot', 'flame');
+  return layout('发现好音乐', `<div class="home-top">${hero}${side}</div>${entries}${recommended}${latest}<div class="home-grid ranking-grid">${popular}${rec}</div><div class="home-grid ranking-grid">${featured}</div>`, '/');
 }
 function pager(base, page, pages) {
   if (pages <= 1) return '';
@@ -129,15 +206,15 @@ function searchPage(query, results) {
   const base = `/search.php?q=${encodeURIComponent(query)}`;
   const pageNav = page > 1 || hasNext ? `<nav class="pager" aria-label="搜索分页">${page > 1 ? `<a href="${base}&page=${page - 1}">上一页</a>` : ''}<span class="current" aria-current="page">第 ${page} 页</span>${hasNext ? `<a href="${base}&page=${page + 1}">下一页</a>` : ''}</nav>` : '';
   const description = source === 'local' && !items.length ? `“${esc(query)}”暂未找到歌曲` : `“${esc(query)}”本页找到 ${items.length} 首歌曲`;
-  return layout(`搜索 ${query}`, `${searchIntro('搜索结果', description, query, notice)}${section('歌曲', '搜索结果', items.length ? songRows(items, (page - 1) * 20 + 1) : '<div class="empty-state">没有找到相关歌曲，换个关键词试试。</div>', null, 'search', 'bulk-panel', bulkAction(items))}${pageNav}`);
+  return layout(`搜索 ${query}`, `${searchIntro('搜索结果', description, query, notice)}${section('歌曲', '搜索结果', items.length ? songRows(items, (page - 1) * 20 + 1) : '<div class="empty-state">没有找到相关歌曲，换个关键词试试。</div>', null, 'search', 'bulk-panel', bulkAction(items))}${pageNav}`, '/search.php');
 }
 function songPage(song) {
   const { title, artist, cover, lyrics } = song;
   const coverHtml = cover ? `<img class="detail-cover" src="${esc(cover)}" alt="${esc(title)} 封面" loading="lazy">` : `<div class="detail-cover placeholder">${icon('note')}</div>`;
-  return layout(title, `<div class="page-intro"><span class="eyebrow">歌曲详情</span><h1>${esc(title)}</h1><p>${esc(artist || '秋秋音乐')}</p></div><section class="panel song-detail"><div class="detail-top">${coverHtml}<div class="detail-copy"><span class="eyebrow">好歌分享</span><h2>${esc(title)}</h2><p>${esc(artist || '音乐让此刻更动听')}</p><div class="detail-actions"><button class="primary-action" type="button" data-play-id="${esc(song.id)}" data-play-title="${esc(title)}">${icon('play')} 立即播放</button><button class="secondary-action favorite-button" type="button" data-favorite-id="${esc(song.id)}" data-song-title="${esc(title)}">${icon('heart')} 收藏</button><button class="secondary-action" type="button" data-add-id="${esc(song.id)}" data-song-title="${esc(title)}">${icon('plus')} 加入播放清单</button></div></div></div>${lyrics ? `<details class="lyrics"><summary>查看歌词</summary><p>${esc(lyrics)}</p></details>` : ''}<a class="detail-download" href="${esc(proxyMediaUrl(title))}" download>下载音频文件</a></section>${section('继续听', '听完再听', songRows(seed.rank_hot.slice(0, 6)), '/ranking/hot', 'spark')}`);
+  return layout(title, `<div class="page-intro"><span class="eyebrow">歌曲详情</span><h1>${esc(displayTitle(song))}</h1><p>${esc(artist || '秋秋音乐')}</p></div><section class="panel song-detail"><div class="detail-top">${coverHtml}<div class="detail-copy"><span class="eyebrow">好歌分享</span><h2>${esc(displayTitle(song))}</h2><p>${esc(artist || '音乐让此刻更动听')}</p><div class="detail-actions"><button class="primary-action" type="button" ${songData(song)}>${icon('play')} 立即播放</button><button class="secondary-action favorite-button" type="button" data-favorite-id="${esc(song.id)}" data-song-title="${esc(title)}">${icon('heart')} 收藏</button><button class="secondary-action" type="button" data-add-id="${esc(song.id)}" data-song-title="${esc(title)}" ${artist ? `data-song-artist="${esc(artist)}"` : ''}>${icon('plus')} 加入播放清单</button></div></div></div>${lyrics ? `<details class="lyrics"><summary>查看歌词</summary><p>${esc(lyrics)}</p></details>` : ''}<a class="detail-download" href="${esc(proxyMediaUrl(title))}" download>下载音频文件</a></section>${section('继续听', '听完再听', songRows(seed.rank_hot.slice(0, 6)), '/ranking/hot', 'spark')}`);
 }
 function myMusicPage() {
-  return layout('我的音乐', `<div class="page-intro"><span class="eyebrow">专属音乐空间</span><h1>我的音乐</h1><p>收藏与播放清单保存在当前浏览器，未来可与微信账号同步。</p></div><div class="home-grid personal-grid">${section('我的收藏', '我的收藏', '<div id="favorites-list" class="personal-list"></div>', null, 'heart')}${section('播放清单', '我的播放清单', '<div id="playlist-list" class="personal-list"></div>', null, 'note')}</div>`, '/my-music');
+  return layout('我的音乐', `<section class="profile-hero"><div class="profile-avatar"><img src="/projects/source_code/picture/logo.svg" alt=""></div><div class="profile-meta"><strong>秋秋音乐用户</strong><small>本地音乐空间 · 登录后可同步</small></div><div class="profile-stats"><span><b id="profile-favorites-count">0</b><small>收藏</small></span><span><b id="profile-tracks-count">0</b><small>清单</small></span><span><b>Lv.1</b><small>等级</small></span></div></section><div class="page-intro"><span class="eyebrow">专属音乐空间</span><h1>我的音乐</h1><p>收藏与播放清单保存在当前浏览器，未来可与微信账号同步。</p></div><div class="home-grid personal-grid">${section('我的收藏', '我的收藏', '<div id="favorites-list" class="personal-list"></div>', null, 'heart')}${section('播放清单', '我的播放清单', '<div id="playlist-list" class="personal-list"></div>', null, 'note')}</div>`, '/my-music');
 }
 function listPage(title, eyebrow, items, more = null, withBulk = false) {
   return layout(title, `${searchIntro(esc(title), '喜欢的声音，就从这里开始。')}${section(title, eyebrow, songRows(items), more, 'note', withBulk ? 'bulk-panel' : '', withBulk ? bulkAction(items) : '')}`);
@@ -156,9 +233,9 @@ function chartsHubPage(charts) {
       const n = i + 1;
       const badge = trendBadge(chart.trend && chart.trend.get(String(song.id)));
       if (n === 1) {
-        return `<a class="chart-top1" href="/library/${esc(song.id)}.html" data-play-id="${esc(song.id)}" data-play-title="${esc(song.title)}" title="播放 ${esc(song.title)}"><span class="rank-badge rank-gold">1</span><span class="chart-top1-info"><strong>${esc(song.title)}</strong><small>${esc(song.artist || song.title.split('-')[0] || '秋秋音乐')}${chart.plays && song.plays ? ` · ${song.plays} 次点播` : ''}</small></span>${badge}${icon('play')}</a>`;
+        return `<a class="chart-top1" href="/library/${esc(song.id)}.html" ${songData(song)} title="播放 ${esc(song.title)}"><span class="rank-badge rank-gold">1</span><span class="chart-top1-info"><strong>${esc(displayTitle(song))}</strong><small>${esc(artistOf(song))}${chart.plays && song.plays ? ` · ${song.plays} 次点播` : ''}</small></span>${badge}${icon('play')}</a>`;
       }
-      return `<div class="chart-mini-row"><span class="rank-badge ${rankClass(n)}">${n}</span><div class="song-main">${songLink(song)}</div>${badge}<button class="play-button" type="button" data-play-id="${esc(song.id)}" data-play-title="${esc(song.title)}" aria-label="播放 ${esc(song.title)}">${icon('play')}</button></div>`;
+      return `<div class="chart-mini-row"><span class="rank-badge ${rankClass(n)}">${n}</span><div class="song-main">${songLink(song)}</div>${badge}<button class="play-button" type="button" ${songData(song)} aria-label="播放 ${esc(song.title)}">${icon('play')}</button></div>`;
     }).join('')}</div>` : '<div class="empty-state">榜单数据暂时不可用，稍后刷新试试。</div>';
     return `<section class="panel chart-card chart-${chart.kind}"><div class="panel-heading"><div class="heading-icon">${icon(chart.def.icon)}</div><div><span class="eyebrow">${esc(chart.def.eyebrow)}</span><h2>${esc(chart.def.name)}</h2></div><a class="more-link" href="/charts/${chart.kind}">完整榜单 ${icon('arrow')}</a></div><p class="chart-desc">${esc(chart.def.description)}</p>${list}</section>`;
   }).join('');
@@ -174,7 +251,7 @@ function chartPage(kind, def, data) {
   return layout(def.name, content, '/charts');
 }
 function collectionsPage() {
-  return layout('精选歌单', `<div class="page-intro"><span class="eyebrow">精选歌单</span><h1>精选歌单</h1><p>按心情收藏你的音乐灵感。</p></div><div class="collection-grid">${seed.collections.map((item, index) => `<article class="collection-card"><span>0${index + 1}</span><h2>${esc(item.title)}</h2><p>发现更多好音乐</p>${songLink(item, `打开歌单 ${icon('arrow')}`)}</article>`).join('')}</div>`, '/navigation/2/');
+  return layout('精选歌单', `<div class="page-intro"><span class="eyebrow">精选歌单</span><h1>精选歌单</h1><p>按心情收藏你的音乐灵感。</p></div><div class="collection-grid">${seed.collections.map((item, index) => `<article class="collection-card">${coverMark(item, 'collection-cover')}<span>0${index + 1}</span><h2>${esc(displayTitle(item))}</h2><p>发现更多好音乐</p>${songLink(item, `打开歌单 ${icon('arrow')}`)}</article>`).join('')}</div>`, '/navigation/2/');
 }
 function artistsPage() {
   return layout('人气歌手', `${searchIntro('人气歌手', '从熟悉的名字，找到下一首喜欢的歌。')}<div class="artist-grid">${seed.artists.map((artist, i) => `<a href="/search.php?q=${encodeURIComponent(artist)}" class="artist-card"><span>${String(i + 1).padStart(2, '0')}</span><strong>${esc(artist)}</strong>${icon('arrow')}</a>`).join('')}</div>`, '/hotsgr.html');
