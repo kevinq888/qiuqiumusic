@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('qiuqiuUpdater', {
   state: () => ipcRenderer.invoke('desktop:update-state'),
   check: () => ipcRenderer.invoke('desktop:update-check'),
+  online: () => ipcRenderer.invoke('desktop:update-online'),
   install: () => ipcRenderer.invoke('desktop:update-install'),
   onState: callback => {
     const listener = (_event, state) => callback(state);

@@ -75,10 +75,11 @@ class UpdateManager extends EventEmitter {
     this.candidate = null;
     this.checking = null;
     this.installing = null;
+    this.lastBackgroundApiAttempt = -Infinity;
   }
   snapshot() { return { ...this.state }; }
   setState(patch) { Object.assign(this.state, patch); this.emit('state', this.snapshot()); }
-  async check() {
+  async check({ background = false } = {}) {
     if (this.installing || !this.runtime.packaged || !targetFor(this.runtime.platform, this.runtime.arch)) return this.snapshot();
     if (this.checking) return this.checking;
     this.checking = (async () => {
@@ -87,23 +88,35 @@ class UpdateManager extends EventEmitter {
           headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'qiuqiumusic-updater' },
           signal: AbortSignal.timeout(10000), cache: 'no-store',
         });
+        const read = async url => {
+          const response = await this.dependencies.fetch(url, options());
+          if (!response.ok) throw Error('暂时无法连接更新服务');
+          return candidateFrom(await response.json(), this.runtime);
+        };
+        // Query-busting avoids serving a previous release from the raw CDN.
+        const manifest = `${RELEASE_MANIFEST}?check=${Date.now()}`;
         let candidate;
-        try {
-          const response = await this.dependencies.fetch(RELEASE_API, options());
-          if (!response.ok) throw Error('暂时无法连接更新服务');
-          candidate = candidateFrom(await response.json(), this.runtime);
-        } catch {
-          // Shared networks can exhaust GitHub's anonymous API quota. The
-          // maintainer-published manifest uses the same exact URL/hash checks.
-          const response = await this.dependencies.fetch(RELEASE_MANIFEST, options());
-          if (!response.ok) throw Error('暂时无法连接更新服务');
-          candidate = candidateFrom(await response.json(), this.runtime);
+        if (background) {
+          try { candidate = await read(manifest); }
+          catch (error) {
+            // Frequent polling must not exhaust GitHub's anonymous API quota.
+            if (Date.now() - this.lastBackgroundApiAttempt < 15 * 60 * 1000) throw error;
+            this.lastBackgroundApiAttempt = Date.now();
+            candidate = await read(RELEASE_API);
+          }
+        } else {
+          try { candidate = await read(RELEASE_API); }
+          catch { candidate = await read(manifest); }
         }
+        // A user may start installing while an earlier background check awaits
+        // the network. Never replace its candidate or progress mid-install.
+        if (this.installing) return this.snapshot();
         this.candidate = candidate;
-        this.setState({ status: candidate ? 'available' : 'idle', version: candidate?.version || '', error: '', progress: 0 });
+        const keepInstallError = this.state.status === 'error' && candidate?.version === this.state.version;
+        this.setState({ status: keepInstallError ? 'error' : candidate ? 'available' : 'idle', version: candidate?.version || '', error: keepInstallError ? this.state.error : '', checkError: '', checkedAt: Date.now(), progress: 0 });
       } catch (error) {
         // Background check failures must not interrupt music or display a false update.
-        if (!this.candidate) this.setState({ status: 'idle', error: '' });
+        if (!this.candidate) this.setState({ status: 'idle', error: '', checkError: '暂时无法连接更新服务，请检查网络后重试' });
         this.emit('check-error', error);
       }
       return this.snapshot();

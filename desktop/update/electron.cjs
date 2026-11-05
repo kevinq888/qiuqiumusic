@@ -1,8 +1,9 @@
-const { app, ipcMain, net, session } = require('electron');
+const { app, ipcMain, net, session, powerMonitor } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { execFileSync } = require('node:child_process');
 const { UpdateManager } = require('./manager.cjs');
+const { createUpdatePoller } = require('./poller.cjs');
 const platform = require('./platform.cjs');
 function nativeArch() {
   if (process.platform === 'darwin' && process.arch === 'x64') {
@@ -36,9 +37,15 @@ function createUpdater({ getMainWindow, quit }) {
     if (!main || main.isDestroyed() || event.sender !== main.webContents || event.senderFrame !== main.webContents.mainFrame) return false;
     try { const url = new URL(event.senderFrame.url); return url.protocol === 'qiuqiu:' && url.hostname === 'app'; } catch { return false; }
   };
+  const poller = createUpdatePoller({ check: () => manager.check({ background: true }) });
+  const focusCheck = () => { if (runtime.packaged) poller.trigger().catch(console.error); };
+  const resumeCheck = () => { if (runtime.packaged) poller.trigger({ force: true }).catch(console.error); };
+  app.on('browser-window-focus', focusCheck);
+  powerMonitor.on('resume', resumeCheck);
   for (const [channel, action] of Object.entries({
     'desktop:update-state': () => manager.snapshot(),
     'desktop:update-check': () => manager.check(),
+    'desktop:update-online': async () => { if (runtime.packaged) await poller.trigger({ force: true }); return manager.snapshot(); },
     'desktop:update-install': () => manager.install(),
   })) ipcMain.handle(channel, event => {
     if (!trusted(event)) throw Error('Update requests are only allowed from the local player');
@@ -48,7 +55,7 @@ function createUpdater({ getMainWindow, quit }) {
     const main = getMainWindow();
     if (main && !main.isDestroyed()) main.webContents.send('desktop:update-state', state);
   });
-  let firstCheck, interval, cleanup;
+  let cleanup;
   async function loaded() {
     const main = getMainWindow();
     if (!main || main.isDestroyed()) return;
@@ -72,13 +79,12 @@ function createUpdater({ getMainWindow, quit }) {
     if (!cleanup && runtime.packaged) {
       cleanup = setTimeout(() => platform.cleanupCompleted(runtime), 30000); cleanup.unref();
     }
-    if (!firstCheck && runtime.packaged) {
-      firstCheck = setTimeout(() => manager.check(), 5000); firstCheck.unref();
-      interval = setInterval(() => manager.check(), 6 * 60 * 60 * 1000); interval.unref();
-    }
+    if (runtime.packaged) poller.start();
   }
   function dispose() {
-    clearTimeout(firstCheck); clearInterval(interval); clearTimeout(cleanup);
+    poller.dispose(); clearTimeout(cleanup);
+    app.removeListener('browser-window-focus', focusCheck);
+    powerMonitor.removeListener('resume', resumeCheck);
   }
   return { manager, loaded, dispose };
 }

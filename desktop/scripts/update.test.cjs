@@ -100,9 +100,71 @@ test('GitHub API quota exhaustion falls back to official manifest with identical
     return url === RELEASE_API ? new Response('quota exhausted', {status:403}) : Response.json(release());
   } });
   assert.equal((await manager.check()).status, 'available');
-  assert.deepEqual(seen, [RELEASE_API, RELEASE_MANIFEST]);
+  assert.equal(seen[0], RELEASE_API);
+  assert.ok(seen[1].startsWith(RELEASE_MANIFEST + '?check='));
   const invalid = release(); invalid.assets[0].browser_download_url='https://example.com/foreign.zip';
   const unsafe = new UpdateManager(runtime, {fetch:async url=>url===RELEASE_API?new Response('',{status:403}):Response.json(invalid)});
   assert.equal((await unsafe.check()).status,'idle');
   assert.equal(unsafe.candidate,null);
+});
+
+test('background polling uses a fresh manifest and discovers a release without restart', async () => {
+  let version = '1.1.0';
+  const seen = [];
+  const manager = new UpdateManager(runtime, { fetch: async (url, options) => {
+    seen.push(url);
+    assert.ok(url.startsWith(RELEASE_MANIFEST + '?check='));
+    assert.equal(options.cache, 'no-store');
+    return Response.json(release(version));
+  } });
+  assert.equal((await manager.check({ background: true })).status, 'idle');
+  version = '1.2.7';
+  assert.equal((await manager.check({ background: true })).version, version);
+  assert.equal(manager.snapshot().status, 'available');
+  assert.equal(seen.length, 2);
+});
+
+test('manifest outages limit automatic API fallback, while manual checks remain immediate', async () => {
+  let apiCalls = 0;
+  const manager = new UpdateManager(runtime, { fetch: async url => {
+    if (url !== RELEASE_API) throw Error('manifest offline');
+    apiCalls++; return Response.json(release());
+  } });
+  await manager.check({ background: true });
+  await manager.check({ background: true });
+  await manager.check({ background: true });
+  assert.equal(apiCalls, 1);
+  assert.equal(manager.snapshot().status, 'available');
+  await manager.check();
+  assert.equal(apiCalls, 2);
+});
+
+test('offline checks report an accurate retry hint and polling preserves installation errors', async () => {
+  let offline = true;
+  const manager = new UpdateManager(runtime, { fetch: async () => {
+    if (offline) throw Error('offline');
+    return Response.json(release());
+  } });
+  await manager.check();
+  assert.ok(manager.snapshot().checkError);
+  offline = false;
+  await manager.check();
+  assert.equal(manager.snapshot().checkError, '');
+  manager.setState({ status: 'error', error: 'download failed' });
+  await manager.check({ background: true });
+  assert.equal(manager.snapshot().status, 'error');
+  assert.equal(manager.snapshot().error, 'download failed');
+});
+
+test('a pending check cannot overwrite a started installation', async () => {
+  let respond;
+  const manager = new UpdateManager(runtime, { fetch: () => new Promise(resolve => { respond = resolve; }) });
+  const pending = manager.check({ background: true });
+  manager.installing = Promise.resolve();
+  manager.setState({ status: 'downloading', version: '1.2.0', progress: 42 });
+  respond(Response.json(release('1.3.0')));
+  await pending;
+  assert.equal(manager.snapshot().status, 'downloading');
+  assert.equal(manager.snapshot().version, '1.2.0');
+  assert.equal(manager.snapshot().progress, 42);
 });
