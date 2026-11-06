@@ -9,6 +9,7 @@ const views = require('./src/views');
 const { ranking, sourcePage, MAX_PAGES } = require('./src/rankings');
 const { search } = require('./src/search');
 const audioCache = require('./src/audio-cache');
+const covers = require('./src/covers');
 const charts = require('./src/charts');
 const { latestRelease } = require('./src/desktop-release');
 
@@ -128,6 +129,21 @@ const server = http.createServer((req, res) => {
       let ok = false;
       try { const d = JSON.parse(body || '{}'); ok = charts.recordPlay(d.id, d.title); } catch {}
       send(res, ok ? 200 : 400, JSON.stringify({ ok }), 'application/json; charset=utf-8');
+    });
+    return;
+  }
+
+  // 实时歌曲封面补图：首屏先渲染占位块，页面加载后按「歌手|歌名」批量补齐
+  if (p === '/api/covers') {
+    const keys = u.searchParams.getAll('s').slice(0, 30).map(key => String(key).slice(0, 200));
+    Promise.all(keys.map(async key => {
+      const split = key.indexOf('|');
+      const artist = split > 0 ? key.slice(0, split) : '';
+      const song = split > 0 ? key.slice(split + 1) : key;
+      const found = await covers.resolve(artist, song).catch(() => '');
+      return [key, covers.proxyUrl(found)];
+    })).then(entries => {
+      send(res, 200, JSON.stringify({ covers: Object.fromEntries(entries) }), 'application/json; charset=utf-8');
     });
     return;
   }

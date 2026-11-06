@@ -1350,74 +1350,100 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
 .mini-cover.has-cover b{display:none}
 .song-card-play{z-index:3}
 
-/* ---------- 桌面端播放条：单行紧凑，约 56px ---------- */
-.player-timeline>.np-dock-title{display:none}
+/* ---------- 桌面端播放条：单行约 70px，歌名紧跟歌手，右侧控件等距不重叠 ---------- */
+.np-dock-title{display:none}
 @media(min-width:681px){
   .player-host.is-expanded .player-panel{
-    grid-template-columns:minmax(0,1fr) minmax(0,1.45fr) auto;
-    gap:14px;
-    padding:8px 24px calc(8px + env(safe-area-inset-bottom));
+    grid-template-columns:clamp(196px,21vw,276px) minmax(0,1fr) auto;
+    align-items:center;gap:20px;
+    padding:15px 26px calc(15px + env(safe-area-inset-bottom));
   }
-  /* 歌曲名移到原先「极高音质」的位置（进度条左侧），标题区只留状态与歌手 */
-  .player-host.is-expanded .player-panel-head{display:block;min-width:0}
+  /* 左侧固定宽度：按常见「歌手 + 歌名」长度留出余量，标题区两行不再跳动 */
+  .player-host.is-expanded .player-panel-head{
+    display:flex;flex-direction:column;justify-content:center;align-items:flex-start;
+    min-width:0;gap:3px;
+  }
   .player-host.is-expanded .player-panel-head h2{display:none}
   .player-host.is-expanded .player-panel-head small{
-    display:block;max-width:100%;font-size:10px;line-height:1.5;letter-spacing:-.01em;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    display:block;max-width:100%;font-size:10px;line-height:1.35;letter-spacing:.01em;
+    color:rgba(255,255,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
-  .player-host.is-expanded .player-panel-head .np-artist-line{display:flex;align-items:center;gap:6px;margin-top:1px}
-  .player-host.is-expanded .player-panel-head .np-artist-line span{
-    font-size:12px;font-weight:700;line-height:1.4;color:rgba(255,255,255,.72);
+  .player-host.is-expanded .player-panel-head>div{min-width:0;max-width:100%}
+  .player-host.is-expanded .player-panel-head .np-artist-line{
+    display:flex;align-items:center;gap:7px;margin:0;min-width:0;max-width:100%;
+  }
+  .player-host.is-expanded #player-artist{
+    flex:0 0 auto;max-width:44%;font-size:12.5px;font-weight:700;line-height:1.4;
+    color:rgba(255,255,255,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .player-host.is-expanded .np-dot{flex:none;font-style:normal;font-size:12px;line-height:1;color:rgba(255,255,255,.26)}
+  .player-host.is-expanded #player-dock-title{
+    display:block;flex:1 1 auto;min-width:0;max-width:100%;
+    font-size:13px;font-weight:800;line-height:1.4;color:#fff;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
   .player-host.is-expanded .player-panel-head .np-follow{display:none}
+
+  /* 进度：去掉胶囊底，时间和滑杆排成干净的一行 */
   .player-host.is-expanded .player-timeline{
-    grid-template-columns:minmax(0,1fr) auto minmax(70px,1.5fr) auto;
-    grid-template-areas:"title cur seek dur";
-    gap:8px;padding:6px 12px;
+    grid-template-columns:auto minmax(0,1fr) auto;
+    grid-template-areas:"cur seek dur";
+    gap:12px;padding:0;border:0;border-radius:0;background:none;
+    box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;
+    color:rgba(255,255,255,.58);font-size:11px;
   }
-  .player-host.is-expanded #player-dock-title{
-    display:block;grid-area:title;width:auto;min-width:0;max-width:none;
-    text-align:left;font-size:12px;font-weight:800;line-height:1.3;color:#fff;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  }
-  .player-host.is-expanded #player-current-time{grid-area:cur;width:auto;min-width:30px;font-size:11px}
-  .player-host.is-expanded #player-seek{grid-area:seek;min-width:0}
-  .player-host.is-expanded #player-duration{grid-area:dur;width:auto;min-width:30px;font-size:11px}
+  .player-host.is-expanded #player-current-time{grid-area:cur;width:auto;min-width:34px;text-align:right;font-size:11px}
+  .player-host.is-expanded #player-seek{grid-area:seek;min-width:0;height:4px}
+  .player-host.is-expanded #player-duration{grid-area:dur;width:auto;min-width:34px;text-align:left;font-size:11px}
   .player-host.is-expanded .np-quality{display:none}
-  .player-host.is-expanded .player-options{gap:6px}
+
+  /* 控件：统一 36px 圆形、等距 8px，不再互相咬住 */
+  .player-host.is-expanded .player-actions{display:flex;align-items:center;gap:14px;flex:none}
+  .player-host.is-expanded .player-transport{gap:4px;padding:0;border-right:0;flex:none}
+  .player-host.is-expanded .player-options{display:flex;align-items:center;gap:8px;flex:none}
   .player-host.is-expanded #player-shortcuts{display:none}
-  .player-host.is-expanded .player-actions{gap:4px}
-  .player-host.is-expanded .player-transport{padding-right:8px}
-  .player-host.is-expanded .player-actions button{width:34px;min-width:34px;height:34px}
-  .player-host.is-expanded .player-actions button .icon{width:16px;height:16px}
-  .player-host.is-expanded .player-actions .mode-button{min-width:34px;padding:0 6px}
-  .player-host.is-expanded .player-options #player-queue{width:auto;min-width:auto;padding:0 9px;gap:5px;border-radius:999px;font-size:11px}
-  .queue-position{
-    display:inline-flex;align-items:center;height:34px;padding:0 9px;border-radius:999px;
-    background:rgba(255,255,255,.09);color:rgba(255,255,255,.7);
-    font-size:11px;font-weight:800;white-space:nowrap;flex:none;
+  .player-host.is-expanded .player-actions button{
+    width:36px;min-width:36px;height:36px;border-radius:50%;flex:0 0 auto;
   }
-  .queue-position[hidden]{display:none}
+  .player-host.is-expanded .player-actions button .icon{width:16px;height:16px}
+  .player-host.is-expanded #player-play-pause{width:40px;min-width:40px;height:40px}
+  .player-host.is-expanded .mode-button{width:36px;min-width:36px;padding:0}
+  .player-host.is-expanded .mode-button .mode-label{display:none}
+  .player-host.is-expanded .queue-position{
+    display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:999px;
+    background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);
+    font-size:11px;font-weight:700;white-space:nowrap;flex:0 0 auto;
+  }
+  .player-host.is-expanded .queue-position[hidden]{display:none}
+  .player-host.is-expanded #player-queue{
+    width:auto;min-width:auto;padding:0 12px;gap:6px;border-radius:999px;
+    font-size:11px;font-weight:700;color:rgba(255,255,255,.78);
+  }
+  .player-host.is-expanded #player-queue #queue-count{font-size:11px}
 }
 @media(min-width:681px) and (max-width:1050px){
   .player-host.is-expanded .player-panel{
-    grid-template-columns:minmax(0,.85fr) minmax(0,1.5fr) auto;
-    gap:9px;padding:7px 14px calc(7px + env(safe-area-inset-bottom));
+    grid-template-columns:clamp(180px,25vw,220px) minmax(0,1fr) auto;
+    grid-template-areas:none;
+    gap:12px;padding:15px 16px calc(15px + env(safe-area-inset-bottom));
   }
-  .player-host.is-expanded .player-actions{grid-column:auto;justify-content:flex-end}
+  /* 覆盖 <=960px 旧规则里的整行跨列，否则控件会被挤到第二行 */
+  .player-host.is-expanded .player-actions{
+    grid-column:auto;grid-area:auto;flex-wrap:nowrap;
+    gap:8px;justify-content:flex-end;
+  }
+  .player-host.is-expanded .player-panel-head{grid-area:auto}
+  .player-host.is-expanded .player-timeline{grid-column:auto}
+  .player-host.is-expanded #player-artist{max-width:38%;flex:0 0 auto}
   .player-host.is-expanded #player-shortcuts,
-  .player-host.is-expanded #player-favorite,
-  .player-host.is-expanded .mode-label{display:none}
-  /* 窄一点时列表按钮只留图标，把「当前第几首」单独放出来，两者仍然分开 */
-  .player-host.is-expanded .player-options .mode-button{display:none}
+  .player-host.is-expanded #player-favorite{display:none}
+  .player-host.is-expanded #player-queue{width:36px;min-width:36px;padding:0}
   .player-host.is-expanded #player-queue #queue-count{display:none}
-  .player-host.is-expanded #player-queue{padding:0;width:34px;min-width:34px}
   .player-host.is-expanded .queue-position{display:inline-flex}
 }
 @media(max-width:680px){
   .queue-position{display:none}
-  .player-timeline>.np-dock-title{display:none}
+  .np-dock-title{display:none}
 }
 
 /* ---------- 排行榜：高亮行与普通行使用同一左起点和字号 ---------- */

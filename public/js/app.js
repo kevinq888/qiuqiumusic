@@ -354,6 +354,34 @@
     const url = String(cover).replace(/^http:/, 'https:');
     return url.startsWith('/') ? url : `/cover/${encodeURIComponent(url)}`;
   }
+  // 实时歌曲首屏只有占位块：收集缺失封面的「歌手|歌名」，一次请求后端批量补图
+  function hydrateCovers(root = document) {
+    const nodes = [...root.querySelectorAll('[data-cover-song]')].filter(node => !node.dataset.coverReady && !node.querySelector('img'));
+    if (!nodes.length) return;
+    const keys = new Set();
+    nodes.forEach(node => {
+      node.dataset.coverReady = '1';
+      const artist = node.dataset.coverArtist || '';
+      const song = node.dataset.coverSong || '';
+      if (song) keys.add(`${artist}|${song}`);
+    });
+    if (!keys.size) return;
+    const query = [...keys].slice(0, 30).map(key => `s=${encodeURIComponent(key)}`).join('&');
+    fetch(`/api/covers?${query}`).then(response => (response.ok ? response.json() : null)).then(data => {
+      if (!data || !data.covers) return;
+      nodes.forEach(node => {
+        const url = data.covers[`${node.dataset.coverArtist || ''}|${node.dataset.coverSong || ''}`];
+        if (!url || !node.isConnected) return;
+        const img = new Image();
+        img.alt = '';
+        img.loading = 'lazy';
+        img.className = node.classList.contains('song-card-art') ? 'song-card-img' : '';
+        img.onload = () => { node.classList.add('has-cover'); node.appendChild(img); };
+        img.src = url;
+      });
+    }).catch(() => {});
+  }
+
   // 有真实封面时显示图片，缺失时回退到渐变首字块
   function setCoverImage(img, wrapper, cover) {
     if (!img || !wrapper) return;
@@ -895,6 +923,7 @@
       window.qiuqiuDownloads?.refresh();
       window.qiuqiuUpdateUI?.refresh();
       renderCollections();
+      hydrateCovers();
     } catch {
       if (id === navigationId) {
         clearTimeout(loadingTimer);
@@ -1212,6 +1241,7 @@
   initMediaSession();
   readSaved(true);
   renderCollections();
+  hydrateCovers();
   applyTheme(document.documentElement.dataset.theme || 'mint');
   updateModeButton();
   updateInstallButton();

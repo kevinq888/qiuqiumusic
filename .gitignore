@@ -5,3 +5,4 @@ node_modules/
 desktop/dist/
 desktop/.build/
 .DS_Store
+data/live-covers.json
