@@ -1672,4 +1672,22 @@ html:not([data-theme="glass"]) .mobile-menu{color:#fff;border-color:rgba(255,255
   100%{transform:translateX(300%);opacity:.45}
 }
 .route-loading.is-error:after{width:100%;background:var(--orange);animation:none;border-radius:0}
+/* 毛玻璃皮肤：底部播放栏与页脚也使用真正的半透明玻璃，而不是实心深绿 */
+@media(min-width:681px){
+  [data-theme="glass"] .player-host.is-expanded{
+    background:linear-gradient(155deg,rgba(7,29,25,.66),rgba(16,56,49,.5));
+    border-top:1px solid rgba(255,255,255,.18);
+    box-shadow:0 -20px 52px rgba(8,48,40,.22),inset 0 1px 0 rgba(255,255,255,.16);
+    backdrop-filter:blur(32px) saturate(190%);
+    -webkit-backdrop-filter:blur(32px) saturate(190%);
+  }
+}
+[data-theme="glass"] .site-footer{
+  background:linear-gradient(150deg,rgba(8,42,35,.74),rgba(15,60,52,.62));
+  border-top:1px solid rgba(255,255,255,.28);
+  color:#f3fbf7;
+  backdrop-filter:blur(30px) saturate(180%);
+  -webkit-backdrop-filter:blur(30px) saturate(180%);
+}
+[data-theme="glass"] .site-footer .footer-content small{color:rgba(243,251,247,.72)}
 
