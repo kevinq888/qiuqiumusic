@@ -6,13 +6,20 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://qiuqiumusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.9（本地构建，待上传 Release）
+### v1.2.9（当前版本）
 
-- 内置后端同步网页端新版播放条：歌名紧跟歌手、固定宽度、进度与控件不再重叠。
-- 桌面端内置离线曲库新增真实专辑封面，并内置「最近更新」实时封面缓存。
-- 打包过滤新增 `data/covers.json`，保证离线安装包首屏就有封面。
+- 网页端重做 7 套主题与播放栏配色，播放栏跟随皮肤换色；毛玻璃皮肤的页脚与播放栏改为半透明玻璃效果。
+- 歌单面板提高文字对比度，新增多选、全选与「清除选中」；加入歌单后立即播放第一首。
+- 搜索改为顶部细进度条的局部加载，不再遮罩整页；播放栏完整显示歌手名。
+- 桌面端更换全新品牌图标；内置后端同步新版播放条、离线曲库封面与「最近更新」封面缓存。
 
-### v1.2.8（当前版本）
+| 系统 | 下载 |
+| --- | --- |
+| macOS（Apple 芯片） | [秋秋音乐-1.2.9-macos-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.9/qiuqiumusic-1.2.9-macos-arm64.dmg) |
+| macOS（Intel） | [秋秋音乐-1.2.9-macos-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.9/qiuqiumusic-1.2.9-macos-x64.dmg) |
+| Windows（64 位） | [秋秋音乐-1.2.9-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.9/qiuqiumusic-1.2.9-windows-x64.exe) |
+
+### v1.2.8
 
 - 新版本发现由每 6 小时改为运行期间约每分钟检查，切回窗口、电脑唤醒或恢复网络时补查，无需重启应用。
 - 顶部常驻“检查更新”按钮，可手动立即检查；检查失败会提示重试。
