@@ -2,7 +2,7 @@ const { seed, getSong, proxyMediaUrl } = require('./store');
 const { lookup: coverLookup, warm: warmCovers } = require('./covers');
 
 const SITE = '秋秋音乐';
-const ASSET_VERSION = '20261107-ktv17';
+const ASSET_VERSION = '20261107-ktv18';
 function esc(value) {
   return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');

@@ -823,6 +823,13 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   }
   .player-host.is-expanded #player-collapse-desktop:hover{background:rgba(255,255,255,.14);color:#fff}
   .player-host.is-expanded #player-collapse-desktop .icon{width:17px;height:17px}
+  /* 毛玻璃皮肤是浅色底，收起按钮的箭头要跟其他控件一样用深色，避免看不见 */
+  [data-theme="glass"] .player-host.is-expanded #player-collapse-desktop{
+    background:rgba(12,58,49,.08);border-color:rgba(9,40,34,.16);color:var(--ink);
+  }
+  [data-theme="glass"] .player-host.is-expanded #player-collapse-desktop:hover{
+    background:rgba(12,58,49,.14);color:var(--ink);
+  }
 }
 
 /* ---------- 手机端：顶栏 / TabBar / 迷你胶囊 / 全屏播放页 ---------- */
