@@ -10,6 +10,7 @@ const { ranking, sourcePage, MAX_PAGES } = require('./src/rankings');
 const { search } = require('./src/search');
 const audioCache = require('./src/audio-cache');
 const covers = require('./src/covers');
+const lyrics = require('./src/lyrics');
 const charts = require('./src/charts');
 const { latestRelease } = require('./src/desktop-release');
 
@@ -145,6 +146,21 @@ const server = http.createServer((req, res) => {
     })).then(entries => {
       send(res, 200, JSON.stringify({ covers: Object.fromEntries(entries) }), 'application/json; charset=utf-8');
     });
+    return;
+  }
+
+  // 歌词：按「歌手 + 歌名」向上游抓取逐句歌词，命中后本地缓存
+  if (p === '/api/lyrics') {
+    const artist = String(u.searchParams.get('artist') || '').slice(0, 120);
+    const song = String(u.searchParams.get('song') || '').slice(0, 120);
+    if (!song) {
+      send(res, 400, JSON.stringify({ ok: false, lrc: '' }), 'application/json; charset=utf-8');
+      return;
+    }
+    lyrics.resolve(artist, song).then(lrc => {
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      send(res, 200, JSON.stringify({ ok: !!lrc, lrc }), 'application/json; charset=utf-8');
+    }).catch(() => send(res, 200, JSON.stringify({ ok: false, lrc: '' }), 'application/json; charset=utf-8'));
     return;
   }
 

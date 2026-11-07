@@ -6,3 +6,4 @@ desktop/dist/
 desktop/.build/
 .DS_Store
 data/live-covers.json
+data/live-lyrics.json

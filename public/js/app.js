@@ -43,6 +43,7 @@
   const miniCoverImg = document.getElementById('mini-cover-img');
   const dockTitle = document.getElementById('player-dock-title');
   const artistNode = document.getElementById('player-artist');
+  const lyricNode = document.getElementById('player-lyric');
   const queueBackdrop = document.getElementById('queue-backdrop');
   let installPrompt = null;
   let installPromptConsumed = false;
@@ -64,6 +65,11 @@
   let lastPlaybackTime = 0;
   let minimizedByUser = false;
   let remotePosition = { currentTime: 0, duration: 0 };
+  let lyricLines = [];
+  let lyricIndex = -1;
+  let lyricSongId = '';
+  let lyricRequest = 0;
+  const lyricCache = new Map();
   let lastProgressSent = 0;
   let lastPlaybackSave = 0;
   let pendingRestorePosition = 0;
@@ -549,6 +555,76 @@
     durationNode.textContent = duration ? formatTime(duration) : '--:--';
     if (miniBar) miniBar.style.width = `${duration ? Math.min(100, currentTime / duration * 100) : 0}%`;
     updatePositionState(duration, currentTime);
+    if (owner === tabId) syncLyric(currentTime);
+  }
+  // ---------- 同步歌词：按时间轴逐句显示在当前播放条 ----------
+  function parseLrc(text) {
+    const lines = [];
+    for (const raw of String(text || '').split(/\r?\n/)) {
+      const match = raw.match(/^\s*\[(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?\]\s*(.*)$/);
+      if (!match) continue;
+      const time = Number(match[1]) * 60 + Number(match[2]) + (match[3] ? Number(`0.${match[3]}`) : 0);
+      const value = match[4].replace(/\s+/g, ' ').trim();
+      if (value) lines.push({ time, text: value });
+    }
+    return lines.sort((a, b) => a.time - b.time);
+  }
+  function clearLyric() {
+    lyricLines = [];
+    lyricIndex = -1;
+    if (lyricNode) {
+      lyricNode.hidden = true;
+      lyricNode.textContent = '';
+    }
+  }
+  function syncLyric(time) {
+    if (!lyricNode || !lyricLines.length) return;
+    let index = -1;
+    for (let i = 0; i < lyricLines.length; i++) {
+      if (lyricLines[i].time <= time) index = i;
+      else break;
+    }
+    if (index === lyricIndex) return;
+    lyricIndex = index;
+    const line = lyricLines[index];
+    lyricNode.textContent = line ? line.text : '';
+    if (!line) {
+      lyricNode.hidden = true;
+      return;
+    }
+    const wasHidden = lyricNode.hidden;
+    lyricNode.hidden = false;
+    // 歌词出现/消失会改变播放条高度，重新给页面留出空间
+    if (wasHidden && host.classList.contains('is-expanded')) syncPlayerSpace();
+  }
+  function loadLyrics(song) {
+    if (!lyricNode) return;
+    const id = song ? String(song.id) : '';
+    if (id === lyricSongId) return;
+    lyricSongId = id;
+    const request = ++lyricRequest;
+    clearLyric();
+    if (!song) return;
+    const cached = lyricCache.get(id);
+    if (cached) {
+      lyricLines = cached;
+      lyricIndex = -1;
+      syncLyric(Number.isFinite(audio.currentTime) ? audio.currentTime : 0);
+      return;
+    }
+    const artist = artistOf(song);
+    const name = song.song || displayTitle(song);
+    fetch(`/api/lyrics?artist=${encodeURIComponent(artist)}&song=${encodeURIComponent(name)}`)
+      .then(response => response.json())
+      .then(data => {
+        const lines = parseLrc(data && data.lrc);
+        lyricCache.set(id, lines);
+        if (request !== lyricRequest) return;
+        lyricLines = lines;
+        lyricIndex = -1;
+        syncLyric(Number.isFinite(audio.currentTime) ? audio.currentTime : 0);
+      })
+      .catch(() => {});
   }
   // 系统级"正在播放"：锁屏、灵动岛与通知中心都能看到当前歌曲与走带控制
   const MEDIA_ARTWORK = [
@@ -605,6 +681,7 @@
     remoteBar.max = duration || 1;
     remoteBar.value = Math.min(currentTime, duration || 1);
     remoteBar.style.setProperty('--played', `${duration ? Math.min(100, currentTime / duration * 100) : 0}%`);
+    syncLyric(currentTime);
   }
   function announce() { if (owner === tabId && current) message('state', { current, playing: isPlaying, ...playbackPosition() }); }
   // 清单里高亮当前曲目（颜色跟随皮肤变量，见 site.css）
@@ -655,6 +732,7 @@
       miniTitle.textContent = '选择一首歌';
       miniArtist.textContent = '秋秋音乐';
       if (dockTitle) dockTitle.textContent = '选择一首歌';
+      loadLyrics(null);
       setCoverImage(npCoverImg, npCover);
       setCoverImage(miniCoverImg, miniCover);
       return;
@@ -685,6 +763,7 @@
     else if (playbackError) stateNode.textContent = playbackError;
     else if (host.classList.contains('is-buffering')) stateNode.textContent = '正在加载…';
     else if (!isPlaying && audio.paused) stateNode.textContent = '已暂停';
+    loadLyrics(current);
     updateMediaSession();
   }
   function syncPlayerSpace() {
