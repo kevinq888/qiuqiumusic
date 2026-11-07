@@ -1771,9 +1771,15 @@ html:not([data-theme="glass"]) .mobile-menu{color:#fff;border-color:rgba(255,255
 }
 .player-host.is-expanded .player-lyric-text{--lyric-sung:var(--orange);--lyric-dim:var(--dock-dim)}
 [data-theme="glass"] .player-host.is-expanded .player-lyric-text{--lyric-sung:#e8613a;--lyric-dim:rgba(12,58,49,.5)}
+@media(min-width:681px){
+  [data-theme="glass"] .player-host.is-expanded .player-lyric-text{--lyric-sung:#e8613a;--lyric-dim:#0b332b}
+}
 @media(max-width:640px){.player-lyric{font-size:14px;padding:0}}
 /* 手机端全屏播放页是深色底，未唱部分用浅灰 */
-@media(max-width:680px){body.player-open .player-lyric-text{--lyric-sung:#ffb26b;--lyric-dim:rgba(255,255,255,.5)}}
+@media(max-width:680px){body.player-open .player-lyric-text{--lyric-sung:#ffb26b;--lyric-dim:rgba(255,255,255,.62)}}
+@media(max-width:680px){
+  [data-theme="glass"] body.player-open .player-host.is-expanded .player-lyric-text{--lyric-sung:#ffb26b;--lyric-dim:rgba(255,255,255,.62)}
+}
 /* 手机端：歌词与进度条一起放进 audio 区域 */
 @media(max-width:640px){.player-host.is-expanded .player-center{grid-area:audio}}
 /* 另一标签页远程播放时本机不显示歌词，避免与远程进度条重叠 */
@@ -1812,9 +1818,9 @@ html:not([data-theme="glass"]) .mobile-menu{color:#fff;border-color:rgba(255,255
 [data-theme="glass"] .player-host.is-expanded .player-panel-head h2,
 [data-theme="glass"] .player-host.is-expanded #player-dock-title{color:#08251f}
 [data-theme="glass"] .player-host.is-expanded .player-panel-head,
-[data-theme="glass"] .player-host.is-expanded .player-timeline,
-[data-theme="glass"] .player-host.is-expanded .player-lyric{text-shadow:0 1px 1px rgba(255,255,255,.85),0 0 4px rgba(255,255,255,.6)}
-[data-theme="glass"] .player-host.is-expanded .player-lyric-text{--lyric-dim:rgba(9,40,34,.8)}
+[data-theme="glass"] .player-host.is-expanded .player-timeline{text-shadow:0 1px 1px rgba(255,255,255,.85),0 0 4px rgba(255,255,255,.6)}
+/* 歌词不用透明渐变叠阴影，直接给正常实色，避免“镂空”感 */
+[data-theme="glass"] .player-host.is-expanded .player-lyric{text-shadow:none}
 /* 桌面播放条：状态行与“歌手 · 歌名”之间留出呼吸空间 */
 @media(min-width:681px){
   .player-host.is-expanded .player-panel-head .np-artist-line{margin-top:9px}
