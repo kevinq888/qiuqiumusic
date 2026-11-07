@@ -67,6 +67,7 @@
   let remotePosition = { currentTime: 0, duration: 0 };
   let lyricLines = [];
   let lyricIndex = -1;
+  let lyricTextNode = null;
   let lyricSongId = '';
   let lyricRequest = 0;
   const lyricCache = new Map();
@@ -278,7 +279,6 @@
   function updateModeButton() {
     const button = document.getElementById('player-mode');
     button.dataset.mode = playMode;
-    button.title = PLAY_MODE_NAMES[playMode];
     button.setAttribute('aria-label', `播放模式：${PLAY_MODE_NAMES[playMode]}，点击切换`);
     button.querySelector('.mode-label').textContent = PLAY_MODE_NAMES[playMode];
     const queueLabel = document.getElementById('queue-mode-label');
@@ -572,10 +572,21 @@
   function clearLyric() {
     lyricLines = [];
     lyricIndex = -1;
+    lyricTextNode = null;
     if (lyricNode) {
       lyricNode.hidden = true;
       lyricNode.textContent = '';
     }
+  }
+  function lyricTextTarget() {
+    if (!lyricNode) return null;
+    if (!lyricTextNode || lyricTextNode.parentNode !== lyricNode) {
+      lyricNode.textContent = '';
+      lyricTextNode = document.createElement('span');
+      lyricTextNode.className = 'player-lyric-text';
+      lyricNode.append(lyricTextNode);
+    }
+    return lyricTextNode;
   }
   function syncLyric(time) {
     if (!lyricNode || !lyricLines.length) return;
@@ -584,18 +595,41 @@
       if (lyricLines[i].time <= time) index = i;
       else break;
     }
-    if (index === lyricIndex) return;
-    lyricIndex = index;
     const line = lyricLines[index];
-    lyricNode.textContent = line ? line.text : '';
-    if (!line) {
-      lyricNode.hidden = true;
-      return;
+    if (index !== lyricIndex) {
+      lyricIndex = index;
+      const node = lyricTextTarget();
+      if (!node) return;
+      node.textContent = line ? line.text : '';
+      const wasHidden = lyricNode.hidden;
+      lyricNode.hidden = !line;
+      if (!line) return;
+      // 歌词出现会改变播放条高度，重新给页面留出空间
+      if (wasHidden && host.classList.contains('is-expanded')) syncPlayerSpace();
     }
-    const wasHidden = lyricNode.hidden;
-    lyricNode.hidden = false;
-    // 歌词出现/消失会改变播放条高度，重新给页面留出空间
-    if (wasHidden && host.classList.contains('is-expanded')) syncPlayerSpace();
+    if (!line) return;
+    // KTV 式填充：按本句已唱时长计算当前句的变色进度
+    const next = lyricLines[index + 1];
+    // LRC 每句的时长通常包含尾音与留白，按整段时长线性填充会越唱越慢；
+    // 压缩到 80% 让高亮追平实际演唱速度
+    const length = Math.max(1.2, (next ? next.time : line.time + 5) - line.time) * 0.8;
+    const ratio = Math.max(0, Math.min(1, (time - line.time) / length));
+    lyricTextTarget().style.setProperty('--sing', `${(ratio * 100).toFixed(1)}%`);
+  }
+  // 逐帧驱动歌词填充，避免只靠 timeupdate（约 4 次/秒）导致高亮落后于声音
+  let lyricFrame = 0;
+  function lyricTick() {
+    lyricFrame = requestAnimationFrame(lyricTick);
+    if (owner === tabId && !audio.paused) syncLyric(audio.currentTime);
+  }
+  function startLyricLoop() {
+    if (!lyricFrame) lyricFrame = requestAnimationFrame(lyricTick);
+  }
+  function stopLyricLoop() {
+    if (lyricFrame) {
+      cancelAnimationFrame(lyricFrame);
+      lyricFrame = 0;
+    }
   }
   function loadLyrics(song) {
     if (!lyricNode) return;
@@ -1256,7 +1290,18 @@
     audio.currentTime = Number(seek.value);
     updateTimeline();
   });
-  document.getElementById('player-favorite').addEventListener('click', () => { if (current) toggleFavorite(current); });
+  const favoriteButton = document.getElementById('player-favorite');
+  favoriteButton.addEventListener('click', () => { if (current) toggleFavorite(current); });
+  // 手机播放页把爱心移到歌名右侧（参考主流播放器），桌面播放栏仍留在控制区
+  const favoriteHome = favoriteButton.parentElement;
+  const headRow = document.querySelector('.player-panel-head');
+  const narrowPlayer = matchMedia('(max-width:680px)');
+  const placeFavorite = () => {
+    if (narrowPlayer.matches) headRow.appendChild(favoriteButton);
+    else favoriteHome.insertBefore(favoriteButton, queueButton);
+  };
+  placeFavorite();
+  narrowPlayer.addEventListener('change', placeFavorite);
   function setQueueOpen(open) {
     if (!open && queueSelecting) { queueSelecting = false; queueSelected.clear(); }
     queuePanel.hidden = !open;
@@ -1311,12 +1356,13 @@
     playbackTimer = null;
     recoveryAttempts = 0;
     playbackError = ''; setBuffering(false); isPlaying = true; stateNode.textContent = '正在播放';
+    startLyricLoop();
     // Only the backend can confirm a complete disk cache entry.
     scheduleCacheStatusRefresh();
     updatePlayer(); announce();
   });
   audio.addEventListener('canplay', () => setBuffering(false));
-  audio.addEventListener('pause', () => { setBuffering(false); if (owner === tabId) { isPlaying = false; stateNode.textContent = audio.ended ? '播放完毕' : '已暂停'; persistPlayback(); updatePlayer(); announce(); } });
+  audio.addEventListener('pause', () => { stopLyricLoop(); setBuffering(false); if (owner === tabId) { isPlaying = false; stateNode.textContent = audio.ended ? '播放完毕' : '已暂停'; persistPlayback(); updatePlayer(); announce(); } });
   audio.addEventListener('waiting', () => { if (owner === tabId && playbackWanted) { setBuffering(true); stateNode.textContent = '缓冲中…'; watchPlayback(); } });
   audio.addEventListener('stalled', () => { if (playbackWanted && !playbackTimer) watchPlayback(); });
   audio.addEventListener('error', () => {
@@ -1333,6 +1379,7 @@
   });
   audio.addEventListener('ended', () => {
     if (owner !== tabId) return;
+    stopLyricLoop();
     if (!shiftSong(1, true)) { pausePlayback(); isPlaying = false; stateNode.textContent = '播放完毕'; updatePlayer(); announce(); }
   });
   audio.addEventListener('timeupdate', () => {

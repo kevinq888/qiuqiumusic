@@ -962,14 +962,15 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   .np-top .np-icon .icon{width:22px;height:22px}
   .np-top .np-icon:last-child{background:rgba(255,255,255,.12)}
   .np-top-title{font-size:12px;font-weight:700;letter-spacing:.18em;color:rgba(255,255,255,.6)}
-  /* 黑胶 + 唱臂 */
+  /* 黑胶 + 唱臂：唱臂用独立转盘容器定位，保证跟碟片一起缩放 */
   .np-art{
     display:flex;align-items:center;justify-content:center;position:relative;
     flex:1 1 auto;min-height:0;padding:10px 0 18px;
   }
+  .np-turntable{position:relative;width:min(76vw,330px);aspect-ratio:1}
   .np-disc{
     position:relative;display:grid;place-items:center;
-    width:min(76vw,330px);aspect-ratio:1;border-radius:50%;
+    width:100%;aspect-ratio:1;border-radius:50%;
     background:
       radial-gradient(circle at 32% 22%,rgba(255,255,255,.16),transparent 34%),
       repeating-radial-gradient(circle at center,rgba(255,255,255,.055) 0 1px,transparent 2px 7px),
@@ -989,14 +990,13 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
     radial-gradient(circle at 30% 22%,rgba(255,255,255,.35),transparent 44%),
     repeating-radial-gradient(circle at 76% 78%,rgba(255,255,255,.1) 0 2px,transparent 3px 7px)}
   .np-cover b{position:relative;z-index:1;font-size:clamp(30px,10vw,44px);font-weight:800;color:#fff;text-shadow:0 3px 14px rgba(0,0,0,.35)}
+  /* 唱臂：近乎竖直的杆 + 底端短折角，参考主流播放器的黑胶唱臂 */
   .np-arm{
-    position:absolute;left:10%;top:0;width:6px;height:44%;
-    background:linear-gradient(to bottom,#f7f3ec,rgba(247,243,236,.55));
-    border-radius:4px;transform:rotate(-30deg);transform-origin:top center;z-index:2;
-    box-shadow:0 4px 14px rgba(0,0,0,.35);
+    position:absolute;left:46%;top:-30%;width:34%;height:54%;
+    background:none;transform:none;border-radius:0;box-shadow:none;
+    z-index:2;pointer-events:none;
   }
-  .np-arm:before{content:'';position:absolute;left:50%;top:-9px;transform:translateX(-50%);width:19px;height:19px;border-radius:50%;background:#f7f3ec;box-shadow:0 3px 10px rgba(0,0,0,.3)}
-  .np-arm:after{content:'';position:absolute;left:50%;bottom:-14px;transform:translateX(-50%);width:12px;height:26px;border-radius:4px;background:#f2ece4}
+  .np-arm svg{display:block;width:100%;height:100%;overflow:visible}
   /* 全屏歌曲信息 */
   .player-host.is-expanded .player-panel-head{
     display:block;flex:none;align-items:flex-start;color:#f4f1ec;margin-top:2px;
@@ -1736,25 +1736,147 @@ html:not([data-theme="glass"]) .mobile-menu{color:#fff;border-color:rgba(255,255
 [data-theme="glass"] .site-footer .footer-tagline,
 [data-theme="glass"] .site-footer .footer-content small{color:var(--muted)}
 
-/* 同步歌词：随播放进度逐句切换的一行歌词 */
+/* 同步歌词：位于进度条上方居中显示，正在唱的部分用 KTV 式渐变填充 */
+.player-center{display:flex;flex-direction:column;gap:6px;min-width:0}
 .player-lyric{
-  grid-column:1/-1;
-  margin:-4px 0 0;
-  padding:0 2px;
+  margin:0;
+  padding:0 4px;
   text-align:center;
-  font-size:12px;
-  font-weight:600;
+  font-size:16px;
+  font-weight:700;
   line-height:1.5;
   color:var(--muted);
+  overflow:hidden;
+}
+.player-lyric[hidden]{display:none}
+.player-lyric-text{
+  display:inline-block;
+  max-width:100%;
+  vertical-align:top;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
+  background-image:linear-gradient(90deg,var(--lyric-sung,var(--orange)) 0 var(--sing,0%),var(--lyric-dim,var(--muted)) var(--sing,0%) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  -webkit-text-fill-color:transparent;
 }
-.player-lyric[hidden]{display:none}
-[data-theme="glass"] .player-lyric{color:color-mix(in srgb,var(--ink) 78%,transparent);text-shadow:0 1px 2px rgba(255,255,255,.55)}
-.player-host.is-expanded .player-lyric{color:var(--dock-dim)}
-[data-theme="glass"] .player-host.is-expanded .player-lyric{color:color-mix(in srgb,var(--ink) 78%,transparent)}
-@media(max-width:640px){.player-lyric{font-size:11px;margin-top:0;padding:0}}
-/* 手机端全屏播放页是深色底，歌词改用浅色 */
-@media(max-width:680px){body.player-open .player-lyric{color:rgba(255,255,255,.72);text-shadow:none}}
+.player-host.is-expanded .player-lyric-text{--lyric-sung:var(--orange);--lyric-dim:var(--dock-dim)}
+[data-theme="glass"] .player-host.is-expanded .player-lyric-text{--lyric-sung:#e8613a;--lyric-dim:rgba(12,58,49,.5)}
+@media(max-width:640px){.player-lyric{font-size:14px;padding:0}}
+/* 手机端全屏播放页是深色底，未唱部分用浅灰 */
+@media(max-width:680px){body.player-open .player-lyric-text{--lyric-sung:#ffb26b;--lyric-dim:rgba(255,255,255,.5)}}
+/* 手机端：歌词与进度条一起放进 audio 区域 */
+@media(max-width:640px){.player-host.is-expanded .player-center{grid-area:audio}}
+/* 另一标签页远程播放时本机不显示歌词，避免与远程进度条重叠 */
+.player-host.is-remote .player-center{display:none}
+/* 电脑端播放条：状态文字放大，并与歌名留出呼吸空间 */
+@media(min-width:681px){
+  .player-host.is-expanded .player-panel-head small{font-size:13px;letter-spacing:.02em}
+  .player-host.is-expanded .player-panel-head h2{margin:9px 0 7px}
+}
+/* 首页精选歌单：填补右栏空白，整行可点击直接播放 */
+.picks-list{display:flex;flex-direction:column}
+.pick-row{display:flex;align-items:center;gap:12px;min-height:66px;padding:6px 2px;border-bottom:1px solid var(--line);color:var(--ink)}
+.pick-row:last-child{border-bottom:0}
+.pick-cover{width:54px;height:54px;border-radius:12px;object-fit:cover;flex:none;background:#e7ece6;box-shadow:0 6px 14px rgba(20,50,40,.14)}
+.pick-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.pick-copy b{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s}
+.pick-row:hover .pick-copy b{color:var(--orange)}
+.pick-copy small{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pick-play{width:30px;height:30px;flex:none;display:grid;place-items:center;border-radius:50%;background:color-mix(in srgb,var(--forest) 10%,transparent);color:var(--forest);transition:.2s}
+.pick-row:hover .pick-play{background:var(--forest);color:var(--white)}
+.pick-play .icon{width:13px;height:13px;fill:currentColor;stroke:none}
+/* 此刻热门：标签内嵌真实专辑封面 */
+.mood-tag{display:inline-flex;align-items:center;gap:7px;padding:4px 11px 4px 4px}
+.mood-tag-cover{width:24px;height:24px;border-radius:7px}
+.mood-tag-cover b{font-size:11px}
+.mood-tag-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 毛玻璃皮肤：底部播放条在彩色模糊背景上也要清晰可读 */
+[data-theme="glass"] .player-host.is-expanded{
+  backdrop-filter:blur(28px) saturate(118%);
+  -webkit-backdrop-filter:blur(28px) saturate(118%);
+}
+[data-theme="glass"] .player-host.is-expanded .player-panel-head small,
+[data-theme="glass"] .player-host.is-expanded #player-artist,
+[data-theme="glass"] .player-host.is-expanded .player-timeline{color:rgba(6,32,27,.9)}
+[data-theme="glass"] .player-host.is-expanded .player-panel-head small{font-weight:700}
+[data-theme="glass"] .player-host.is-expanded .player-panel-head h2,
+[data-theme="glass"] .player-host.is-expanded #player-dock-title{color:#08251f}
+[data-theme="glass"] .player-host.is-expanded .player-panel-head,
+[data-theme="glass"] .player-host.is-expanded .player-timeline,
+[data-theme="glass"] .player-host.is-expanded .player-lyric{text-shadow:0 1px 1px rgba(255,255,255,.85),0 0 4px rgba(255,255,255,.6)}
+[data-theme="glass"] .player-host.is-expanded .player-lyric-text{--lyric-dim:rgba(9,40,34,.8)}
+/* 桌面播放条：状态行与“歌手 · 歌名”之间留出呼吸空间 */
+@media(min-width:681px){
+  .player-host.is-expanded .player-panel-head .np-artist-line{margin-top:9px}
+}
+/* 歌词固定行高：切歌时歌词尚未返回也不会让版面上下跳动 */
+.player-lyric{min-height:27px}
+.player-lyric[hidden]{display:block;visibility:hidden}
+/* 手机全屏播放页：顶栏、唱臂、控件排布 */
+@media(max-width:680px){
+  body.player-open .np-top{position:relative;z-index:5}
+  body.player-open .np-art{padding-top:20px}
+  .np-turntable{width:min(72vw,318px)}
+  body.player-open .player-host.is-expanded .player-panel-head{display:flex;align-items:center;gap:10px}
+  body.player-open .player-host.is-expanded .player-panel-head>div{flex:1;min-width:0}
+  body.player-open .player-host.is-expanded .player-panel-head h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.player-open .player-host.is-expanded .player-panel-head #player-favorite{
+    display:grid;place-items:center;flex:none;width:42px;height:42px;padding:0;border:0;border-radius:50%;
+    background:rgba(255,255,255,.08)!important;color:rgba(255,255,255,.85);
+    box-shadow:none;text-shadow:none;
+  }
+  body.player-open .player-host.is-expanded .player-panel-head #player-favorite .icon{width:19px;height:19px}
+  body.player-open .player-host.is-expanded .player-panel-head #player-favorite.selected{background:rgba(255,255,255,.2)!important;color:#fff}
+  /* 歌名/歌手用正常字体，不要玻璃皮肤的光晕阴影 */
+  body.player-open .player-host.is-expanded .player-panel-head{text-shadow:none}
+  /* 全屏播放页是深色底：任何皮肤下歌名/歌手都保持浅色 */
+  body.player-open .player-host.is-expanded .player-panel-head h2{color:#fff}
+  body.player-open .player-host.is-expanded .player-panel-head #player-artist{color:rgba(255,255,255,.68)}
+  /* 播放控件一行：模式、上一首/播放/下一首、清单聚在中间，播放键正好居中 */
+  body.player-open .player-host.is-expanded .player-actions{
+    display:flex;flex-direction:row;align-items:center;justify-content:center;
+    gap:10px;padding:12px 0 2px;
+  }
+  body.player-open .player-host.is-expanded .player-options{display:contents}
+  body.player-open .player-host.is-expanded #player-shortcuts{display:none}
+  body.player-open .player-host.is-expanded #player-mode{order:1}
+  body.player-open .player-host.is-expanded .player-transport{order:2;justify-content:center;gap:18px}
+  body.player-open .player-host.is-expanded #player-queue{order:3}
+  body.player-open .player-host.is-expanded #player-mode,
+  body.player-open .player-host.is-expanded #player-queue{
+    width:42px;height:42px;min-width:0;padding:0;border-radius:50%;
+    display:grid;place-items:center;
+    background:rgba(255,255,255,.08)!important;color:rgba(255,255,255,.78);
+  }
+  body.player-open .player-host.is-expanded #player-queue #queue-count{display:none}
+  body.player-open .player-host.is-expanded #player-queue .icon{width:18px;height:18px}
+  /* 中间播放键与上一首/下一首同样亮度 */
+  body.player-open .player-host.is-expanded .player-transport #player-play-pause{color:#f4f1ec}
+}
+/* 播放模式：鼠标悬停在模式按钮上时，按钮上方弹出当前模式，不额外占位 */
+.player-host.is-expanded #player-mode{position:relative}
+.player-host.is-expanded #player-mode .mode-label{
+  display:block;position:absolute;left:50%;bottom:calc(100% + 8px);z-index:18;
+  transform:translate(-50%,4px);opacity:0;visibility:hidden;pointer-events:none;
+  padding:5px 11px;border-radius:999px;white-space:nowrap;
+  background:rgba(16,19,24,.9);color:#f6f4ee;font-size:12px;line-height:1.3;font-weight:600;
+  box-shadow:0 8px 22px rgba(0,0,0,.26);transition:opacity .16s ease,transform .16s ease;
+}
+.player-host.is-expanded #player-mode:focus-visible .mode-label{
+  opacity:1;visibility:visible;transform:translate(-50%,0);
+}
+@media(hover:hover){
+  .player-host.is-expanded #player-mode:hover .mode-label{
+    opacity:1;visibility:visible;transform:translate(-50%,0);
+  }
+}
+@media(max-width:360px){
+  body.player-open .player-host.is-expanded .player-actions{gap:6px}
+  body.player-open .player-host.is-expanded .player-transport{gap:10px}
+  body.player-open .player-host.is-expanded #player-mode,
+  body.player-open .player-host.is-expanded #player-queue{width:36px;height:36px}
+}
 
