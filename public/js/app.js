@@ -42,7 +42,6 @@
   const npCoverImg = document.getElementById('np-cover-img');
   const miniCoverImg = document.getElementById('mini-cover-img');
   const dockTitle = document.getElementById('player-dock-title');
-  const queuePosition = document.getElementById('queue-position');
   const artistNode = document.getElementById('player-artist');
   const queueBackdrop = document.getElementById('queue-backdrop');
   let installPrompt = null;
@@ -50,6 +49,8 @@
   let installPromptWaiters = [];
   let installReturnFocus = null;
   let queue = [];
+  let queueSelecting = false;
+  const queueSelected = new Set();
   let favorites = [];
   let current = null;
   let owner = null;
@@ -87,7 +88,7 @@
   }
   async function hideLoading(id) {
     if (id !== navigationId) return;
-    const remaining = Math.max(0, 320 - (performance.now() - loadingStartedAt));
+    const remaining = Math.max(0, 120 - (performance.now() - loadingStartedAt));
     if (remaining) await new Promise(resolve => setTimeout(resolve, remaining));
     if (id === navigationId) loading.hidden = true;
   }
@@ -355,31 +356,43 @@
     return url.startsWith('/') ? url : `/cover/${encodeURIComponent(url)}`;
   }
   // 实时歌曲首屏只有占位块：收集缺失封面的「歌手|歌名」，一次请求后端批量补图
-  function hydrateCovers(root = document) {
-    const nodes = [...root.querySelectorAll('[data-cover-song]')].filter(node => !node.dataset.coverReady && !node.querySelector('img'));
+  function hydrateCovers(root = document, attempt = 0) {
+    const nodes = [...root.querySelectorAll('[data-cover-song]')].filter(node => !node.querySelector('img'));
     if (!nodes.length) return;
     const keys = new Set();
     nodes.forEach(node => {
-      node.dataset.coverReady = '1';
-      const artist = node.dataset.coverArtist || '';
       const song = node.dataset.coverSong || '';
-      if (song) keys.add(`${artist}|${song}`);
+      if (song) keys.add(`${node.dataset.coverArtist || ''}|${song}`);
     });
     if (!keys.size) return;
     const query = [...keys].slice(0, 30).map(key => `s=${encodeURIComponent(key)}`).join('&');
-    fetch(`/api/covers?${query}`).then(response => (response.ok ? response.json() : null)).then(data => {
-      if (!data || !data.covers) return;
-      nodes.forEach(node => {
-        const url = data.covers[`${node.dataset.coverArtist || ''}|${node.dataset.coverSong || ''}`];
-        if (!url || !node.isConnected) return;
-        const img = new Image();
-        img.alt = '';
-        img.loading = 'lazy';
-        img.className = node.classList.contains('song-card-art') ? 'song-card-img' : '';
-        img.onload = () => { node.classList.add('has-cover'); node.appendChild(img); };
-        img.src = url;
+    fetch(`/api/covers?${query}`)
+      .then(response => (response.ok ? response.json() : null))
+      .then(data => {
+        const covers = (data && data.covers) || {};
+        let missing = 0;
+        nodes.forEach(node => {
+          const url = covers[`${node.dataset.coverArtist || ''}|${node.dataset.coverSong || ''}`];
+          if (!url || !node.isConnected) { missing += 1; return; }
+          applyHydratedCover(node, url);
+        });
+        // 上游偶尔限流，服务端补图会晚一点完成，隔几秒再补一轮
+        if (missing && attempt < 2) setTimeout(() => hydrateCovers(root, attempt + 1), 3000);
+      })
+      .catch(() => {
+        if (attempt < 2) setTimeout(() => hydrateCovers(root, attempt + 1), 3000);
       });
-    }).catch(() => {});
+  }
+  function applyHydratedCover(node, url) {
+    if (node.querySelector('img')) return;
+    const img = new Image();
+    img.alt = '';
+    img.decoding = 'async';
+    img.className = node.classList.contains('song-card-art') ? 'song-card-img' : '';
+    img.addEventListener('load', () => node.classList.add('has-cover'));
+    img.addEventListener('error', () => img.remove());
+    node.appendChild(img);
+    img.src = url;
   }
 
   // 有真实封面时显示图片，缺失时回退到渐变首字块
@@ -402,32 +415,33 @@
     else button.textContent = label;
     button.classList.toggle('completed', completed);
   }
-  function addToQueue(song) {
-    if (!validSong(song) || contains(queue, song)) return;
-    queue.push(song);
-    save();
-    autoStartQueue();
-    scheduleCacheStatusRefresh();
+  function addToQueue(song, autoPlay = true) {
+    if (!validSong(song)) return;
+    if (!contains(queue, song)) {
+      queue.push(song);
+      save();
+      scheduleCacheStatusRefresh();
+    }
+    // 加入歌单后立刻播放这首（新加入的第一首），不用等用户切歌
+    if (autoPlay) playSong(song);
   }
   function addPageToQueue(button) {
     const rows = button.closest('.panel')?.querySelectorAll('.song-row [data-add-id]') || [];
     let added = 0;
+    let firstAdded = null;
     for (const row of rows) {
       const song = songFrom(row, 'addId', 'songTitle');
       if (!validSong(song) || contains(queue, song)) continue;
       queue.push(song);
+      if (!firstAdded) firstAdded = song;
       added++;
     }
     if (added) {
       save();
-      autoStartQueue();
       scheduleCacheStatusRefresh();
+      playSong(firstAdded);
     }
     setBulkButton(button, added ? `已加入 ${added} 首` : '本页已加入', true);
-  }
-  // 清单为空闲状态时，加入即从第一首开始播放
-  function autoStartQueue() {
-    if (!current && queue.length) playSong(queue[0]);
   }
   function queueTitles() {
     return [...new Set(queue.map(song => song.title).filter(Boolean))];
@@ -622,14 +636,10 @@
     // 计数徽标无条件刷新；清单有歌时播放键保持可用，解决"清单有歌却显示 0 首且无法播放"
     document.getElementById('player-play-pause').disabled = !current && !queue.length;
     const index = current ? queue.findIndex(song => song.id === current.id) + 1 : 0;
-    // 「播放列表」按钮只显示清单总数，当前第几首单独展示，避免两个信息挤在同一胶囊
-    document.getElementById('queue-count').textContent = `共 ${queue.length} 首`;
+    // 「播放列表」胶囊只显示音符 + 当前序号/总数，宽度更紧凑
+    document.getElementById('queue-count').textContent = `${index}/${queue.length}`;
     const queueIndex = document.getElementById('queue-index');
     if (queueIndex) queueIndex.textContent = String(index);
-    if (queuePosition) {
-      queuePosition.hidden = !index;
-      queuePosition.textContent = index ? `第 ${index} 首` : '';
-    }
     const queueTotal = document.getElementById('queue-total');
     if (queueTotal) queueTotal.textContent = String(queue.length);
     queueButton.setAttribute('aria-label', queue.length
@@ -800,7 +810,7 @@
     pendingRestorePosition = 0;
     trackLoadPending = true;
     audio.src = `/media/${encodeURIComponent(song.title)}.m4a`;
-    addToQueue(song);
+    addToQueue(song, false);
     persistPlayback();
     stateNode.textContent = '正在加载…';
     isPlaying = true;
@@ -846,16 +856,22 @@
       action === 'play' || audio.paused ? requestPlayback() : pausePlayback();
     }
   }
-  function listMarkup(items, kind) {
+  function listMarkup(items, kind, selecting = false) {
     if (!items.length) return `<p class="empty-personal">${kind === 'favorites' ? '还没有收藏歌曲，点击歌曲旁的爱心开始收藏。' : '播放清单还是空的，点击歌曲旁的加号添加。'}</p>`;
     return items.map((song, index) => {
       const isCurrent = kind === 'queue' && !!current && current.id === song.id;
+      const selected = selecting && queueSelected.has(song.id);
       const meter = kind === 'queue'
         ? `<span class="cache-meter" data-cache-title="${escapeHtml(song.title)}" data-cache-state="${cacheStateFor(song.title)}" role="img" aria-label="${cacheStateFor(song.title) === 'cached' ? '已缓存' : cacheStateFor(song.title) === 'downloading' ? '缓存中' : '待缓存'}"><i></i></span>`
         : '';
       const title = displayTitle(song);
       const artist = artistOf(song);
-      return `<div class="personal-song${isCurrent ? ' is-current' : ''}" data-song-id="${escapeHtml(song.id)}"${isCurrent ? ' aria-current="true"' : ''}><span class="personal-index">${String(index + 1).padStart(2, '0')}</span><div class="personal-main"><button type="button" data-play-id="${escapeHtml(song.id)}" data-play-title="${escapeHtml(song.title)}" data-play-artist="${escapeHtml(artist)}"${song.cover ? ` data-play-cover="${escapeHtml(coverSrc(song.cover))}"` : ''}><span class="personal-title">${escapeHtml(title)}</span><small class="personal-artist">${escapeHtml(artist)}</small></button>${meter}</div><button type="button" data-${kind === 'favorites' ? 'favorite' : 'remove'}-id="${escapeHtml(song.id)}" data-song-title="${escapeHtml(song.title)}" aria-label="${kind === 'favorites' ? '取消收藏' : '从播放清单移除'} ${escapeHtml(song.title)}">×</button></div>`;
+      const action = kind === 'favorites'
+        ? `<button type="button" data-favorite-id="${escapeHtml(song.id)}" data-song-title="${escapeHtml(song.title)}" aria-label="取消收藏 ${escapeHtml(song.title)}">×</button>`
+        : selecting
+          ? `<span class="queue-check" role="img" aria-label="${selected ? '已选中' : '未选中'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4.6 12.4 4.9 4.9L19.4 6.8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`
+          : `<button type="button" data-remove-id="${escapeHtml(song.id)}" data-song-title="${escapeHtml(song.title)}" aria-label="从播放清单移除 ${escapeHtml(song.title)}">×</button>`;
+      return `<div class="personal-song${isCurrent ? ' is-current' : ''}${selected ? ' is-selected' : ''}" data-song-id="${escapeHtml(song.id)}"${isCurrent ? ' aria-current="true"' : ''}><span class="personal-index">${String(index + 1).padStart(2, '0')}</span><div class="personal-main"><button type="button" data-play-id="${escapeHtml(song.id)}" data-play-title="${escapeHtml(song.title)}" data-play-artist="${escapeHtml(artist)}"${song.cover ? ` data-play-cover="${escapeHtml(coverSrc(song.cover))}"` : ''}><span class="personal-title">${escapeHtml(title)}</span><small class="personal-artist">${escapeHtml(artist)}</small></button>${meter}</div>${action}</div>`;
     }).join('');
   }
   function renderCollections() {
@@ -868,7 +884,7 @@
     if (fav) fav.innerHTML = listMarkup(favorites, 'favorites');
     const playlist = document.getElementById('playlist-list');
     if (playlist) playlist.innerHTML = listMarkup(queue, 'queue');
-    document.getElementById('queue-items').innerHTML = listMarkup(queue, 'queue');
+    document.getElementById('queue-items').innerHTML = listMarkup(queue, 'queue', queueSelecting);
     const favCount = document.getElementById('profile-favorites-count');
     if (favCount) favCount.textContent = String(favorites.length);
     const trackCount = document.getElementById('profile-tracks-count');
@@ -880,6 +896,42 @@
     });
     updatePlayer();
     updateCacheMeters();
+    updateQueueSelection();
+  }
+  // 选择模式：面板底部换成"全选 / 清除选中 / 取消"操作条
+  function updateQueueSelection() {
+    const selectButton = document.getElementById('queue-select');
+    const bar = document.getElementById('queue-select-bar');
+    const foot = document.querySelector('.queue-foot');
+    if (!queuePanel) return;
+    queuePanel.classList.toggle('is-selecting', queueSelecting);
+    if (selectButton) selectButton.setAttribute('aria-pressed', String(queueSelecting));
+    if (bar) bar.hidden = !queueSelecting;
+    if (foot) foot.hidden = queueSelecting;
+    const clear = document.getElementById('queue-clear-selected');
+    if (clear) {
+      clear.disabled = queueSelected.size === 0;
+      clear.textContent = queueSelected.size ? `清除选中 ${queueSelected.size} 首` : '清除选中';
+    }
+    const all = document.getElementById('queue-select-all');
+    if (all) all.textContent = queue.length && queueSelected.size === queue.length ? '取消全选' : '全选';
+  }
+  function setQueueSelecting(value) {
+    queueSelecting = value;
+    if (!value) queueSelected.clear();
+    renderCollections();
+  }
+  function toggleQueueSelection(id) {
+    if (!id) return;
+    if (queueSelected.has(id)) queueSelected.delete(id); else queueSelected.add(id);
+    renderCollections();
+  }
+  function clearSelectedSongs() {
+    if (!queueSelected.size) return;
+    const removed = new Set(queueSelected);
+    queue = queue.filter(song => !removed.has(song.id));
+    queueSelected.clear();
+    save();
   }
   // 只同步导航高亮，不重建顶栏/分类条/底部导航，避免整页“刷新一下”的观感
   function syncNavState(pathname) {
@@ -961,7 +1013,16 @@
     if (event.target.closest('#mobile-menu')) { setMobileMenuOpen(!document.body.classList.contains('nav-open')); return; }
     if (event.target.closest('[data-queue-toggle]')) { event.preventDefault(); event.stopPropagation(); setQueueOpen(queuePanel.hidden); return; }
     if (event.target.closest('[data-queue-close]')) { setQueueOpen(false); return; }
-    if (event.target.closest('#queue-clear')) { queue = []; save(); return; }
+    if (event.target.closest('#queue-select')) { setQueueSelecting(!queueSelecting); return; }
+    if (event.target.closest('#queue-select-cancel')) { setQueueSelecting(false); return; }
+    if (event.target.closest('#queue-select-all')) {
+      if (queue.length && queueSelected.size === queue.length) queueSelected.clear();
+      else queue.forEach(song => queueSelected.add(song.id));
+      renderCollections();
+      return;
+    }
+    if (event.target.closest('#queue-clear-selected')) { clearSelectedSongs(); return; }
+    if (event.target.closest('#queue-clear')) { queue = []; queueSelected.clear(); queueSelecting = false; save(); return; }
     if (event.target.closest('#queue-mode')) { setPlayMode(PLAY_MODES[(PLAY_MODES.indexOf(playMode) + 1) % PLAY_MODES.length]); return; }
     if (event.target.closest('#player-follow')) { toggleFollow(event.target.closest('#player-follow')); return; }
     const themeChoice = event.target.closest('[data-theme-choice]');
@@ -973,6 +1034,10 @@
     if (favorite) { event.preventDefault(); toggleFavorite(songFrom(favorite, 'favoriteId', 'songTitle')); return; }
     const add = event.target.closest('[data-add-id]');
     if (add) { event.preventDefault(); addToQueue(songFrom(add, 'addId', 'songTitle')); add.classList.add('added'); return; }
+    if (queueSelecting) {
+      const row = event.target.closest('.queue-items .personal-song');
+      if (row) { event.preventDefault(); toggleQueueSelection(row.dataset.songId); return; }
+    }
     const remove = event.target.closest('[data-remove-id]');
     if (remove) { event.preventDefault(); queue = queue.filter(song => song.id !== remove.dataset.removeId); save(); return; }
     const trigger = event.target.closest('[data-play-id]');
@@ -1114,6 +1179,7 @@
   });
   document.getElementById('player-favorite').addEventListener('click', () => { if (current) toggleFavorite(current); });
   function setQueueOpen(open) {
+    if (!open && queueSelecting) { queueSelecting = false; queueSelected.clear(); }
     queuePanel.hidden = !open;
     queueBackdrop.hidden = !open;
     document.body.classList.toggle('queue-open', open);

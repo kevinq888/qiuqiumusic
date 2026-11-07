@@ -8,6 +8,25 @@ const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (
 const store = new Map();
 const inflight = new Map();
 let saveTimer = null;
+// 上游搜索有频率限制，并发过多会被直接拒答，这里限制同时进行的抓取数量
+const MAX_FETCH = 3;
+let activeFetch = 0;
+const fetchQueue = [];
+function acquireFetch() {
+  return new Promise(resolve => {
+    if (activeFetch < MAX_FETCH) {
+      activeFetch += 1;
+      resolve();
+    } else {
+      fetchQueue.push(resolve);
+    }
+  });
+}
+function releaseFetch() {
+  const next = fetchQueue.shift();
+  if (next) next();
+  else activeFetch -= 1;
+}
 
 try {
   const raw = JSON.parse(fs.readFileSync(FILE, 'utf8'));
@@ -123,7 +142,15 @@ function resolve(artist, song) {
   const running = inflight.get(key);
   if (running) return running;
   const task = (async () => {
-    const url = await fetchCover(String(artist || ''), String(song));
+    let url = '';
+    await acquireFetch();
+    try {
+      url = await fetchCover(String(artist || ''), String(song));
+    } catch {
+      url = '';
+    } finally {
+      releaseFetch();
+    }
     if (url) {
       store.set(key, url);
       scheduleSave();
