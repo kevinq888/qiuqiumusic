@@ -13,17 +13,17 @@ const targets = {
   all: [['--mac', 'dmg', '--x64', '--arm64'], ['--win', 'nsis', '--x64']],
 };
 
-// 安装包统一落在 dist/<平台>/<版本>/，与安卓、iPhone 保持同一套目录结构。
+// 安装包统一落在 dist/<版本>/<平台>/，四个平台使用同一套文件名前缀。
 const productName = pkg.build.productName;
-const prefix = `${productName}-${pkg.version}`;
+const prefix = `qiuqiu-music-${pkg.version}`;
 const installers = new Map([
-  [`${productName}-macos-arm64.dmg`, 'mac'],
-  [`${productName}-macos-x64.dmg`, 'mac'],
+  [`${prefix}-mac-arm64.dmg`, 'mac'],
+  [`${prefix}-mac-x64.dmg`, 'mac'],
   [`${prefix}-windows-x64.exe`, 'windows'],
 ]);
 
 function outputPath(name) {
-  return path.join(repo, 'dist', installers.get(name), pkg.version, name);
+  return path.join(repo, 'dist', pkg.version, installers.get(name), name);
 }
 
 function build() {

@@ -36,8 +36,8 @@ function run(command, args) {
 
 function summary() {
   console.log(`\n版本 ${version} 的安装包：`);
-  for (const platform of ['mac', 'windows', 'android', 'iphone']) {
-    const dir = path.join(root, 'dist', platform, version);
+  for (const platform of ['android', 'mac', 'windows', 'iphone']) {
+    const dir = path.join(root, 'dist', version, platform);
     if (!fs.existsSync(dir)) continue;
     for (const name of fs.readdirSync(dir)) {
       const file = path.join(dir, name);

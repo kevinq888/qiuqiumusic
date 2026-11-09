@@ -9,8 +9,8 @@ const { spawnSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const version = require(path.join(root, 'desktop', 'package.json')).version;
 const site = 'https://qiuqiumusic.onrender.com/';
-const outDir = path.join(root, 'dist', 'iphone', version);
-const archive = path.join(outDir, `秋秋音乐-iOS-${version}.zip`);
+const outDir = path.join(root, 'dist', version, 'iphone');
+const archive = path.join(outDir, `qiuqiu-music-${version}-iphone.zip`);
 
 const page = `<!doctype html>
 <html lang="zh-CN">
@@ -72,7 +72,7 @@ iOS 不允许安装未签名的第三方应用包，因此 iPhone / iPad 使用 
 说明：
 - 需要 iOS 15 及以上；首次打开需要联网，之后常用页面会被缓存。
 - 也可以把本压缩包解压后放到任意静态托管上，用 Safari 打开其中的 index.html 作为安装入口。
-- Android 用 dist/android/${version} 下的 APK，电脑用 dist/mac/${version} 与 dist/windows/${version} 下的安装包。
+- Android 用 dist/${version}/android 下的 APK，电脑用 dist/${version}/mac 与 dist/${version}/windows 下的安装包。
 `;
 
 function copy(source, target) {
@@ -111,7 +111,7 @@ function build() {
     const zip = spawnSync('/usr/bin/zip', ['-q', '-r', '-X', archive, '.'], { cwd: stage, stdio: 'inherit' });
     if (zip.error) throw zip.error;
     if (zip.status !== 0) throw Error('zip failed');
-    fs.writeFileSync(path.join(outDir, 'iOS安装说明.md'), guide);
+    fs.writeFileSync(path.join(outDir, `qiuqiu-music-${version}-iphone-INSTALL.md`), guide);
     console.log(`Installer: ${archive}`);
   } finally {
     fs.rmSync(stage, { recursive: true, force: true });

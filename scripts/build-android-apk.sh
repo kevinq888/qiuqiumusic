@@ -11,10 +11,10 @@ NDK="${ANDROID_NDK_HOME:-$SDK/ndk/26.1.10909125}"
 JAVA_HOME="${JAVA_HOME:-/tmp/abuild/jdk-21.0.13+9/Contents/Home}"
 LIBROOT="${LIBROOT:-/tmp/njm/package/android/libnode}"
 BUILD="$SRC/build"
-# 版本号与桌面端保持一致；输出按平台/版本分层：dist/android/<版本>/
+# 版本号与桌面端保持一致；输出按版本/平台分层：dist/<版本>/android/
 VERSION_NAME="${VERSION_NAME:-$(node -p "require('$ROOT/desktop/package.json').version")}"
 VERSION_CODE="${VERSION_CODE:-6}"
-OUT="${OUT:-$ROOT/dist/android/$VERSION_NAME}"
+OUT="${OUT:-$ROOT/dist/$VERSION_NAME/android}"
 ABI="${ABI:-arm64-v8a}"
 API_LEVEL=24
 BT="$SDK/build-tools/34.0.0"
@@ -92,7 +92,7 @@ if [ ! -f "$KEYSTORE" ]; then
     -alias qiuqiu -keyalg RSA -keysize 2048 -validity 10000 \
     -dname "CN=QiuQiu Music, OU=Mobile, O=QiuQiu Music, L=Shanghai, C=CN" >/dev/null
 fi
-APK="$OUT/qiuqiu-music-${VERSION_NAME}-${ABI}.apk"
+APK="$OUT/qiuqiu-music-${VERSION_NAME}-android-${ABI}.apk"
 "$BT/apksigner" sign --ks "$KEYSTORE" --ks-pass pass:qiuqiu2026 --key-pass pass:qiuqiu2026 \
   --ks-key-alias qiuqiu --v4-signing-enabled false --out "$APK" "$BUILD/aligned.apk"
 

@@ -48,18 +48,18 @@ npm run build:iphone    # iOS PWA 安装包（zip）
 npm run build:all       # 依次构建以上全部平台
 ```
 
-安装包统一保存在 `dist/平台/版本号/`，各平台互不覆盖：
+安装包统一保存在 `dist/版本号/平台/`，四个平台使用同一套文件名（`qiuqiu-music-<版本>-<平台>...`）：
 
 ```text
-dist/mac/1.2.9/
-  秋秋音乐-macos-x64.dmg
-dist/windows/1.2.9/
-  秋秋音乐-1.2.9-windows-x64.exe
-dist/android/1.2.9/
-  qiuqiu-music-1.2.9-arm64-v8a.apk
-dist/iphone/1.2.9/
-  秋秋音乐-iOS-1.2.9.zip
-  iOS安装说明.md
+dist/1.2.9/mac/
+  qiuqiu-music-1.2.9-mac-x64.dmg
+dist/1.2.9/windows/
+  qiuqiu-music-1.2.9-windows-x64.exe
+dist/1.2.9/android/
+  qiuqiu-music-1.2.9-android-arm64-v8a.apk
+dist/1.2.9/iphone/
+  qiuqiu-music-1.2.9-iphone.zip
+  qiuqiu-music-1.2.9-iphone-INSTALL.md
 ```
 
 中间应用目录、构建日志和 blockmap 生成在系统临时目录，成功后自动清理；构建失败时会打印诊断目录位置。iOS 无法侧载未签名安装包，因此 iPhone 版是 Safari「添加到主屏幕」使用的 PWA 包。

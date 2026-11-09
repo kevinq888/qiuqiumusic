@@ -39,17 +39,17 @@
       "target": [
         "dmg"
       ],
-      "artifactName": "${productName}-macos-${arch}.${ext}"
+      "artifactName": "qiuqiu-music-${version}-mac-${arch}.${ext}"
     },
     "dmg": {
       "title": "${productName}",
-      "artifactName": "${productName}-macos-${arch}.${ext}"
+      "artifactName": "qiuqiu-music-${version}-mac-${arch}.${ext}"
     },
     "win": {
       "target": [
         "nsis"
       ],
-      "artifactName": "${productName}-${version}-windows-${arch}.${ext}"
+      "artifactName": "qiuqiu-music-${version}-windows-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,

@@ -57,12 +57,12 @@ jobs:
           Move-Item -LiteralPath $baseline -Destination $app
           $version = node -p "require('./desktop/package.json').version"
           $package = Join-Path $root ($version + '-windows-x64.zip')
-          Compress-Archive -LiteralPath (Join-Path $PWD ('dist/windows/' + $version + '/秋秋音乐-' + $version + '-windows-x64.exe')) -DestinationPath $package
+          Compress-Archive -LiteralPath (Join-Path $PWD ('dist/' + $version + '/windows/qiuqiu-music-' + $version + '-windows-x64.exe')) -DestinationPath $package
           node desktop/scripts/test-update-installed.cjs $app $package $version
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Keep the exact Windows installer that passed the upgrade test
         uses: actions/upload-artifact@v4
         with:
           name: windows-installer
-          path: dist/windows/**/*.exe
+          path: dist/**/*.exe
           retention-days: 3
