@@ -31,7 +31,7 @@ async function startLocalApp() {
   const base = `http://127.0.0.1:${localServer.address().port}`;
   protocol.handle('qiuqiu', async request => {
     const url = new URL(request.url);
-    if (url.hostname === 'app' && url.pathname === '/__storage-migration') return new Response('<!doctype html><title>秋秋音乐</title>', { headers: { 'content-type': 'text/html; charset=utf-8' } });
+    if (url.hostname === 'app' && url.pathname === '/__storage-migration') return new Response('<!doctype html><title>未末音乐</title>', { headers: { 'content-type': 'text/html; charset=utf-8' } });
     if (url.hostname !== 'app') return new Response('Not Found', { status: 404 });
     const headers = new Headers(request.headers);
     headers.set('x-qiuqiu-token', token);
@@ -70,7 +70,7 @@ async function migrateLegacyStorage() {
     if (await migration.webContents.executeJavaScript("localStorage.getItem('qiuqiumusic.localMigration.v1') === 'done'")) return;
     session.defaultSession.protocol.handle('https', request => {
       const url = new URL(request.url);
-      return new Response(url.hostname === 'qiuqiumusic.onrender.com' && url.pathname === '/api/desktop-migration' ? '<!doctype html><title>秋秋音乐</title>' : 'Blocked', {
+      return new Response(url.hostname === 'qiuqiumusic.onrender.com' && url.pathname === '/api/desktop-migration' ? '<!doctype html><title>未末音乐</title>' : 'Blocked', {
         status: url.hostname === 'qiuqiumusic.onrender.com' && url.pathname === '/api/desktop-migration' ? 200 : 403,
         headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' },
       });
@@ -276,7 +276,7 @@ function createMainWindow() {
     height: 860,
     minWidth: 375,
     minHeight: 620,
-    title: '秋秋音乐',
+    title: '未末音乐',
     icon: APP_ICON_PATH,
     show: false,
     autoHideMenuBar: true,
@@ -352,11 +352,11 @@ function createTray() {
   if (isMac) icon.setTemplateImage(true);
   if (icon.isEmpty()) icon = nativeImage.createEmpty();
   tray = new Tray(icon);
-  tray.setToolTip('秋秋音乐仍在运行');
+  tray.setToolTip('未末音乐仍在运行');
   tray.setContextMenu(Menu.buildFromTemplate([
-    { label: '打开秋秋音乐', click: showMain },
+    { label: '打开未末音乐', click: showMain },
     { type: 'separator' },
-    { label: '退出秋秋音乐', click: () => quitApp() },
+    { label: '退出未末音乐', click: () => quitApp() },
   ]));
   tray.on('click', showMain);
 }
@@ -395,7 +395,7 @@ if (!app.requestSingleInstanceLock()) {
     pollTimer = setInterval(sendPlaybackState, 800);
     app.on('activate', showMain);
   }).catch(error => {
-    dialog.showErrorBox('秋秋音乐启动失败', `本地播放器无法启动：${error.message}`);
+    dialog.showErrorBox('未末音乐启动失败', `本地播放器无法启动：${error.message}`);
     quitApp();
   });
 }

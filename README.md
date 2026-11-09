@@ -1,6 +1,6 @@
-# 秋秋音乐（qiuqiumusic）
+# 未末音乐（qiuqiumusic）
 
-秋秋音乐是一个 Node.js 在线音乐应用，提供歌曲搜索、榜单、歌手与歌单浏览、收藏和播放清单。网页端的收藏及播放清单保存在当前浏览器。
+未末音乐是一个 Node.js 在线音乐应用，提供歌曲搜索、榜单、歌手与歌单浏览、收藏和播放清单。网页端的收藏及播放清单保存在当前浏览器。
 
 ## 桌面版下载
 
@@ -8,6 +8,7 @@
 
 ### v1.2.9（当前版本）
 
+- 品牌更名为「未末音乐」，桌面端、安装包与全站图标同步启用全新标志。
 - 网页端重做 7 套主题与播放栏配色，播放栏跟随皮肤换色；毛玻璃皮肤的页脚与播放栏改为半透明玻璃效果。
 - 歌单面板提高文字对比度，新增多选、全选与「清除选中」；加入歌单后立即播放第一首。
 - 搜索改为顶部细进度条的局部加载，不再遮罩整页；播放栏完整显示歌手名。
@@ -15,9 +16,9 @@
 
 | 系统 | 下载 |
 | --- | --- |
-| macOS（Apple 芯片） | [秋秋音乐-1.2.9-macos-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.9/qiuqiumusic-1.2.9-macos-arm64.dmg) |
-| macOS（Intel） | [秋秋音乐-1.2.9-macos-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.9/qiuqiumusic-1.2.9-macos-x64.dmg) |
-| Windows（64 位） | [秋秋音乐-1.2.9-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.9/qiuqiumusic-1.2.9-windows-x64.exe) |
+| macOS（Apple 芯片） | [未末音乐-1.2.9-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.9/未末音乐-1.2.9-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.9-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.9/未末音乐-1.2.9-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.9-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.9/未末音乐-1.2.9-windows-x64.exe) |
 
 ### v1.2.8
 
@@ -27,9 +28,9 @@
 
 | 系统 | 下载 |
 | --- | --- |
-| macOS（Apple 芯片） | [秋秋音乐-1.2.8-macos-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.8/qiuqiumusic-1.2.8-macos-arm64.dmg) |
-| macOS（Intel） | [秋秋音乐-1.2.8-macos-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.8/qiuqiumusic-1.2.8-macos-x64.dmg) |
-| Windows（64 位） | [秋秋音乐-1.2.8-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.8/qiuqiumusic-1.2.8-windows-x64.exe) |
+| macOS（Apple 芯片） | [qiuqiumusic-1.2.8-macos-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.8/qiuqiumusic-1.2.8-macos-arm64.dmg) |
+| macOS（Intel） | [qiuqiumusic-1.2.8-macos-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.8/qiuqiumusic-1.2.8-macos-x64.dmg) |
+| Windows（64 位） | [qiuqiumusic-1.2.8-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.8/qiuqiumusic-1.2.8-windows-x64.exe) |
 
 ### v1.2.7
 
@@ -39,21 +40,21 @@
 
 | 系统 | 下载 |
 | --- | --- |
-| macOS（Apple 芯片） | [秋秋音乐-1.2.7-macos-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.7/qiuqiumusic-1.2.7-macos-arm64.dmg) |
-| macOS（Intel） | [秋秋音乐-1.2.7-macos-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.7/qiuqiumusic-1.2.7-macos-x64.dmg) |
-| Windows（64 位） | [秋秋音乐-1.2.7-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.7/qiuqiumusic-1.2.7-windows-x64.exe) |
+| macOS（Apple 芯片） | [qiuqiumusic-1.2.7-macos-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.7/qiuqiumusic-1.2.7-macos-arm64.dmg) |
+| macOS（Intel） | [qiuqiumusic-1.2.7-macos-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.7/qiuqiumusic-1.2.7-macos-x64.dmg) |
+| Windows（64 位） | [qiuqiumusic-1.2.7-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.7/qiuqiumusic-1.2.7-windows-x64.exe) |
 
 ### v1.2.6
 
 - 新增播放快捷键：先按 Q，再在 2 秒内按空格（播放/暂停）、P（播放）、S（暂停）、←（上一首）、→（下一首）。
-- 仅秋秋音乐窗口内生效，不注册全局热键；输入文字、输入法组字和弹窗期间不触发。
+- 仅未末音乐窗口内生效，不注册全局热键；输入文字、输入法组字和弹窗期间不触发。
 - 播放条新增键盘说明按钮；按 Esc、点击其他位置或切换窗口可取消待输入的快捷键。
 
 | 系统 | 下载 |
 | --- | --- |
-| macOS（Apple 芯片） | [秋秋音乐-1.2.6-macos-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.6/qiuqiumusic-1.2.6-macos-arm64.dmg) |
-| macOS（Intel） | [秋秋音乐-1.2.6-macos-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.6/qiuqiumusic-1.2.6-macos-x64.dmg) |
-| Windows（64 位） | [秋秋音乐-1.2.6-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.6/qiuqiumusic-1.2.6-windows-x64.exe) |
+| macOS（Apple 芯片） | [qiuqiumusic-1.2.6-macos-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.6/qiuqiumusic-1.2.6-macos-arm64.dmg) |
+| macOS（Intel） | [qiuqiumusic-1.2.6-macos-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.6/qiuqiumusic-1.2.6-macos-x64.dmg) |
+| Windows（64 位） | [qiuqiumusic-1.2.6-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.6/qiuqiumusic-1.2.6-windows-x64.exe) |
 
 ### v1.2.5
 
@@ -63,9 +64,9 @@
 
 | 系统 | 下载 |
 | --- | --- |
-| macOS（Apple 芯片） | [秋秋音乐-1.2.5-macos-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.5/qiuqiumusic-1.2.5-macos-arm64.dmg) |
-| macOS（Intel） | [秋秋音乐-1.2.5-macos-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.5/qiuqiumusic-1.2.5-macos-x64.dmg) |
-| Windows（64 位） | [秋秋音乐-1.2.5-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.5/qiuqiumusic-1.2.5-windows-x64.exe) |
+| macOS（Apple 芯片） | [qiuqiumusic-1.2.5-macos-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.5/qiuqiumusic-1.2.5-macos-arm64.dmg) |
+| macOS（Intel） | [qiuqiumusic-1.2.5-macos-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.5/qiuqiumusic-1.2.5-macos-x64.dmg) |
+| Windows（64 位） | [qiuqiumusic-1.2.5-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.5/qiuqiumusic-1.2.5-windows-x64.exe) |
 
 ### v1.2.4
 
@@ -75,9 +76,9 @@
 
 | 系统 | 下载 |
 | --- | --- |
-| macOS（Apple 芯片） | [秋秋音乐-1.2.4-macos-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.4/qiuqiumusic-1.2.4-macos-arm64.dmg) |
-| macOS（Intel） | [秋秋音乐-1.2.4-macos-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.4/qiuqiumusic-1.2.4-macos-x64.dmg) |
-| Windows（64 位） | [秋秋音乐-1.2.4-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.4/qiuqiumusic-1.2.4-windows-x64.exe) |
+| macOS（Apple 芯片） | [qiuqiumusic-1.2.4-macos-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.4/qiuqiumusic-1.2.4-macos-arm64.dmg) |
+| macOS（Intel） | [qiuqiumusic-1.2.4-macos-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.4/qiuqiumusic-1.2.4-macos-x64.dmg) |
+| Windows（64 位） | [qiuqiumusic-1.2.4-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.4/qiuqiumusic-1.2.4-windows-x64.exe) |
 
 ### v1.2.3
 
@@ -88,9 +89,9 @@
 
 | 系统 | 下载 |
 | --- | --- |
-| macOS（Apple 芯片） | [秋秋音乐-1.2.3-macos-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.3/qiuqiumusic-1.2.3-macos-arm64.dmg) |
-| macOS（Intel） | [秋秋音乐-1.2.3-macos-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.3/qiuqiumusic-1.2.3-macos-x64.dmg) |
-| Windows（64 位） | [秋秋音乐-1.2.3-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.3/qiuqiumusic-1.2.3-windows-x64.exe) |
+| macOS（Apple 芯片） | [qiuqiumusic-1.2.3-macos-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.3/qiuqiumusic-1.2.3-macos-arm64.dmg) |
+| macOS（Intel） | [qiuqiumusic-1.2.3-macos-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.3/qiuqiumusic-1.2.3-macos-x64.dmg) |
+| Windows（64 位） | [qiuqiumusic-1.2.3-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.3/qiuqiumusic-1.2.3-windows-x64.exe) |
 
 ### v1.2.2
 
@@ -104,9 +105,9 @@
 
 | 系统 | 下载 | ZIP 内的安装包 |
 | --- | --- | --- |
-| macOS（Apple 芯片） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.2/1.2.2-macos-arm64.zip) | 秋秋音乐-1.2.2-macos-arm64.dmg |
-| macOS（Intel） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.2/1.2.2-macos-x64.zip) | 秋秋音乐-1.2.2-macos-x64.dmg |
-| Windows（64 位） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.2/1.2.2-windows-x64.zip) | 秋秋音乐-1.2.2-windows-x64.exe |
+| macOS（Apple 芯片） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.2/1.2.2-macos-arm64.zip) | 未末音乐-1.2.2-macos-arm64.dmg |
+| macOS（Intel） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.2/1.2.2-macos-x64.zip) | 未末音乐-1.2.2-macos-x64.dmg |
+| Windows（64 位） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.2/1.2.2-windows-x64.zip) | 未末音乐-1.2.2-windows-x64.exe |
 
 ### v1.2.1
 
@@ -123,9 +124,9 @@
 
 | 系统 | 下载 | ZIP 内的安装包 |
 | --- | --- | --- |
-| macOS（Apple 芯片） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.1/1.2.1-macos-arm64.zip) | 秋秋音乐-1.2.1-macos-arm64.dmg |
-| macOS（Intel） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.1/1.2.1-macos-x64.zip) | 秋秋音乐-1.2.1-macos-x64.dmg |
-| Windows（64 位） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.1/1.2.1-windows-x64.zip) | 秋秋音乐-1.2.1-windows-x64.exe |
+| macOS（Apple 芯片） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.1/1.2.1-macos-arm64.zip) | 未末音乐-1.2.1-macos-arm64.dmg |
+| macOS（Intel） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.1/1.2.1-macos-x64.zip) | 未末音乐-1.2.1-macos-x64.dmg |
+| Windows（64 位） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.1/1.2.1-windows-x64.zip) | 未末音乐-1.2.1-windows-x64.exe |
 
 ### v1.1.0
 
@@ -135,9 +136,9 @@
 
 | 系统 | 下载 | ZIP 内的安装包 |
 | --- | --- | --- |
-| macOS（Apple 芯片） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.1.0/1.1.0-macos-arm64.zip) | 秋秋音乐-1.1.0-macos-arm64.dmg |
-| macOS（Intel） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.1.0/1.1.0-macos-x64.zip) | 秋秋音乐-1.1.0-macos-x64.dmg |
-| Windows（64 位） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.1.0/1.1.0-windows-x64.zip) | 秋秋音乐-1.1.0-windows-x64.exe |
+| macOS（Apple 芯片） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.1.0/1.1.0-macos-arm64.zip) | 未末音乐-1.1.0-macos-arm64.dmg |
+| macOS（Intel） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.1.0/1.1.0-macos-x64.zip) | 未末音乐-1.1.0-macos-x64.dmg |
+| Windows（64 位） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.1.0/1.1.0-windows-x64.zip) | 未末音乐-1.1.0-windows-x64.exe |
 
 
 ### v1.0.10
@@ -150,9 +151,9 @@
 
 | 系统 | 下载 | ZIP 内的安装包 |
 | --- | --- | --- |
-| macOS（Apple 芯片） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.10/1.0.10-macos-arm64.zip) | 秋秋音乐-1.0.10-macos-arm64.dmg |
-| macOS（Intel） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.10/1.0.10-macos-x64.zip) | 秋秋音乐-1.0.10-macos-x64.dmg |
-| Windows（64 位） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.10/1.0.10-windows-x64.zip) | 秋秋音乐-1.0.10-windows-x64.exe |
+| macOS（Apple 芯片） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.10/1.0.10-macos-arm64.zip) | 未末音乐-1.0.10-macos-arm64.dmg |
+| macOS（Intel） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.10/1.0.10-macos-x64.zip) | 未末音乐-1.0.10-macos-x64.dmg |
+| Windows（64 位） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.10/1.0.10-windows-x64.zip) | 未末音乐-1.0.10-windows-x64.exe |
 
 ### v1.0.9
 
@@ -162,9 +163,9 @@
 
 | 系统 | 下载 | ZIP 内的安装包 |
 | --- | --- | --- |
-| macOS（Apple 芯片） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.9/1.0.9-macos-arm64.zip) | 秋秋音乐-1.0.9-macos-arm64.dmg |
-| macOS（Intel） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.9/1.0.9-macos-x64.zip) | 秋秋音乐-1.0.9-macos-x64.dmg |
-| Windows（64 位） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.9/1.0.9-windows-x64.zip) | 秋秋音乐-1.0.9-windows-x64.exe |
+| macOS（Apple 芯片） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.9/1.0.9-macos-arm64.zip) | 未末音乐-1.0.9-macos-arm64.dmg |
+| macOS（Intel） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.9/1.0.9-macos-x64.zip) | 未末音乐-1.0.9-macos-x64.dmg |
+| Windows（64 位） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.9/1.0.9-windows-x64.zip) | 未末音乐-1.0.9-windows-x64.exe |
 
 ### v1.0.8
 
@@ -174,9 +175,9 @@
 
 | 系统 | 下载 | ZIP 内的安装包 |
 | --- | --- | --- |
-| macOS（Apple 芯片） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.8/1.0.8-macos-arm64.zip) | 秋秋音乐-1.0.8-macos-arm64.dmg |
-| macOS（Intel） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.8/1.0.8-macos-x64.zip) | 秋秋音乐-1.0.8-macos-x64.dmg |
-| Windows（64 位） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.8/1.0.8-windows-x64.zip) | 秋秋音乐-1.0.8-windows-x64.exe |
+| macOS（Apple 芯片） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.8/1.0.8-macos-arm64.zip) | 未末音乐-1.0.8-macos-arm64.dmg |
+| macOS（Intel） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.8/1.0.8-macos-x64.zip) | 未末音乐-1.0.8-macos-x64.dmg |
+| Windows（64 位） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.8/1.0.8-windows-x64.zip) | 未末音乐-1.0.8-windows-x64.exe |
 
 ### v1.0.7
 
@@ -184,9 +185,9 @@
 
 | 系统 | 下载 | ZIP 内的安装包 |
 | --- | --- | --- |
-| macOS（Apple 芯片） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.7/1.0.7-macos-arm64.zip) | 秋秋音乐-1.0.7-macos-arm64.dmg |
-| macOS（Intel） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.7/1.0.7-macos-x64.zip) | 秋秋音乐-1.0.7-macos-x64.dmg |
-| Windows（64 位） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.7/1.0.7-windows-x64.zip) | 秋秋音乐-1.0.7-windows-x64.exe |
+| macOS（Apple 芯片） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.7/1.0.7-macos-arm64.zip) | 未末音乐-1.0.7-macos-arm64.dmg |
+| macOS（Intel） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.7/1.0.7-macos-x64.zip) | 未末音乐-1.0.7-macos-x64.dmg |
+| Windows（64 位） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.7/1.0.7-windows-x64.zip) | 未末音乐-1.0.7-windows-x64.exe |
 
 程序坞图标按 QQ、微信的图形占比调整，启动时刷新当前图标；菜单栏改为带音符的单色图标。悬停面板去掉整块底色，标题宽度随内容变化，文字描边和独立按钮底保证清晰可见。
 
@@ -194,13 +195,13 @@
 
 本地正式安装包位于 `desktop/dist/1.0.6/`，该目录只保留两个 macOS DMG 和一个 Windows EXE；后续版本使用各自的版本号目录。
 
-安装包统一命名为“秋秋音乐-版本号-系统-架构”。[GitHub 会过滤上传文件名中的中文](https://docs.github.com/en/rest/releases/assets)，因此此版本提供 ZIP 下载；请解压后运行其中的中文名安装包。
+安装包统一命名为“未末音乐-版本号-系统-架构”。[GitHub 会过滤上传文件名中的中文](https://docs.github.com/en/rest/releases/assets)，因此此版本提供 ZIP 下载；请解压后运行其中的中文名安装包。
 
 | 系统 | 下载 | ZIP 内的安装包 |
 | --- | --- | --- |
-| macOS（Apple 芯片） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.6/1.0.6-macos-arm64.zip) | 秋秋音乐-1.0.6-macos-arm64.dmg |
-| macOS（Intel） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.6/1.0.6-macos-x64.zip) | 秋秋音乐-1.0.6-macos-x64.dmg |
-| Windows（64 位） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.6/1.0.6-windows-x64.zip) | 秋秋音乐-1.0.6-windows-x64.exe |
+| macOS（Apple 芯片） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.6/1.0.6-macos-arm64.zip) | 未末音乐-1.0.6-macos-arm64.dmg |
+| macOS（Intel） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.6/1.0.6-macos-x64.zip) | 未末音乐-1.0.6-macos-x64.dmg |
+| Windows（64 位） | [下载 ZIP](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.0.6/1.0.6-windows-x64.zip) | 未末音乐-1.0.6-windows-x64.exe |
 
 ### v1.0.5
 
@@ -252,7 +253,7 @@ npm start
 
 ## 安装到手机桌面
 
-本站也是可安装的网页 App（PWA），安装后会在手机主屏幕显示“秋秋音乐”。安卓 Chrome 可点击站点顶栏的“安装”并确认系统提示；iPhone 请在 Safari 使用“分享”→“添加到主屏幕”。微信等内置浏览器通常不提供系统安装提示，请先选择“在浏览器打开”，再使用 Chrome 或 Safari 安装。安装需要由手机系统确认。
+本站也是可安装的网页 App（PWA），安装后会在手机主屏幕显示“未末音乐”。安卓 Chrome 可点击站点顶栏的“安装”并确认系统提示；iPhone 请在 Safari 使用“分享”→“添加到主屏幕”。微信等内置浏览器通常不提供系统安装提示，请先选择“在浏览器打开”，再使用 Chrome 或 Safari 安装。安装需要由手机系统确认。
 
 ## 公开部署
 

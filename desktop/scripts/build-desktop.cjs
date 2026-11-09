@@ -8,14 +8,14 @@ const repo = path.resolve(desktop, '..');
 const pkg = require(path.join(desktop, 'package.json'));
 const [platform, ...args] = process.argv.slice(2);
 const targets = {
-  mac: [['--mac', 'dmg', ...args]],
+  mac: [['--mac', 'dmg', '--x64', '--arm64', ...args]],
   win: [['--win', 'nsis', '--x64', ...args]],
   all: [['--mac', 'dmg', '--x64', '--arm64'], ['--win', 'nsis', '--x64']],
 };
 
 // 安装包统一落在 dist/<版本>/<平台>/，四个平台使用同一套文件名前缀。
 const productName = pkg.build.productName;
-const prefix = `qiuqiu-music-${pkg.version}`;
+const prefix = `${productName}-${pkg.version}`;
 const installers = new Map([
   [`${prefix}-mac-arm64.dmg`, 'mac'],
   [`${prefix}-mac-x64.dmg`, 'mac'],

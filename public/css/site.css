@@ -890,48 +890,49 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   .mobile-tabbar a.active .icon{stroke-width:2.2}
   [data-theme="dark"] .mobile-tabbar{background:rgba(18,32,28,.92)}
   [data-theme="glass"] .mobile-tabbar{background:rgba(247,250,255,.92);border-top-color:rgba(255,255,255,.7)}
-  /* 全屏播放页保留底部 TabBar，与网易云一致 */
-  body.player-open .mobile-tabbar{
-    opacity:1;pointer-events:auto;z-index:80;
-    background:rgba(12,11,16,.94);border-top-color:rgba(255,255,255,.08);
-  }
-  body.player-open .mobile-tabbar a{color:rgba(255,255,255,.45)}
-  body.player-open .mobile-tabbar a.active{color:#fff}
+  /* 全屏播放页：隐藏底部 TabBar，让播放页真正铺满整屏 */
+  body.player-open .mobile-tabbar{display:none}
+  /* 顶部胶囊浮在内容之上时，把首屏内容往下让一点，避免压住标题 */
+  body.mini-open .main-content{padding-top:62px}
 
-  .main-content{padding-top:14px;padding-bottom:132px}
+  .main-content{padding-top:14px;padding-bottom:96px}
   .site-footer{display:none}
   .nav-shell{padding-left:12px;padding-right:12px}
 
-  /* 迷你胶囊播放条 */
+  /* 迷你播放器：收进屏幕顶部中央，像灵动岛一样显示当前歌曲与进度 */
   .vinyl-toggle{display:none!important}
   .mini-player{
-    position:fixed;left:12px;right:12px;bottom:calc(56px + env(safe-area-inset-bottom) + 9px);z-index:52;
-    display:flex;align-items:center;gap:10px;height:52px;padding:0 10px 0 7px;
-    border-radius:999px;background:color-mix(in srgb,var(--white) 90%,transparent);
-    border:1px solid color-mix(in srgb,var(--line) 62%,transparent);
-    box-shadow:0 12px 30px rgba(16,40,35,.18),inset 0 1px 0 rgba(255,255,255,.5);
-    backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);
-    overflow:hidden;
+    position:fixed;left:50%;right:auto;bottom:auto;
+    top:calc(env(safe-area-inset-top) + 62px);
+    transform:translateX(-50%);
+    z-index:90;display:flex;align-items:center;gap:8px;
+    width:min(78vw,330px);height:44px;padding:0 8px 0 6px;
+    border-radius:999px;background:rgba(15,15,19,.88);
+    border:1px solid rgba(255,255,255,.14);
+    box-shadow:0 12px 34px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.16);
+    backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);
+    overflow:hidden;animation:island-in .3s var(--ease) both;
   }
   .mini-player[hidden]{display:none}
-  [data-theme="glass"] .mini-player{background:rgba(248,251,255,.9);border-color:rgba(255,255,255,.8)}
-  .mini-open{display:flex;align-items:center;gap:9px;flex:1;min-width:0;border:0;background:transparent;padding:0;color:var(--ink);text-align:left}
+  @keyframes island-in{from{opacity:0;transform:translateX(-50%) translateY(-10px) scale(.94)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+  [data-theme="glass"] .mini-player{background:rgba(20,22,28,.88);border-color:rgba(255,255,255,.2)}
+  .mini-open{display:flex;align-items:center;gap:8px;flex:1;min-width:0;border:0;background:transparent;padding:0;color:#fff;text-align:left}
   .mini-cover{
-    position:relative;display:grid;place-items:center;width:38px;height:38px;flex:none;border-radius:50%;overflow:hidden;
+    position:relative;display:grid;place-items:center;width:32px;height:32px;flex:none;border-radius:50%;overflow:hidden;
     background:linear-gradient(145deg,hsl(var(--hue,160) 52% 64%),hsl(var(--hue,160) 46% 38%));
-    box-shadow:0 2px 8px rgba(10,30,26,.2);
+    box-shadow:0 2px 8px rgba(0,0,0,.28);
   }
   .mini-cover:before{content:'';position:absolute;inset:0;background:repeating-radial-gradient(circle,transparent 0 4px,rgba(255,255,255,.12) 5px,transparent 6px 8px)}
-  .mini-cover b{position:relative;z-index:1;color:#fff;font-size:14px;font-weight:800}
-  .mini-meta{display:flex;flex-direction:column;min-width:0;line-height:1.25}
-  .mini-meta strong{font-size:13px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
-  .mini-meta small{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .mini-play,.mini-queue{display:grid;place-items:center;width:34px;height:34px;flex:none;border:0;border-radius:50%;background:transparent;color:var(--forest);padding:0}
-  .mini-play .icon{width:22px;height:22px}
-  .mini-queue .icon{width:19px;height:19px}
+  .mini-cover b{position:relative;z-index:1;color:#fff;font-size:13px;font-weight:800}
+  .mini-meta{display:flex;flex-direction:column;min-width:0;line-height:1.2}
+  .mini-meta strong{font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff}
+  .mini-meta small{font-size:9.5px;color:rgba(255,255,255,.58);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mini-play,.mini-queue{display:grid;place-items:center;width:30px;height:30px;flex:none;border:0;border-radius:50%;background:transparent;color:#fff;padding:0}
+  .mini-play .icon{width:20px;height:20px}
+  .mini-queue .icon{width:17px;height:17px}
   .mini-play .tp-icon,.tp-icon{display:grid;place-items:center;line-height:0}
-  .mini-progress{position:absolute;left:10px;right:10px;bottom:3px;height:2px;border-radius:2px;background:color-mix(in srgb,var(--line) 70%,transparent);overflow:hidden}
-  .mini-progress i{display:block;height:100%;width:0;background:var(--forest);border-radius:2px;transition:width .2s linear}
+  .mini-progress{position:absolute;left:18px;right:18px;bottom:0;height:2px;border-radius:2px;background:rgba(255,255,255,.18);overflow:hidden}
+  .mini-progress i{display:block;height:100%;width:0;background:#8fe3c1;border-radius:2px;transition:width .2s linear;box-shadow:0 0 8px rgba(143,227,193,.65)}
 
   /* 播放/暂停图标切换 */
   .player-host.is-playing .tp-play,
@@ -940,8 +941,8 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   /* 全屏播放页 */
   body.player-open{overflow:hidden}
   .player-host.is-expanded{
-    position:fixed;inset:0;left:0;right:0;top:0;bottom:calc(56px + env(safe-area-inset-bottom));width:100%;
-    z-index:70;border:0;border-radius:0;
+    position:fixed;inset:0;left:0;right:0;top:0;bottom:0;width:100%;
+    z-index:70;border:0;border-radius:0;overflow:hidden;
     background:
       radial-gradient(120% 78% at 16% 0%,hsl(var(--hue,160) 34% 26% / .96),transparent 62%),
       radial-gradient(95% 70% at 92% 88%,hsl(calc(var(--hue,160) + 26) 38% 24% / .8),transparent 60%),
@@ -950,8 +951,20 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
     display:flex;flex-direction:column;
     transition:transform .3s var(--ease);
   }
+  /* 背景取自当前封面：两层交替淡入，换歌时整屏渐变过渡 */
+  .np-bg{display:none;position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .player-host.is-expanded .np-bg{display:block}
+  .np-bg span{
+    position:absolute;inset:-18%;background-position:center;background-size:cover;
+    filter:blur(54px) saturate(1.6) brightness(.6);transform:scale(1.22);
+    opacity:0;transition:opacity .9s ease;
+  }
+  .np-bg span.is-active{opacity:1}
+  .np-veil{display:none;position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:linear-gradient(180deg,rgba(8,8,12,.26) 0%,rgba(8,8,12,.4) 42%,rgba(8,8,12,.9) 100%)}
+  .player-host.is-expanded .np-veil{display:block}
   .player-host.is-expanded .player-panel{
-    position:relative;flex:1;min-height:0;width:100%;max-width:none;margin:0;
+    position:relative;z-index:1;flex:1;min-height:0;width:100%;max-width:none;margin:0;
     padding:0 22px calc(12px + env(safe-area-inset-bottom));
     display:flex;flex-direction:column;align-items:stretch;gap:8px;overflow:hidden;
     background:transparent;border:0;border-radius:0;box-shadow:none;color:#f4f1ec;
@@ -1181,6 +1194,25 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   .route-loading{z-index:95}
   .install-dialog{z-index:100}
   .theme-sheet{z-index:102}
+  /* 播放清单：贴底大圆角抽屉，行距与高亮参考主流播放器 */
+  .player-host.is-expanded .queue-panel{
+    left:0;right:0;width:100%;transform:none;
+    bottom:0;max-height:min(78dvh,600px);
+    border-radius:26px 26px 0 0;
+    padding:10px 16px calc(14px + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg,color-mix(in srgb,var(--white) 98%,transparent),color-mix(in srgb,var(--white) 94%,transparent));
+    box-shadow:0 -22px 60px rgba(0,0,0,.45);
+  }
+  .player-host.is-expanded .queue-handle{display:block;width:38px;height:4px;margin:0 auto 10px;border-radius:999px;background:color-mix(in srgb,var(--ink) 16%,transparent)}
+  .player-host.is-expanded .queue-head h2{font-size:17px}
+  .player-host.is-expanded .queue-source{margin:8px 0 4px}
+  .player-host.is-expanded .queue-items{margin-top:6px}
+  .player-host.is-expanded .queue-items .personal-song{min-height:56px;border-radius:14px;padding:0 6px}
+  .player-host.is-expanded .queue-items .personal-song+.personal-song{margin-top:2px}
+  .player-host.is-expanded .queue-items .personal-song.is-current{background:color-mix(in srgb,var(--forest) 12%,transparent)}
+  .player-host.is-expanded .queue-items .personal-song.is-current .personal-title{color:var(--forest);font-weight:800}
+  .player-host.is-expanded .queue-foot{padding-top:10px}
+  .player-host.is-expanded .queue-pill{height:38px;border-radius:999px;font-size:12px}
   body.queue-open .mobile-tabbar{opacity:0;pointer-events:none}
 }
 @media(max-width:380px){

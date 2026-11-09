@@ -6,7 +6,7 @@ const { execFile, spawn } = require('node:child_process');
 const { promisify } = require('node:util');
 const run = promisify(execFile);
 const { inspectInstallerZip } = require('./zip.cjs');
-const APP_ID = 'com.qiuqiumusic.desktop';
+const APP_ID = 'com.weimo.music.desktop';
 function appBundle(exe) { return path.resolve(path.dirname(exe), '../..'); }
 function psLiteral(value) { return "'" + value.replace(/'/g, "''") + "'"; }
 async function powershell(code) {
@@ -14,7 +14,7 @@ async function powershell(code) {
 }
 async function extractInstaller({ candidate, archive, workspace, runtime }) {
   const ext = runtime.platform === 'darwin' ? 'dmg' : 'exe';
-  const filename = `秋秋音乐-${candidate.version}-${candidate.target}.${ext}`;
+  const filename = `未末音乐-${candidate.version}-${candidate.target}.${ext}`;
   const installer = path.join(workspace, filename);
   await inspectInstallerZip(archive, filename);
   if (runtime.platform === 'darwin') {
@@ -41,13 +41,13 @@ async function prepareMac(input) {
   const mount = path.join(workspace, 'mount');
   await fs.mkdir(mount);
   const suffix = crypto.randomBytes(8).toString('hex');
-  const stage = path.join(path.dirname(target), `.qiuqiu-update-${suffix}.app`);
-  const backup = path.join(path.dirname(target), `.qiuqiu-backup-${suffix}.app`);
+  const stage = path.join(path.dirname(target), `.weimo-update-${suffix}.app`);
+  const backup = path.join(path.dirname(target), `.weimo-backup-${suffix}.app`);
   let mounted = false;
   try {
     await run('/usr/bin/hdiutil', ['attach', '-readonly', '-nobrowse', '-mountpoint', mount, installer], { timeout: 120000 });
     mounted = true;
-    const source = path.join(mount, '秋秋音乐.app');
+    const source = path.join(mount, '未末音乐.app');
     const plist = path.join(source, 'Contents', 'Info.plist');
     const value = async key => (await run('/usr/libexec/PlistBuddy', ['-c', `Print :${key}`, plist])).stdout.trim();
     if (await value('CFBundleIdentifier') !== APP_ID || await value('CFBundleShortVersionString') !== candidate.version) throw Error('安装包版本或应用标识不匹配');

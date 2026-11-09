@@ -1,4 +1,4 @@
-package com.qiuqiu.music;
+package com.weimo.music;
 
 import android.app.Application;
 import android.os.Build;
@@ -8,7 +8,7 @@ import android.util.Log;
  * 进程入口：在 Activity 之前就装好崩溃捕获并写日志，
  * 这样即使启动早期（WebView/类加载）崩溃，下次打开也能看到原因。
  */
-public class QiuQiuApp extends Application {
+public class WeiMoApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();

@@ -1,8 +1,8 @@
 {
-  "name": "qiuqiumusic-desktop",
+  "name": "weimo-music-desktop",
   "version": "1.2.9",
   "private": true,
-  "description": "秋秋音乐本地桌面播放器",
+  "description": "未末音乐本地桌面播放器",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -20,8 +20,8 @@
     "electron-builder": "26.0.12"
   },
   "build": {
-    "appId": "com.qiuqiumusic.desktop",
-    "productName": "秋秋音乐",
+    "appId": "com.weimo.music.desktop",
+    "productName": "未末音乐",
     "afterPack": "scripts/after-pack.cjs",
     "artifactName": "${productName}-${version}-${arch}.${ext}",
     "files": [
@@ -39,17 +39,17 @@
       "target": [
         "dmg"
       ],
-      "artifactName": "qiuqiu-music-${version}-mac-${arch}.${ext}"
+      "artifactName": "未末音乐-${version}-mac-${arch}.${ext}"
     },
     "dmg": {
       "title": "${productName}",
-      "artifactName": "qiuqiu-music-${version}-mac-${arch}.${ext}"
+      "artifactName": "未末音乐-${version}-mac-${arch}.${ext}"
     },
     "win": {
       "target": [
         "nsis"
       ],
-      "artifactName": "qiuqiu-music-${version}-windows-${arch}.${ext}"
+      "artifactName": "未末音乐-${version}-windows-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,

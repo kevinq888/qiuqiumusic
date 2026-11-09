@@ -14,7 +14,7 @@ const CHARTS = {
   hot: { name: '热门榜', eyebrow: 'THE HOT LIST', icon: 'flame', description: '全站热播曲目实时排行，跟着大家一起听。' },
   new: { name: '新歌榜', eyebrow: 'NEW RELEASES', icon: 'clock', description: '最新上架歌曲速报，先听为快。' },
   recommend: { name: '推荐榜', eyebrow: "EDITOR'S PICK", icon: 'spark', description: '编辑精选好歌，每一首都值得一听。' },
-  local: { name: '本站点播榜', eyebrow: 'QIUQIU TOP', icon: 'headphones', description: '根据本站听众最近 7 天的真实点播生成，越听越靠前。' },
+  local: { name: '本站点播榜', eyebrow: 'WEIMO TOP', icon: 'headphones', description: '根据本站听众最近 7 天的真实点播生成，越听越靠前。' },
 };
 
 function dayKey(date = new Date()) {

@@ -40,6 +40,7 @@
   const npCover = document.getElementById('np-cover');
   const npInitial = document.getElementById('np-initial');
   const npCoverImg = document.getElementById('np-cover-img');
+  const npBackdrop = document.getElementById('np-bg');
   const miniCoverImg = document.getElementById('mini-cover-img');
   const dockTitle = document.getElementById('player-dock-title');
   const artistNode = document.getElementById('player-artist');
@@ -138,14 +139,14 @@
         ? 'iPhone 需要通过 Safari 添加网页 App：点“分享”→“添加到主屏幕”→“添加”。如果看到“作为网页 App 打开”，请开启。'
         : '请用 Safari 打开本站，再点“分享”→“添加到主屏幕”→“添加”。';
     } else if (env.android) {
-      instructions = '浏览器暂未准备好或不支持直接安装，可以手动添加：\n· Chrome：点右上角菜单（⋮）→"安装应用"或"添加到主屏幕"。\n· 小米/华为/OPPO/vivo 等浏览器：点菜单 →"添加到桌面"（有的在"工具箱"里）。\n添加后桌面会出现"秋秋音乐"图标。也可以刷新本页后再点一次"保存链接"重试直接安装。';
+      instructions = '浏览器暂未准备好或不支持直接安装，可以手动添加：\n· Chrome：点右上角菜单（⋮）→"安装应用"或"添加到主屏幕"。\n· 小米/华为/OPPO/vivo 等浏览器：点菜单 →"添加到桌面"（有的在"工具箱"里）。\n添加后桌面会出现"未末音乐"图标。也可以刷新本页后再点一次"保存链接"重试直接安装。';
     } else if (env.safari) {
       instructions = '在 Safari 菜单中选择“文件”→“添加到程序坞”，或点工具栏的“分享”→“添加到程序坞”。';
     } else {
-      instructions = '在浏览器地址栏右侧或菜单中选择“安装秋秋音乐”。如果暂时没有安装选项，请稍后刷新再试。';
+      instructions = '在浏览器地址栏右侧或菜单中选择“安装未末音乐”。如果暂时没有安装选项，请稍后刷新再试。';
     }
     installReturnFocus = document.activeElement;
-    document.getElementById('install-title').textContent = '保存秋秋音乐链接';
+    document.getElementById('install-title').textContent = '保存未末音乐链接';
     document.getElementById('install-instructions').textContent = instructions;
     const copy = document.getElementById('install-copy-link');
     copy.hidden = false;
@@ -339,7 +340,7 @@
   // 没有 artist 字段时从标题推断
   function artistOf(song) {
     if (song?.artist) return song.artist;
-    return splitTitle(song).artist || '秋秋音乐';
+    return splitTitle(song).artist || '未末音乐';
   }
   // 封面图加载失败时回退到渐变首字块，避免出现空白卡片
   document.addEventListener('error', event => {
@@ -413,6 +414,28 @@
       img.removeAttribute('src');
       img.hidden = true;
     }
+  }
+  // 全屏播放页的背景直接取自当前封面：两层交替淡入，换歌时像参考应用一样整体换色
+  let backdropSlot = 0;
+  let backdropUrl = '';
+  function setPlayerBackdrop(cover) {
+    if (!npBackdrop) return;
+    const layers = npBackdrop.children;
+    if (!layers || layers.length < 2) return;
+    const url = cover ? coverSrc(cover) : '';
+    if (url === backdropUrl) return;
+    backdropUrl = url;
+    if (!url) {
+      for (const layer of layers) {
+        layer.classList.remove('is-active');
+        layer.style.backgroundImage = '';
+      }
+      return;
+    }
+    backdropSlot = backdropSlot ? 0 : 1;
+    const layer = layers[backdropSlot];
+    layer.style.backgroundImage = `url("${url}")`;
+    for (const item of layers) item.classList.toggle('is-active', item === layer);
   }
   function contains(list, song) { return list.some(item => item.id === song.id); }
   function setBulkButton(button, label, completed) {
@@ -668,11 +691,14 @@
   function updateMediaSession() {
     if (!('mediaSession' in navigator) || !current) return;
     try {
+      const artwork = current.cover
+        ? [{ src: new URL(coverSrc(current.cover), location.href).href, sizes: '512x512' }, ...MEDIA_ARTWORK]
+        : MEDIA_ARTWORK;
       navigator.mediaSession.metadata = new MediaMetadata({
         title: displayTitle(current),
         artist: artistOf(current),
-        album: '秋秋音乐',
-        artwork: MEDIA_ARTWORK,
+        album: '未末音乐',
+        artwork,
       });
       navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
     } catch {}
@@ -762,13 +788,14 @@
     if (!current) {
       stateNode.textContent = queue.length ? '按播放键开始' : '待命中';
       titleNode.textContent = '选择一首歌';
-      artistNode.textContent = '秋秋音乐';
+      artistNode.textContent = '未末音乐';
       miniTitle.textContent = '选择一首歌';
-      miniArtist.textContent = '秋秋音乐';
+      miniArtist.textContent = '未末音乐';
       if (dockTitle) dockTitle.textContent = '选择一首歌';
       loadLyrics(null);
       setCoverImage(npCoverImg, npCover);
       setCoverImage(miniCoverImg, miniCover);
+      setPlayerBackdrop('');
       return;
     }
     if (!initializing && !minimizedByUser && !host.classList.contains('is-expanded')) expand();
@@ -781,6 +808,7 @@
     if (dockTitle) dockTitle.textContent = title;
     setCoverImage(npCoverImg, npCover, current.cover);
     setCoverImage(miniCoverImg, miniCover, current.cover);
+    setPlayerBackdrop(current.cover);
     const hue = coverHue(current.id);
     npCover.style.setProperty('--hue', hue);
     miniCover.style.setProperty('--hue', hue);
@@ -815,6 +843,7 @@
     document.body.classList.add('player-open');
     toggle.setAttribute('aria-expanded', 'true');
     miniPlayer.hidden = true;
+    document.body.classList.remove('mini-open');
     setQueueOpen(false);
     syncPlayerSpace();
   }
@@ -828,6 +857,7 @@
     document.documentElement.style.removeProperty('--player-dock-height');
     toggle.setAttribute('aria-expanded', 'false');
     miniPlayer.hidden = !current;
+    document.body.classList.toggle('mini-open', !miniPlayer.hidden);
     if (restoreVinylPos) restoreVinylPos(); // 恢复悬浮球拖动记忆位置
   }
   // 播放计数上报：每首歌每个会话只计一次，驱动本站"本站点播榜"。

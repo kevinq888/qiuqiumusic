@@ -10,20 +10,20 @@ const root = path.resolve(__dirname, '..');
 const version = require(path.join(root, 'desktop', 'package.json')).version;
 const site = 'https://qiuqiumusic.onrender.com/';
 const outDir = path.join(root, 'dist', version, 'iphone');
-const archive = path.join(outDir, `qiuqiu-music-${version}-iphone.zip`);
+const archive = path.join(outDir, `未末音乐-${version}-iphone.zip`);
 
 const page = `<!doctype html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>秋秋音乐 · iOS 安装</title>
-<meta name="description" content="在 iPhone / iPad 上把秋秋音乐添加到主屏幕。">
+<title>未末音乐 · iOS 安装</title>
+<meta name="description" content="在 iPhone / iPad 上把未末音乐添加到主屏幕。">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="秋秋音乐">
+<meta name="apple-mobile-web-app-title" content="未末音乐">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f1f8f5">
 <style>
@@ -46,28 +46,28 @@ const page = `<!doctype html>
 </head>
 <body>
 <main>
-  <img class="icon" src="icons/icon-192.png" alt="秋秋音乐">
-  <h1>秋秋音乐</h1>
+  <img class="icon" src="icons/icon-192.png" alt="未末音乐">
+  <h1>未末音乐</h1>
   <p class="sub">v${version} · iPhone / iPad 版</p>
   <ol>
     <li>用 <strong>Safari</strong> 打开下面的地址（微信内无法安装）。</li>
     <li>点底部「分享」按钮，选择<strong>「添加到主屏幕」</strong>。</li>
-    <li>主屏幕出现秋秋音乐图标，点开即为独立窗口，无地址栏。</li>
+    <li>主屏幕出现未末音乐图标，点开即为独立窗口，无地址栏。</li>
   </ol>
-  <a class="button" href="${site}">打开秋秋音乐</a>
+  <a class="button" href="${site}">打开未末音乐</a>
   <p class="tip">安装包版本 v${version}。Android 请使用 APK，电脑请使用 macOS / Windows 安装包。</p>
 </main>
 </body>
 </html>
 `;
 
-const guide = `# 秋秋音乐 iOS 版（v${version}）
+const guide = `# 未末音乐 iOS 版（v${version}）
 
 iOS 不允许安装未签名的第三方应用包，因此 iPhone / iPad 使用 PWA 方式安装：
 
 1. 用 Safari 打开 <${site}>（微信、QQ 等内置浏览器无法安装）。
 2. 点底部分享按钮 → 「添加到主屏幕」。
-3. 主屏幕会生成「秋秋音乐」图标，点开是独立窗口，没有地址栏。
+3. 主屏幕会生成「未末音乐」图标，点开是独立窗口，没有地址栏。
 
 说明：
 - 需要 iOS 15 及以上；首次打开需要联网，之后常用页面会被缓存。
@@ -84,9 +84,9 @@ function build() {
   const stage = fs.mkdtempSync(path.join(os.tmpdir(), 'qiuqiu-ios-'));
   try {
     const manifest = {
-      name: '秋秋音乐',
-      short_name: '秋秋音乐',
-      description: '听见喜欢的声音。秋秋音乐，发现与分享好音乐。',
+      name: '未末音乐',
+      short_name: '未末音乐',
+      description: '听见喜欢的声音。未末音乐，发现与分享好音乐。',
       lang: 'zh-CN',
       start_url: site,
       scope: site,
@@ -111,7 +111,7 @@ function build() {
     const zip = spawnSync('/usr/bin/zip', ['-q', '-r', '-X', archive, '.'], { cwd: stage, stdio: 'inherit' });
     if (zip.error) throw zip.error;
     if (zip.status !== 0) throw Error('zip failed');
-    fs.writeFileSync(path.join(outDir, `qiuqiu-music-${version}-iphone-INSTALL.md`), guide);
+    fs.writeFileSync(path.join(outDir, `未末音乐-${version}-iphone-INSTALL.md`), guide);
     console.log(`Installer: ${archive}`);
   } finally {
     fs.rmSync(stage, { recursive: true, force: true });

@@ -111,7 +111,7 @@ window.qiuqiuDesktop.onPlaybackState(state => {
   controls.forEach(button => { button.disabled = !hasTrack; });
   playControl.setAttribute('aria-label', state.playing ? '暂停' : '播放');
   playControl.title = state.playing ? '暂停' : '播放';
-  const title = hasTrack ? state.title : '秋秋音乐';
+  const title = hasTrack ? state.title : '未末音乐';
   if (title !== currentTitle) {
     currentTitle = title;
     trackText.textContent = title;

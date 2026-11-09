@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 一键打包所有平台：mac / windows / android / iphone，统一输出到 dist/<平台>/<版本>/。
+// 一键打包所有平台：mac / windows / android / iphone，统一输出到 dist/<版本>/<平台>/。
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');

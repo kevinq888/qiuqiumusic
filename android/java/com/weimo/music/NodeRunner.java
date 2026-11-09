@@ -1,4 +1,4 @@
-package com.qiuqiu.music;
+package com.weimo.music;
 
 /** 通过 JNI 在当前进程里启动 libnode（Node.js 运行时）。 */
 public final class NodeRunner {

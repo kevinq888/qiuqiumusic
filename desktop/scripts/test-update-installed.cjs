@@ -11,7 +11,7 @@ const [application, archive, version = '1.2.0'] = process.argv.slice(2);
 const temporary = path.resolve(os.tmpdir());
 const allowedTempRoots = [temporary, ...(process.platform === 'darwin' ? ['/private/tmp', '/tmp'] : [])];
 if (!application || !archive || !allowedTempRoots.some(root => { const normalized = value => process.platform === 'win32' ? path.resolve(value).toLowerCase() : path.resolve(value); return normalized(application).startsWith(normalized(root) + path.sep); })) throw Error('Use a disposable application copy under the system temp directory');
-const exe = process.platform === 'darwin' ? path.join(application, 'Contents', 'MacOS', '秋秋音乐') : path.join(application, '秋秋音乐.exe');
+let exe;
 const profile = awaitProfile();
 function awaitProfile() { return fs.mkdtemp(path.join(temporary, 'qiuqiu-update-profile-')); }
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -28,26 +28,37 @@ async function evaluate(expression) {
   if (result.exceptionDetails) throw Error(JSON.stringify(result.exceptionDetails));
   return result.result.value;
 }
+async function mainExecutable() {
+  if (process.platform === 'darwin') {
+    const { stdout } = await run('/usr/libexec/PlistBuddy', ['-c', 'Print :CFBundleExecutable', path.join(application, 'Contents', 'Info.plist')]);
+    return path.join(application, 'Contents', 'MacOS', stdout.trim());
+  }
+  // The installed app may carry an older product name, so resolve the payload
+  // executable instead of hardcoding the current brand.
+  const candidates = (await fs.readdir(application)).filter(name => name.toLowerCase().endsWith('.exe') && !/^uninstall/i.test(name));
+  assert.equal(candidates.length, 1, 'Expected exactly one application executable');
+  return path.join(application, candidates[0]);
+}
 async function stopTestApp() {
+  // Match the disposable profile token so the old and the updated executable
+  // are both found regardless of product name.
+  const token = path.basename(await profile);
+  assert.ok(/^qiuqiu-update-profile-[a-zA-Z0-9]+$/.test(token));
   if (process.platform === 'darwin') {
     const { stdout } = await run('ps', ['-axww', '-o', 'pid=,command=']);
     for (const line of stdout.split('\n')) {
       const match = line.trim().match(/^(\d+) (.*)$/);
-      if (match && match[2].startsWith(exe + ' ')) { try { process.kill(Number(match[1]), 'SIGTERM'); } catch {} }
+      if (match && match[2].includes(`--user-data-dir=${token}`)) { try { process.kill(Number(match[1]), 'SIGTERM'); } catch {} }
     }
   } else {
-    // Match the disposable profile token, then terminate its process tree.
-    // Windows may report an expanded long executable path although the fixture
-    // was launched from an 8.3 temp path, so path string equality is unreliable.
-    const token = path.basename(await profile);
-    assert.ok(/^qiuqiu-update-profile-[a-zA-Z0-9]+$/.test(token));
-    await run('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', `Get-CimInstance Win32_Process | Where-Object {$_.Name -eq '秋秋音乐.exe' -and $_.CommandLine -like '*${token}*'} | ForEach-Object {taskkill /PID $_.ProcessId /T /F 2>$null | Out-Null}`], { timeout: 15000 });
+    await run('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', `Get-CimInstance Win32_Process | Where-Object {$_.Name -like '*.exe' -and $_.CommandLine -like '*${token}*'} | ForEach-Object {taskkill /PID $_.ProcessId /T /F 2>$null | Out-Null}`], { timeout: 15000 });
   }
 }
 (async () => {
   const userData = await profile;
   console.log('Disposable profile:', userData);
   try {
+    exe = await mainExecutable();
     await fs.access(exe);
     child = spawn(exe, [`--inspect=127.0.0.1:${inspectPort}`, `--user-data-dir=${userData}`], { stdio: ['ignore', 'pipe', 'pipe'] });
     child.on('error',error=>console.error('Disposable application launch failed:',error));
@@ -77,7 +88,7 @@ async function stopTestApp() {
     const metadata = await fs.stat(archive);
     const hash = crypto.createHash('sha256');
     for await (const chunk of require('node:fs').createReadStream(archive)) hash.update(chunk);
-    const target = process.platform === 'darwin' ? `macos-${process.arch}` : 'windows-x64';
+    const target = process.platform === 'darwin' ? `mac-${process.arch}` : 'windows-x64';
     const asset = { name: `${version}-${target}.zip`, size: metadata.size, state: 'uploaded', digest: 'sha256:' + hash.digest('hex'), browser_download_url: `https://github.com/kevinq888/qiuqiumusic/releases/download/v${version}/${version}-${target}.zip` };
     const modulePath = path.resolve(__dirname, '../update/electron.cjs');
     const packagedUpdater = process.env.QIUQIU_USE_PACKAGED_UPDATER === '1';

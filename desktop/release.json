@@ -4,18 +4,18 @@
   "prerelease": false,
   "assets": [
     {
-      "name": "1.2.9-macos-arm64.zip",
+      "name": "1.2.9-mac-arm64.zip",
       "state": "uploaded",
       "size": 118931782,
       "digest": "sha256:d21dfdde1fa77b4db85135689eeacccbfddc0c019b3a37df8df3179551ccb802",
-      "browser_download_url": "https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.9/1.2.9-macos-arm64.zip"
+      "browser_download_url": "https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.9/1.2.9-mac-arm64.zip"
     },
     {
-      "name": "1.2.9-macos-x64.zip",
+      "name": "1.2.9-mac-x64.zip",
       "state": "uploaded",
       "size": 125335494,
       "digest": "sha256:94ff1e099a149eae3942baf7ca8dcedec9b043864abc27088d6b8ccc248d9965",
-      "browser_download_url": "https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.9/1.2.9-macos-x64.zip"
+      "browser_download_url": "https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.9/1.2.9-mac-x64.zip"
     },
     {
       "name": "1.2.9-windows-x64.zip",

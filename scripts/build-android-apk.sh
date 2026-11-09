@@ -75,7 +75,7 @@ find "$SRC/java" -name '*.java' > "$BUILD/sources.txt"
 find "$BUILD/gen" -name '*.java' >> "$BUILD/sources.txt"
 javac -nowarn -encoding UTF-8 --release 8 -classpath "$AJAR" \
   -d "$BUILD/classes" @"$BUILD/sources.txt"
-test -f "$BUILD/classes/com/qiuqiu/music/MainActivity.class"
+test -f "$BUILD/classes/com/weimo/music/MainActivity.class"
 
 echo "==> 5/7 生成 dex 并组装"
 "$BT/d8" --lib "$AJAR" --min-api "$API_LEVEL" --output "$BUILD/dex" \
@@ -90,9 +90,9 @@ if [ ! -f "$KEYSTORE" ]; then
   mkdir -p "$(dirname "$KEYSTORE")"
   keytool -genkeypair -keystore "$KEYSTORE" -storepass qiuqiu2026 -keypass qiuqiu2026 \
     -alias qiuqiu -keyalg RSA -keysize 2048 -validity 10000 \
-    -dname "CN=QiuQiu Music, OU=Mobile, O=QiuQiu Music, L=Shanghai, C=CN" >/dev/null
+    -dname "CN=WeiMo Music, OU=Mobile, O=WeiMo Music, L=Shanghai, C=CN" >/dev/null
 fi
-APK="$OUT/qiuqiu-music-${VERSION_NAME}-android-${ABI}.apk"
+APK="$OUT/未末音乐-${VERSION_NAME}-android-${ABI}.apk"
 "$BT/apksigner" sign --ks "$KEYSTORE" --ks-pass pass:qiuqiu2026 --key-pass pass:qiuqiu2026 \
   --ks-key-alias qiuqiu --v4-signing-enabled false --out "$APK" "$BUILD/aligned.apk"
 

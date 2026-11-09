@@ -1,13 +1,15 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const REPO = 'https://github.com/kevinq888/qiuqiumusic';
-const TARGETS = ['macos-arm64', 'macos-x64', 'windows-x64'];
+// 新版本安装包使用 mac-* 命名；旧版本发布过的 macos-* 继续兼容。
+const TARGETS = ['mac-arm64', 'mac-x64', 'windows-x64'];
+const ALIASES = { 'macos-arm64': 'mac-arm64', 'macos-x64': 'mac-x64' };
 function downloadsFrom(links) {
   const downloads = {};
   for (const link of links) {
     if (typeof link !== 'string' || !link.startsWith(`${REPO}/releases/download/`)) continue;
-    const match = decodeURI(link).match(/-(macos-arm64|macos-x64|windows-x64)\.(zip|dmg|exe)$/);
-    if (match) downloads[match[1]] = link;
+    const match = decodeURI(link).match(/-(macos-arm64|macos-x64|mac-arm64|mac-x64|windows-x64)\.(zip|dmg|exe)$/);
+    if (match) downloads[ALIASES[match[1]] || match[1]] = link;
   }
   if (!TARGETS.every(target => downloads[target])) throw Error('Incomplete desktop release');
   return downloads;

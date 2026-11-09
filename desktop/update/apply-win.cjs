@@ -8,14 +8,29 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 function alive(pid) { try { process.kill(pid, 0); return true; } catch { return false; } }
 async function log(message) { await fs.appendFile(config.log, `${new Date().toISOString()} ${message}\n`).catch(() => {}); }
 async function result(value) { await fs.writeFile(config.result, JSON.stringify(value)); }
-function launchPlayer(flag) {
-  const child = spawn(config.exe, [flag, `--user-data-dir=${config.userData}`], {
+function launchPlayer(flag, exe) {
+  const child = spawn(exe, [flag, `--user-data-dir=${config.userData}`], {
     detached: true, stdio: 'ignore', windowsHide: false,
     env: Object.fromEntries(Object.entries(process.env).filter(([key]) => key.toUpperCase() !== 'ELECTRON_RUN_AS_NODE')),
   });
   child.on('error', error => log(error.message));
   child.unref();
   return child;
+}
+// A renamed release installs a differently named executable next to the old
+// one; launch the freshest payload and keep the old path for rollback.
+async function updatedPlayerExe() {
+  const entries = await fs.readdir(config.target);
+  const candidates = [];
+  for (const name of entries) {
+    if (!name.toLowerCase().endsWith('.exe') || /^uninstall/i.test(name)) continue;
+    const file = path.join(config.target, name);
+    if (file === config.exe) continue;
+    candidates.push({ file, time: (await fs.stat(file)).mtimeMs });
+  }
+  if (candidates.length === 0) return config.exe;
+  candidates.sort((a, b) => b.time - a.time);
+  return candidates[0].file;
 }
 async function installer() {
   await new Promise((resolve, reject) => {
@@ -40,7 +55,7 @@ async function installer() {
     await log('Starting silent installer');
     await installer();
     await log('Starting updated player');
-    newPlayer = launchPlayer('--updated');
+    newPlayer = launchPlayer('--updated', await updatedPlayerExe());
     for (let i = 0; i < 900; i++) {
       if (await fs.stat(config.healthy).then(() => true, () => false)) {
         await log('Updated player confirmed healthy');
@@ -59,7 +74,7 @@ async function installer() {
     try {
       await fs.cp(config.backup, config.target, { recursive: true, force: true });
       await result(config.failure);
-      launchPlayer('--update-rollback');
+      launchPlayer('--update-rollback', config.exe);
     } catch (restoreError) { await log(`Rollback failed: ${restoreError.message}`); await result(config.failure); }
   }
 })().catch(async error => { await log(error.stack || error.message); process.exitCode = 1; });

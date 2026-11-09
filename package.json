@@ -2,7 +2,7 @@
   "name": "qiuqiumusic",
   "version": "1.2.9",
   "private": true,
-  "description": "秋秋音乐在线聆听站点",
+  "description": "未末音乐在线聆听站点",
   "engines": {
     "node": ">=22"
   },

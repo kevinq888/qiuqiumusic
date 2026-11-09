@@ -28,7 +28,7 @@
         const info = await navigator.userAgentData.getHighEntropyValues(['architecture']);
         if (id !== refreshId) return;
         architecture = /arm/i.test(info.architecture) ? 'arm64' : /x86/i.test(info.architecture) ? 'x64' : '';
-        if (architecture) button.href = `/download/desktop/macos-${architecture}`;
+        if (architecture) button.href = `/download/desktop/mac-${architecture}`;
       } catch { /* Safari and other browsers may not disclose the chip: offer both Mac packages. */ }
     }
   }

@@ -8,12 +8,12 @@ const { UpdateManager, candidateFrom, newer, targetFor, downloadVerified, RELEAS
 const runtime = { version: '1.1.0', platform: 'darwin', arch: 'arm64', packaged: true };
 const bytes = Buffer.from('test installer payload');
 function release(version = '1.2.0') {
-  const name = `${version}-macos-arm64.zip`;
+  const name = `${version}-mac-arm64.zip`;
   return { tag_name: `v${version}`, assets: [{ name, state: 'uploaded', size: bytes.length, digest: 'sha256:' + crypto.createHash('sha256').update(bytes).digest('hex'), browser_download_url: `https://github.com/kevinq888/qiuqiumusic/releases/download/v${version}/${name}` }] };
 }
 test('matching platform and numeric version comparison', () => {
-  assert.equal(targetFor('darwin', 'arm64'), 'macos-arm64');
-  assert.equal(targetFor('darwin', 'x64'), 'macos-x64');
+  assert.equal(targetFor('darwin', 'arm64'), 'mac-arm64');
+  assert.equal(targetFor('darwin', 'x64'), 'mac-x64');
   assert.equal(targetFor('win32', 'x64'), 'windows-x64');
   assert.equal(targetFor('linux', 'x64'), null);
   assert.ok(newer('1.10.0', '1.9.9'));
@@ -21,7 +21,7 @@ test('matching platform and numeric version comparison', () => {
   assert.equal(candidateFrom(release('1.1.0'), runtime), null);
   assert.equal(candidateFrom({ ...release(), draft: true }, runtime), null);
   assert.equal(candidateFrom({ ...release(), prerelease: true }, runtime), null);
-  assert.equal(candidateFrom(release(), runtime).target, 'macos-arm64');
+  assert.equal(candidateFrom(release(), runtime).target, 'mac-arm64');
 });
 test('rejects missing checksums, foreign URLs, and incomplete packages', () => {
   for (const mutate of [a => { a.digest = null; }, a => { a.browser_download_url = 'https://evil.example/installer.zip'; }, a => { a.size = 0; }, a => { a.name = 'other.zip'; }]) {
@@ -85,7 +85,7 @@ test('ZIP inspection reads Chinese UTF-8 names and rejects traversal or conflict
     return Buffer.concat([local, localBytes, Buffer.from('x'), directory, centralName, end]);
   }
   try {
-    const expected = '秋秋音乐-1.2.0-macos-x64.dmg', file = path.join(root, 'fixture.zip');
+    const expected = '未末音乐-1.2.0-mac-x64.dmg', file = path.join(root, 'fixture.zip');
     await fs.writeFile(file, zip(expected)); await inspectInstallerZip(file, expected);
     for (const data of [zip('../' + expected), zip(expected, '../' + expected), zip(expected, expected, 2), Buffer.from('not a zip')]) {
       await fs.writeFile(file, data); await assert.rejects(inspectInstallerZip(file, expected), /内容异常/);

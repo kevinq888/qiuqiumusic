@@ -1,4 +1,4 @@
-package com.qiuqiu.music;
+package com.weimo.music;
 
 import android.util.Log;
 
@@ -10,7 +10,7 @@ import java.io.InputStream;
 
 /** 启动日志：主进程与 :node 进程都可追加写，主进程据此展示诊断页。 */
 final class BootLog {
-    private static final String TAG = "QiuQiu";
+    private static final String TAG = "WeiMo";
     private static File logFile;
     private static File marker;
     private static File failsFile;

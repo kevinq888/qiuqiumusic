@@ -1,4 +1,4 @@
-package com.qiuqiu.music;
+package com.weimo.music;
 
 import android.app.Service;
 import android.content.Intent;
@@ -24,7 +24,7 @@ public class NodeService extends Service {
             String base = new File(getFilesDir(), "app").getAbsolutePath();
             String data = new File(getFilesDir(), "userdata").getAbsolutePath();
             worker = new Thread(null, new Starter(base, data, BootLog.path(), variant),
-                    "qiuqiu-node", 16 * 1024 * 1024);
+                    "weimo-node", 16 * 1024 * 1024);
             worker.start();
         }
         return START_NOT_STICKY;

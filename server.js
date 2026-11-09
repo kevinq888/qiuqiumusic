@@ -1,4 +1,4 @@
-// 秋秋音乐：零依赖 Node 后端
+// 未末音乐：零依赖 Node 后端
 const http = require('node:http');
 const { pipeline } = require('node:stream');
 const https = require('node:https');
@@ -535,7 +535,7 @@ function startServer({ port = PORT, host = '0.0.0.0', token } = {}) {
 }
 
 if (require.main === module) {
-  startServer().then(() => console.log(`秋秋音乐已启动: http://localhost:${PORT}`))
+  startServer().then(() => console.log(`未末音乐已启动: http://localhost:${PORT}`))
     .catch(error => { console.error(error); process.exitCode = 1; });
 }
 module.exports = { startServer };

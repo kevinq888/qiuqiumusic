@@ -13,7 +13,7 @@
 #include <sys/prctl.h>
 #include <android/log.h>
 
-#define LOG_TAG "QiuQiuNode"
+#define LOG_TAG "WeiMoNode"
 #define LOG_INFO(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #define LOG_ERROR(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
@@ -132,7 +132,7 @@ static void installCrashHandler() {
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_qiuqiu_music_NodeRunner_startNode(JNIEnv* env, jclass, jstring script, jstring cwd,
+Java_com_weimo_music_NodeRunner_startNode(JNIEnv* env, jclass, jstring script, jstring cwd,
                                            jstring port, jstring dataDir, jstring logFile,
                                            jint variant) {
   const char* scriptPath = env->GetStringUTFChars(script, nullptr);

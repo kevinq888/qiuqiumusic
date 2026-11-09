@@ -20,7 +20,7 @@ function newer(next, current) {
   return false;
 }
 function targetFor(platform, arch) {
-  if (platform === 'darwin' && ['arm64', 'x64'].includes(arch)) return `macos-${arch}`;
+  if (platform === 'darwin' && ['arm64', 'x64'].includes(arch)) return `mac-${arch}`;
   if (platform === 'win32' && arch === 'x64') return 'windows-x64';
   return null;
 }

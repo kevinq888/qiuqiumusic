@@ -1,4 +1,4 @@
-package com.qiuqiu.music;
+package com.weimo.music;
 
 import android.app.Activity;
 import android.content.ClipData;
@@ -37,12 +37,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * 秋秋音乐安卓端：内置 Node 运行时（独立 :node 进程）在本地 127.0.0.1 起服务，
+ * 未末音乐安卓端：内置 Node 运行时（独立 :node 进程）在本地 127.0.0.1 起服务，
  * WebView 加载同一个服务，页面、代理与音频缓存逻辑与网页版完全一致。
  * 启动过程写入 run.log；若上次启动没走到“服务就绪”，下次进入直接展示该日志。
  */
 public class MainActivity extends Activity {
-    private static final String TAG = "QiuQiu";
+    private static final String TAG = "WeiMo";
     private static final int PORT = 43219;
     private static final String BACKEND_ASSET = "backend";
     private static final int MAX_ATTEMPTS = 150;
@@ -373,7 +373,7 @@ public class MainActivity extends Activity {
     private void copyLog() {
         try {
             ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-            clipboard.setPrimaryClip(ClipData.newPlainText("qiuqiu-log", shownLog));
+            clipboard.setPrimaryClip(ClipData.newPlainText("weimo-log", shownLog));
             Toast.makeText(this, "日志已复制，可直接粘贴发送", Toast.LENGTH_SHORT).show();
         } catch (Throwable error) {
             Log.w(TAG, "复制日志失败", error);
@@ -384,7 +384,7 @@ public class MainActivity extends Activity {
         try {
             Intent send = new Intent(Intent.ACTION_SEND);
             send.setType("text/plain");
-            send.putExtra(Intent.EXTRA_SUBJECT, "秋秋音乐启动日志");
+            send.putExtra(Intent.EXTRA_SUBJECT, "未末音乐启动日志");
             send.putExtra(Intent.EXTRA_TEXT, shownLog);
             startActivity(Intent.createChooser(send, "分享日志"));
         } catch (Throwable error) {
