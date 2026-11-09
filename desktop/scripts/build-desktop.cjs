@@ -4,6 +4,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 const desktop = path.resolve(__dirname, '..');
+const repo = path.resolve(desktop, '..');
 const pkg = require(path.join(desktop, 'package.json'));
 const [platform, ...args] = process.argv.slice(2);
 const targets = {
@@ -12,6 +13,19 @@ const targets = {
   all: [['--mac', 'dmg', '--x64', '--arm64'], ['--win', 'nsis', '--x64']],
 };
 
+// 安装包统一落在 dist/<平台>/<版本>/，与安卓、iPhone 保持同一套目录结构。
+const productName = pkg.build.productName;
+const prefix = `${productName}-${pkg.version}`;
+const installers = new Map([
+  [`${productName}-macos-arm64.dmg`, 'mac'],
+  [`${productName}-macos-x64.dmg`, 'mac'],
+  [`${prefix}-windows-x64.exe`, 'windows'],
+]);
+
+function outputPath(name) {
+  return path.join(repo, 'dist', installers.get(name), pkg.version, name);
+}
+
 function build() {
   if (!Object.hasOwn(targets, platform)) throw Error('Specify mac, win, or all.');
   if (platform === 'all' && args.length) throw Error('build:all already selects both Mac architectures and Windows x64.');
@@ -19,14 +33,7 @@ function build() {
   const icons = spawnSync(process.execPath, [path.join(desktop, 'generate-icons.js')], { cwd: desktop, stdio: 'inherit' });
   if (icons.error) throw icons.error;
   if (icons.status !== 0) throw Error('Icon generation failed.');
-  const release = path.join(desktop, 'dist', pkg.version);
-  const prefix = `${pkg.build.productName}-${pkg.version}`;
-  // macOS 安装包文件名不带版本号（用户看到的启动器名字更干净），Windows 仍然带。
-  const allowed = new Set([
-    `${pkg.build.productName}-macos-arm64.dmg`,
-    `${pkg.build.productName}-macos-x64.dmg`,
-    `${prefix}-windows-x64.exe`,
-  ]);
+  const expected = platform === 'all' ? 3 : 1;
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'qiuqiu-build-'));
   const cli = path.join(path.dirname(require.resolve('electron-builder/package.json')), 'cli.js');
   let complete = false;
@@ -36,13 +43,13 @@ function build() {
       if (result.error) throw result.error;
       if (result.status !== 0) throw Error(`electron-builder failed (${result.signal || result.status}).`);
     }
-    const installers = fs.readdirSync(scratch).filter(name => allowed.has(name));
-    const expected = platform === 'all' ? 3 : 1;
-    if (installers.length < expected) throw Error('Expected installers are missing from the build output.');
-    fs.mkdirSync(release, { recursive: true });
-    for (const name of installers) {
-      fs.copyFileSync(path.join(scratch, name), path.join(release, name), fs.constants.COPYFILE_FICLONE);
-      console.log(`Installer: ${path.join(release, name)}`);
+    const built = fs.readdirSync(scratch).filter(name => installers.has(name));
+    if (built.length < expected) throw Error('Expected installers are missing from the build output.');
+    for (const name of built) {
+      const destination = outputPath(name);
+      fs.mkdirSync(path.dirname(destination), { recursive: true });
+      fs.copyFileSync(path.join(scratch, name), destination, fs.constants.COPYFILE_FICLONE);
+      console.log(`Installer: ${destination}`);
     }
     complete = true;
   } finally {
@@ -50,7 +57,7 @@ function build() {
       if (process.platform === 'darwin') {
         const register = '/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister';
         for (const folder of ['mac', 'mac-arm64']) {
-          const application = path.join(scratch, folder, `${pkg.build.productName}.app`);
+          const application = path.join(scratch, folder, `${productName}.app`);
           if (fs.existsSync(application)) spawnSync(register, ['-u', application], { stdio: 'ignore' });
         }
       }

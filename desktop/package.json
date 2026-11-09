@@ -28,7 +28,6 @@
       "*.js",
       "*.html",
       "*.css",
-      "icon.png",
       "app-icon.png",
       "tray-icon.png",
       "update/**/*"

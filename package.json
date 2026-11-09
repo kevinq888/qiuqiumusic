@@ -1,12 +1,17 @@
 {
   "name": "qiuqiumusic",
-  "version": "1.0.0",
+  "version": "1.2.9",
   "private": true,
   "description": "秋秋音乐在线聆听站点",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build:mac": "node desktop/scripts/build-desktop.cjs mac",
+    "build:windows": "node desktop/scripts/build-desktop.cjs win",
+    "build:android": "bash scripts/build-android-apk.sh",
+    "build:iphone": "node scripts/build-iphone.cjs",
+    "build:all": "node scripts/build-all.cjs"
   }
 }

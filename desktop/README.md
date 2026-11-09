@@ -38,25 +38,31 @@ Mac：以隐藏挂载点读取 DMG，验证 bundle ID、版本和 CPU 架构，�
 
 ## 打包
 
+在仓库根目录执行：
+
 ```sh
-npm run build:mac -- --x64    # Intel Mac .dmg
-npm run build:mac -- --arm64  # Apple Silicon Mac .dmg
-npm run build:win             # Windows NSIS 安装程序（在 Windows 环境构建）
-npm run build:all             # 在具备构建条件的环境中生成全部三个安装包
+npm run build:mac       # 当前 Mac 架构 .dmg（Intel 机器产 x64）
+npm run build:windows   # Windows NSIS 安装程序（可在 macOS 上交叉构建）
+npm run build:android   # 内置 Node 运行时的 arm64 APK
+npm run build:iphone    # iOS PWA 安装包（zip）
+npm run build:all       # 依次构建以上全部平台
 ```
 
-正式安装包保存在 `dist/版本号/`。每个版本目录只保留三个安装包，后续版本自动创建各自目录。例如：
+安装包统一保存在 `dist/平台/版本号/`，各平台互不覆盖：
 
 ```text
-dist/1.0.6/
-  秋秋音乐-1.0.6-macos-arm64.dmg
-  秋秋音乐-1.0.6-macos-x64.dmg
-  秋秋音乐-1.0.6-windows-x64.exe
+dist/mac/1.2.9/
+  秋秋音乐-macos-x64.dmg
+dist/windows/1.2.9/
+  秋秋音乐-1.2.9-windows-x64.exe
+dist/android/1.2.9/
+  qiuqiu-music-1.2.9-arm64-v8a.apk
+dist/iphone/1.2.9/
+  秋秋音乐-iOS-1.2.9.zip
+  iOS安装说明.md
 ```
 
-中间应用目录、构建日志和 blockmap 生成在系统临时目录，成功后自动清理；构建失败时会打印诊断目录位置。分别构建不同平台时，会将安装包归入同一版本目录。
-
-GitHub Release 上传会过滤中文文件名。如需 ZIP 传输副本，请在系统临时目录制作，保留其中安装包的 UTF-8 中文名称，并在 README 中标明下载的是 ZIP。正式版本目录只保存上述三个安装包。
+中间应用目录、构建日志和 blockmap 生成在系统临时目录，成功后自动清理；构建失败时会打印诊断目录位置。iOS 无法侧载未签名安装包，因此 iPhone 版是 Safari「添加到主屏幕」使用的 PWA 包。
 
 桌面悬浮球可按住唱片拖动，轻点恢复主播放器，右上角 X 退出应用；它只在 Mac/Windows 桌面版运行。iPhone 和 Android 继续使用网页/PWA 播放器；移动系统不允许普通网页在应用关闭后保留系统级悬浮窗。Mac 安装包当前未做 Developer ID 公证签名，首次打开可能需要在系统设置中允许运行。
 

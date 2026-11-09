@@ -136,13 +136,10 @@ function handleRequest(req, res) {
 
   // 播放计数上报：驱动"本站点播榜"
   if (p === '/api/stats/play' && req.method === 'POST') {
-    let body = '';
-    req.on('data', chunk => { body += chunk; if (body.length > 4096) req.destroy(); });
-    req.on('end', () => {
-      let ok = false;
-      try { const d = JSON.parse(body || '{}'); ok = charts.recordPlay(d.id, d.title); } catch {}
+    readJsonBody(req, 4096, body => {
+      const ok = charts.recordPlay(body.id, body.title);
       send(res, ok ? 200 : 400, JSON.stringify({ ok }), 'application/json; charset=utf-8');
-    });
+    }, () => send(res, 400, JSON.stringify({ ok: false }), 'application/json; charset=utf-8'));
     return;
   }
 

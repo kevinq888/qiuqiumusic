@@ -2,11 +2,10 @@ data/cache/
 data/play-stats.json
 data/chart-snapshots.json
 node_modules/
-desktop/dist/
 desktop/.build/
 /dist/
 /android/build/
-/android/assets/backend/
+/android/assets/
 .DS_Store
 data/live-covers.json
 data/live-lyrics.json

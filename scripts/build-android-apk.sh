@@ -7,14 +7,16 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="$ROOT/android"
 SDK="${ANDROID_SDK_ROOT:-/tmp/abuild/sdk}"
 NDK="${ANDROID_NDK_HOME:-$SDK/ndk/26.1.10909125}"
-JAVA_HOME="${JAVA_HOME:-/tmp/abuild/jdk-21}"
+# macOS 版 JDK 的 bin 目录在 Contents/Home 下
+JAVA_HOME="${JAVA_HOME:-/tmp/abuild/jdk-21.0.13+9/Contents/Home}"
 LIBROOT="${LIBROOT:-/tmp/njm/package/android/libnode}"
 BUILD="$SRC/build"
-OUT="${OUT:-$ROOT/dist/android}"
+# 版本号与桌面端保持一致；输出按平台/版本分层：dist/android/<版本>/
+VERSION_NAME="${VERSION_NAME:-$(node -p "require('$ROOT/desktop/package.json').version")}"
+VERSION_CODE="${VERSION_CODE:-6}"
+OUT="${OUT:-$ROOT/dist/android/$VERSION_NAME}"
 ABI="${ABI:-arm64-v8a}"
 API_LEVEL=24
-VERSION_CODE="${VERSION_CODE:-5}"
-VERSION_NAME="${VERSION_NAME:-1.2.13}"
 BT="$SDK/build-tools/34.0.0"
 AJAR="$SDK/platforms/android-34/android.jar"
 PATH="$JAVA_HOME/bin:$PATH"
@@ -92,8 +94,10 @@ if [ ! -f "$KEYSTORE" ]; then
 fi
 APK="$OUT/qiuqiu-music-${VERSION_NAME}-${ABI}.apk"
 "$BT/apksigner" sign --ks "$KEYSTORE" --ks-pass pass:qiuqiu2026 --key-pass pass:qiuqiu2026 \
-  --ks-key-alias qiuqiu --out "$APK" "$BUILD/aligned.apk"
+  --ks-key-alias qiuqiu --v4-signing-enabled false --out "$APK" "$BUILD/aligned.apk"
 
 echo "==> 7/7 校验"
 "$BT/apksigner" verify --print-certs "$APK" | head -4
 ls -lh "$APK"
+# 中间产物不留在仓库里，下次构建会重新生成
+rm -rf "$BUILD" "$ASSETS"
