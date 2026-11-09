@@ -4,6 +4,9 @@ data/chart-snapshots.json
 node_modules/
 desktop/dist/
 desktop/.build/
+/dist/
+/android/build/
+/android/assets/backend/
 .DS_Store
 data/live-covers.json
 data/live-lyrics.json

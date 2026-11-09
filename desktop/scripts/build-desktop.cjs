@@ -21,7 +21,12 @@ function build() {
   if (icons.status !== 0) throw Error('Icon generation failed.');
   const release = path.join(desktop, 'dist', pkg.version);
   const prefix = `${pkg.build.productName}-${pkg.version}`;
-  const allowed = new Set([`${prefix}-macos-arm64.dmg`, `${prefix}-macos-x64.dmg`, `${prefix}-windows-x64.exe`]);
+  // macOS 安装包文件名不带版本号（用户看到的启动器名字更干净），Windows 仍然带。
+  const allowed = new Set([
+    `${pkg.build.productName}-macos-arm64.dmg`,
+    `${pkg.build.productName}-macos-x64.dmg`,
+    `${prefix}-windows-x64.exe`,
+  ]);
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'qiuqiu-build-'));
   const cli = path.join(path.dirname(require.resolve('electron-builder/package.json')), 'cli.js');
   let complete = false;

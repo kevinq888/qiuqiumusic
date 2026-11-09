@@ -22,6 +22,7 @@
   "build": {
     "appId": "com.qiuqiumusic.desktop",
     "productName": "秋秋音乐",
+    "afterPack": "scripts/after-pack.cjs",
     "artifactName": "${productName}-${version}-${arch}.${ext}",
     "files": [
       "*.js",
@@ -39,7 +40,11 @@
       "target": [
         "dmg"
       ],
-      "artifactName": "${productName}-${version}-macos-${arch}.${ext}"
+      "artifactName": "${productName}-macos-${arch}.${ext}"
+    },
+    "dmg": {
+      "title": "${productName}",
+      "artifactName": "${productName}-macos-${arch}.${ext}"
     },
     "win": {
       "target": [

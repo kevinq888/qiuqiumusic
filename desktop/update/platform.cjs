@@ -57,6 +57,8 @@ async function prepareMac(input) {
     const architectures = (await run('/usr/bin/lipo', ['-archs', executable])).stdout.trim().split(/\s+/);
     if (!architectures.includes(runtime.arch === 'x64' ? 'x86_64' : 'arm64')) throw Error('安装包芯片架构不匹配');
     await run('/usr/bin/ditto', [source, stage], { timeout: 120000 });
+    // 安装包是从网络下载的，附带 quarantine 标记会让 Gatekeeper 拦下新版本，这里先清掉。
+    await run('/usr/bin/xattr', ['-dr', 'com.apple.quarantine', stage], { timeout: 30000 }).catch(() => {});
     return { target, stage, backup, binary: path.join('Contents', 'MacOS', binary), cleanup: () => disk.rm(stage, { recursive: true, force: true }) };
   } catch (error) {
     await disk.rm(stage, { recursive: true, force: true }).catch(() => {});

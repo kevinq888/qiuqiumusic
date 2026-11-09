@@ -16,6 +16,8 @@ const { latestRelease } = require('./src/desktop-release');
 
 const PORT = Number(process.env.PORT || 3000);
 const PUBLIC_DIR = path.join(__dirname, 'public');
+// 安卓端可能被迫绑定到 0.0.0.0，此时只服务本机请求。
+const loopbackOnly = process.env.QIUQIU_LOOPBACK_ONLY === '1';
 
 const MIME = {
   '.css': 'text/css; charset=utf-8',
@@ -60,7 +62,7 @@ function serveStatic(req, res, urlPath) {
       send(res, 404, '<h3>404，您请求的文件不存在!</h3>', 'text/html; charset=utf-8');
       return;
     }
-    if (server.desktopToken && path.extname(filePath) === '.css') {
+    if (state.token && path.extname(filePath) === '.css') {
       data = data.toString('utf8').replace(/@import\s+url\(['"]https:\/\/fonts\.googleapis\.com[^;]+;/g, '');
     }
     send(res, 200, data, MIME[path.extname(filePath).toLowerCase()] || 'application/octet-stream');
@@ -81,9 +83,19 @@ function readJsonBody(req, limit, onBody, onError) {
   req.on('error', () => {});
 }
 
-const server = http.createServer((req, res) => {
-  if (server.desktopToken && req.headers['x-qiuqiu-token'] !== server.desktopToken) {
+// 每次 startServer 都新建一个实例，失败后可以换地址/端口重试。
+const state = { token: null };
+
+function handleRequest(req, res) {
+  if (state.token && req.headers['x-qiuqiu-token'] !== state.token) {
     return send(res, 403, 'Forbidden', 'text/plain; charset=utf-8');
+  }
+  // 端口被迫绑定到 0.0.0.0 时（个别 ROM 不允许绑定回环地址），只接受本机访问。
+  if (loopbackOnly) {
+    const remote = req.socket.remoteAddress || '';
+    if (remote !== '127.0.0.1' && remote !== '::1' && remote !== '::ffff:127.0.0.1') {
+      return send(res, 403, 'Forbidden', 'text/plain; charset=utf-8');
+    }
   }
   const u = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const p = u.pathname;
@@ -271,7 +283,7 @@ const server = http.createServer((req, res) => {
 
   if (p === '/' || p === '/index.html') {
     // Desktop starts immediately from the bundled catalogue, even offline.
-    if (server.desktopToken) return send(res, 200, views.homePage());
+    if (state.token) return send(res, 200, views.homePage());
     // 首页区块接入实时数据（6 小时缓存），失败回退本地种子
     Promise.all([
       sourcePage(1).catch(() => null),
@@ -321,7 +333,7 @@ const server = http.createServer((req, res) => {
     return;
   }
   send(res, 404, notFoundPage(), 'text/html; charset=utf-8');
-});
+}
 
 function notFoundPage() {
   return '<!doctype html><html><head><meta charset="utf-8"><title>404</title><style>body{background-color:#444;font-size:14px}h3{font-size:60px;color:#eee;text-align:center;padding-top:30px;font-weight:normal}</style></head><body><h3>404，您请求的文件不存在!</h3></body></html>';
@@ -512,13 +524,16 @@ function serveAudio(req, res, title) {
 }
 
 function startServer({ port = PORT, host = '0.0.0.0', token } = {}) {
-  server.desktopToken = token;
+  state.token = token;
   return new Promise((resolve, reject) => {
+    const server = http.createServer(handleRequest);
     server.once('error', reject);
-    server.listen(port, host, () => {
+    const onListening = () => {
       server.removeListener('error', reject);
       resolve(server);
-    });
+    };
+    if (host) server.listen(port, host, onListening);
+    else server.listen(port, onListening);
   });
 }
 
