@@ -6,7 +6,13 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://qiuqiumusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.10（当前版本）
+### v1.2.11（当前版本）
+
+- 右下角悬浮唱片改为显示播放清单里当前选中歌曲的封面，暂停时也保持显示，切歌立即换图。
+- 播放清单没有当前选中歌曲时，悬浮唱片回到品牌 Logo 旋转；清空清单后立即恢复。
+- 桌面端悬浮球与网页端使用同一套判断逻辑。
+
+### v1.2.10
 
 - 手机播放页改为真正的全屏：隐藏底部导航，状态栏与导航栏随播放页变为深色白字。
 - 播放页中央为按比例旋转的专辑封面黑胶，外圈新增缓慢旋转的彩色光晕；唱臂置于右上角。
@@ -17,9 +23,9 @@
 
 | 系统 | 下载 |
 | --- | --- |
-| macOS（Apple 芯片） | [未末音乐-1.2.10-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.10/未末音乐-1.2.10-mac-arm64.dmg) |
-| macOS（Intel） | [未末音乐-1.2.10-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.10/未末音乐-1.2.10-mac-x64.dmg) |
-| Windows（64 位） | [未末音乐-1.2.10-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.10/未末音乐-1.2.10-windows-x64.exe) |
+| macOS（Apple 芯片） | [未末音乐-1.2.11-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.11/未末音乐-1.2.11-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.11-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.11/未末音乐-1.2.11-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.11-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.11/未末音乐-1.2.11-windows-x64.exe) |
 
 ### v1.2.9
 

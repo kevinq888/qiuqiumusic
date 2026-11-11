@@ -51,15 +51,15 @@ npm run build:all       # 依次构建以上全部平台
 安装包统一保存在 `dist/版本号/平台/`，四个平台使用同一套文件名（`未末音乐-<版本>-<平台>...`）：
 
 ```text
-dist/1.2.10/mac/
-  未末音乐-1.2.10-mac-x64.dmg
-dist/1.2.10/windows/
-  未末音乐-1.2.10-windows-x64.exe
-dist/1.2.10/android/
-  未末音乐-1.2.10-android-arm64-v8a.apk
-dist/1.2.10/iphone/
-  未末音乐-1.2.10-iphone.zip
-  未末音乐-1.2.10-iphone-INSTALL.md
+dist/1.2.11/mac/
+  未末音乐-1.2.11-mac-x64.dmg
+dist/1.2.11/windows/
+  未末音乐-1.2.11-windows-x64.exe
+dist/1.2.11/android/
+  未末音乐-1.2.11-android-arm64-v8a.apk
+dist/1.2.11/iphone/
+  未末音乐-1.2.11-iphone.zip
+  未末音乐-1.2.11-iphone-INSTALL.md
 ```
 
 中间应用目录、构建日志和 blockmap 生成在系统临时目录，成功后自动清理；构建失败时会打印诊断目录位置。iOS 无法侧载未签名安装包，因此 iPhone 版是 Safari「添加到主屏幕」使用的 PWA 包。

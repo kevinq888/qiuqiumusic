@@ -387,6 +387,8 @@
       .then(response => (response.ok ? response.json() : null))
       .then(data => {
         const covers = (data && data.covers) || {};
+        // 列表补图与悬浮球共用缓存，切歌时可直接取用
+        for (const [key, url] of Object.entries(covers)) if (url) coverCache.set(key, coverSrc(url));
         let missing = 0;
         nodes.forEach(node => {
           const url = covers[`${node.dataset.coverArtist || ''}|${node.dataset.coverSong || ''}`];
@@ -432,12 +434,69 @@
     if (!next || heroCoverImg.getAttribute('src') === next) return;
     heroCoverImg.src = next;
   }
-  // 最小化后的悬浮唱片同样展示当前封面，无播放时回到 Logo
+  // 当前选中曲目必须仍在播放清单里（暂停也算），否则视为没有选中歌曲
+  function queuedCurrent() {
+    return current && queue.some(song => song.id === current.id) ? current : null;
+  }
+  // 清单里很多歌曲只存了标题/歌手，封面需要按「歌手|歌名」补查并缓存
+  const coverCache = new Map();
+  const coverInflight = new Map();
+  function queueCoverKey(song) {
+    return `${artistOf(song)}|${displayTitle(song)}`;
+  }
+  function ensureSongCover(song) {
+    if (!song) return Promise.resolve('');
+    const direct = coverSrc(song.cover);
+    if (direct) return Promise.resolve(direct);
+    const key = queueCoverKey(song);
+    if (coverCache.has(key)) return Promise.resolve(coverCache.get(key));
+    if (coverInflight.has(key)) return coverInflight.get(key);
+    const task = fetch(`/api/covers?s=${encodeURIComponent(key)}`)
+      .then(response => (response.ok ? response.json() : null))
+      .then(data => {
+        const url = coverSrc(((data && data.covers) || {})[key] || '');
+        coverCache.set(key, url);
+        return url;
+      })
+      .catch(() => '')
+      .finally(() => coverInflight.delete(key));
+    coverInflight.set(key, task);
+    return task;
+  }
+  function warmQueueCovers() {
+    const keys = [...new Set(queue
+      .filter(song => !coverSrc(song.cover) && !coverCache.has(queueCoverKey(song)))
+      .slice(0, 20)
+      .map(queueCoverKey))];
+    if (!keys.length) return;
+    const query = keys.map(key => `s=${encodeURIComponent(key)}`).join('&');
+    fetch(`/api/covers?${query}`)
+      .then(response => (response.ok ? response.json() : null))
+      .then(data => {
+        const covers = (data && data.covers) || {};
+        for (const key of keys) coverCache.set(key, coverSrc(covers[key] || ''));
+        applyVinylCover();
+      })
+      .catch(() => {});
+  }
+  // 最小化后的悬浮唱片：清单里有当前选中歌曲时用它封面（暂停也显示），否则回到 Logo
   function syncVinylCover(cover) {
     if (!vinylCoverImg) return;
     const next = coverSrc(cover) || vinylLogoSrc;
     if (!next || vinylCoverImg.getAttribute('src') === next) return;
     vinylCoverImg.src = next;
+  }
+  function applyVinylCover() {
+    const song = queuedCurrent();
+    const known = song ? coverSrc(song.cover) || coverCache.get(queueCoverKey(song)) || '' : '';
+    syncVinylCover(known);
+    if (!song || known) return;
+    ensureSongCover(song).then(url => {
+      if (!url || queuedCurrent()?.id !== song.id) return;
+      // 补到的封面写回当前曲目，播放页/迷你条/首页黑胶一起更新
+      current.cover = url;
+      updatePlayer();
+    });
   }
   // 全屏播放页的背景直接取自当前封面：两层交替淡入，换歌时像参考应用一样整体换色
   let backdropSlot = 0;
@@ -877,7 +936,7 @@
       setCoverImage(npCoverImg, npCover);
       setCoverImage(miniCoverImg, miniCover);
       syncHeroCover('');
-      syncVinylCover('');
+      applyVinylCover();
       setPlayerBackdrop('');
       return;
     }
@@ -893,7 +952,7 @@
     setCoverImage(npCoverImg, npCover, current.cover);
     setCoverImage(miniCoverImg, miniCover, current.cover);
     syncHeroCover(current.cover);
-    syncVinylCover(current.cover);
+    applyVinylCover();
     setPlayerBackdrop(current.cover);
     const hue = coverHue(current.id);
     npCover.style.setProperty('--hue', hue);
@@ -1132,6 +1191,7 @@
     updatePlayer();
     updateCacheMeters();
     updateQueueSelection();
+    warmQueueCovers();
   }
   // 选择模式：面板底部换成"全选 / 清除选中 / 取消"操作条
   function updateQueueSelection() {

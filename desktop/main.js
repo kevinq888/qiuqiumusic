@@ -196,9 +196,11 @@ function sendPlaybackState() {
     const panel = document.querySelector('#player-panel');
     const coverImg = document.querySelector('#np-cover-img');
     const coverSrc = coverImg && !coverImg.hidden ? coverImg.getAttribute('src') : '';
+    // 只有当前选中曲目仍在播放清单中（暂停也算）才显示封面，否则回到 Logo
+    const queued = !!document.querySelector('#queue-items .personal-song.is-current');
     return { title: title?.textContent?.trim() || '', playing: !!audio && !audio.paused,
       currentTime: audio?.currentTime || 0, duration: audio?.duration || 0,
-      cover: coverSrc ? new URL(coverSrc, location.href).href : '',
+      cover: queued && coverSrc ? new URL(coverSrc, location.href).href : '',
       hasTrack: !!host?.classList.contains('has-track'), progressVisible: !!panel && !panel.hidden };
   })()`, true).then(state => {
     if (!mainWindow || mainWindow.isDestroyed() || !floatingWindow || floatingWindow.isDestroyed()) return;
