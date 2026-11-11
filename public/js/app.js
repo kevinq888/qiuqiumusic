@@ -42,6 +42,8 @@
   const npCoverImg = document.getElementById('np-cover-img');
   const npBackdrop = document.getElementById('np-bg');
   const miniCoverImg = document.getElementById('mini-cover-img');
+  const heroCoverImg = document.querySelector('.disc-inner img');
+  const heroLogoSrc = heroCoverImg?.getAttribute('src') || '';
   const dockTitle = document.getElementById('player-dock-title');
   const artistNode = document.getElementById('player-artist');
   const lyricNode = document.getElementById('player-lyric');
@@ -420,6 +422,13 @@
       img.removeAttribute('src');
       img.hidden = true;
     }
+  }
+  // 首页大黑胶跟着当前歌曲换封面，没有在播歌曲时回到 Logo
+  function syncHeroCover(cover) {
+    if (!heroCoverImg) return;
+    const next = coverSrc(cover) || heroLogoSrc;
+    if (!next || heroCoverImg.getAttribute('src') === next) return;
+    heroCoverImg.src = next;
   }
   // 全屏播放页的背景直接取自当前封面：两层交替淡入，换歌时像参考应用一样整体换色
   let backdropSlot = 0;
@@ -858,6 +867,7 @@
       loadLyrics(null);
       setCoverImage(npCoverImg, npCover);
       setCoverImage(miniCoverImg, miniCover);
+      syncHeroCover('');
       setPlayerBackdrop('');
       return;
     }
@@ -872,6 +882,7 @@
     if (dockTitle) dockTitle.textContent = title;
     setCoverImage(npCoverImg, npCover, current.cover);
     setCoverImage(miniCoverImg, miniCover, current.cover);
+    syncHeroCover(current.cover);
     setPlayerBackdrop(current.cover);
     const hue = coverHue(current.id);
     npCover.style.setProperty('--hue', hue);

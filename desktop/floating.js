@@ -8,7 +8,7 @@ const controls = [...document.querySelectorAll('[data-command]')];
 const playControl = document.querySelector('.play-control');
 const progressRing = document.querySelector('.ring-progress');
 const coverImg = document.getElementById('record-cover-img');
-const coverInitial = document.querySelector('.record-initial');
+const coverLogo = document.querySelector('.record-logo');
 const ringLength = 2 * Math.PI * 42;
 let pointerStart = null;
 let dragMoved = false;
@@ -120,7 +120,6 @@ window.qiuqiuDesktop.onPlaybackState(state => {
     trackText.textContent = title;
     track.title = title;
     fitTrackTitle();
-    if (!currentCover) coverInitial.textContent = hasTrack ? title.slice(0, 1) : '♪';
   }
   const cover = hasTrack && typeof state.cover === 'string' ? state.cover : '';
   if (cover !== currentCover) {
@@ -128,12 +127,11 @@ window.qiuqiuDesktop.onPlaybackState(state => {
     if (cover) {
       coverImg.src = cover;
       coverImg.hidden = false;
-      coverInitial.hidden = true;
+      coverLogo.hidden = true;
     } else {
       coverImg.hidden = true;
       coverImg.removeAttribute('src');
-      coverInitial.hidden = false;
-      coverInitial.textContent = hasTrack ? title.slice(0, 1) : '♪';
+      coverLogo.hidden = false;
     }
   }
   const duration = Number(state.duration) || 0;
