@@ -313,17 +313,18 @@ body{min-height:100dvh;display:flex;flex-direction:column}
     repeating-radial-gradient(circle,transparent 0 4px,rgba(255,255,255,.13) 5px,transparent 6px 8px),
     conic-gradient(from 20deg,#101e21 0%,#254c4d 19%,#0c171a 43%,#274749 64%,#0a1518 83%,#101e21 100%);
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.35),inset 0 2px 8px rgba(0,0,0,.25);
-  animation-duration:4s;
+  animation-duration:14s;
 }
 .vinyl-disc:after{display:none}
 .vinyl-label{
-  position:relative;z-index:1;width:28px;height:28px;
-  background:var(--orange);color:#fff;
-  border:1px solid rgba(255,255,255,.72);
-  box-shadow:0 0 0 3px rgba(5,18,20,.6),inset 0 1px 3px rgba(255,255,255,.28);
+  position:relative;z-index:1;width:44px;height:44px;
+  background:#f4f2ea;
+  border:2px solid rgba(255,255,255,.72);
+  box-shadow:0 0 0 2px rgba(5,18,20,.6),inset 0 1px 3px rgba(255,255,255,.28);
+  overflow:hidden;
 }
-.vinyl-label .icon{width:18px;height:18px;stroke:none;filter:drop-shadow(0 1px 1px rgba(0,0,0,.2))}
-@media(max-width:680px){.vinyl-toggle,[data-theme="dark"] .vinyl-toggle{width:64px;height:64px}.vinyl-disc{width:58px;height:58px}.vinyl-label{width:26px;height:26px}.vinyl-label .icon{width:17px;height:17px}}
+.vinyl-cover{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}
+@media(max-width:680px){.vinyl-toggle,[data-theme="dark"] .vinyl-toggle{width:64px;height:64px}.vinyl-disc{width:58px;height:58px}.vinyl-label{width:40px;height:40px}}
 @media(max-width:680px){
   .player-host.is-expanded .player-panel-head .icon-button .icon{width:17px;height:17px}
 }
