@@ -12,24 +12,11 @@
       <circle class="ring-progress" cx="46" cy="46" r="42"></circle>
     </svg>
     <button class="record" type="button" aria-label="打开未末音乐">
-      <svg class="record-art" viewBox="0 0 100 100" aria-hidden="true">
-        <defs>
-          <radialGradient id="vinyl" cx="50%" cy="46%" r="58%">
-            <stop offset="0" stop-color="#214c46"></stop>
-            <stop offset=".58" stop-color="#0b211e"></stop>
-            <stop offset=".82" stop-color="#183c37"></stop>
-            <stop offset="1" stop-color="#071714"></stop>
-          </radialGradient>
-        </defs>
-        <circle cx="50" cy="50" r="47" fill="url(#vinyl)" stroke="#37766b" stroke-width="1.5"></circle>
-        <circle cx="50" cy="50" r="38" fill="none" stroke="#246157" stroke-width="1.6"></circle>
-        <circle cx="50" cy="50" r="31" fill="none" stroke="#246157" stroke-width="1.4"></circle>
-        <circle cx="50" cy="50" r="24" fill="none" stroke="#246157" stroke-width="1.2"></circle>
-        <circle cx="50" cy="50" r="16" fill="#f7ecd8" stroke="#fffaf0" stroke-width="1.6"></circle>
-        <ellipse cx="44.9" cy="54.7" rx="5" ry="3.9" transform="rotate(-18 44.9 54.7)" fill="#1f7f5e"></ellipse>
-        <path d="M48 53 C48.5 47.9 49.6 43.3 52.6 40.6" stroke="#14523f" stroke-width="2.3" stroke-linecap="round" fill="none"></path>
-        <path d="M52.6 40.6 C56 41.3 59.8 43.1 62 46.4 C58.8 47.9 55.3 46.3 52.8 43.5 Z" fill="#1f7f5e"></path>
-      </svg>
+      <span class="record-disc" aria-hidden="true"></span>
+      <span class="record-cover">
+        <img id="record-cover-img" alt="" draggable="false" hidden>
+        <b class="record-initial" aria-hidden="true">♪</b>
+      </span>
     </button>
     <button class="close" type="button" aria-label="退出未末音乐" title="退出未末音乐">×</button>
     <section class="hover-panel" aria-label="快捷播放控制" inert>

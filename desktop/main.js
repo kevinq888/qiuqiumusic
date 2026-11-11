@@ -194,8 +194,11 @@ function sendPlaybackState() {
     const title = document.querySelector('#player-title');
     const host = document.querySelector('#site-player');
     const panel = document.querySelector('#player-panel');
+    const coverImg = document.querySelector('#np-cover-img');
+    const coverSrc = coverImg && !coverImg.hidden ? coverImg.getAttribute('src') : '';
     return { title: title?.textContent?.trim() || '', playing: !!audio && !audio.paused,
       currentTime: audio?.currentTime || 0, duration: audio?.duration || 0,
+      cover: coverSrc ? new URL(coverSrc, location.href).href : '',
       hasTrack: !!host?.classList.contains('has-track'), progressVisible: !!panel && !panel.hidden };
   })()`, true).then(state => {
     if (!mainWindow || mainWindow.isDestroyed() || !floatingWindow || floatingWindow.isDestroyed()) return;

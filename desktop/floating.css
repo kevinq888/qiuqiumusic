@@ -10,8 +10,11 @@ button { appearance: none; -webkit-appearance: none; -webkit-tap-highlight-color
 .ring-progress { stroke: var(--coral); stroke-linecap: round; opacity: 0; transition: stroke-dashoffset .75s linear; }
 .record { position: absolute; top: 7px; left: 141px; width: 78px; height: 78px; padding: 0; border: 0; border-radius: 50%; background: transparent; box-shadow: none; overflow: hidden; cursor: grab; }
 .record:active { cursor: grabbing; }
-.record-art { display: block; width: 100%; height: 100%; border-radius: 50%; animation: spin 3.2s linear infinite; animation-play-state: paused; transform-origin: 50% 50%; }
-.widget.is-playing .record-art { animation-play-state: running; }
+.record-disc { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 34% 24%, rgba(255,255,255,.24), rgba(255,255,255,0) 42%), repeating-radial-gradient(circle at center, rgba(255,255,255,.055) 0 1px, transparent 1px 3.5px), conic-gradient(from 210deg, #0b211e, #1c4a42 24%, #0e2d28 48%, #245a50 66%, #0a201c 86%, #0b211e); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+.record-cover { position: absolute; inset: 5px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: radial-gradient(circle at 34% 26%, #2c5f55, #0e2b26 72%); box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), 0 2px 6px rgba(0,0,0,.28); transform: translateZ(0); backface-visibility: hidden; animation: spin 16s linear infinite; animation-play-state: paused; will-change: transform; }
+.widget.is-playing .record-cover { animation-play-state: running; }
+.record-cover img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; pointer-events: none; }
+.record-initial { color: #f7ecd8; font: 700 22px/1 system-ui, sans-serif; }
 .close { position: absolute; z-index: 2; top: 4px; left: 202px; width: 20px; height: 20px; padding: 0 0 2px; border: 1px solid rgba(255,255,255,.42); border-radius: 50%; color: #fff; background: #17332f; box-shadow: none; font: 500 16px/16px system-ui,sans-serif; cursor: pointer; }
 .close:hover { background: #d96f5d; }
 .hover-panel { position: absolute; top: 98px; left: 50%; width: max-content; min-width: 128px; max-width: 344px; padding: 0; border: 0; color: #103c33; background: transparent; transform: translateX(-50%); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .12s ease, visibility .12s; }

@@ -7,12 +7,15 @@ const trackText = document.querySelector('.track-text');
 const controls = [...document.querySelectorAll('[data-command]')];
 const playControl = document.querySelector('.play-control');
 const progressRing = document.querySelector('.ring-progress');
+const coverImg = document.getElementById('record-cover-img');
+const coverInitial = document.querySelector('.record-initial');
 const ringLength = 2 * Math.PI * 42;
 let pointerStart = null;
 let dragMoved = false;
 let suppressClick = false;
 let hideTimer;
 let currentTitle = '';
+let currentCover = '';
 let ignoresMouse = true;
 progressRing.style.strokeDasharray = `${ringLength} ${ringLength}`;
 progressRing.style.strokeDashoffset = String(ringLength);
@@ -117,6 +120,21 @@ window.qiuqiuDesktop.onPlaybackState(state => {
     trackText.textContent = title;
     track.title = title;
     fitTrackTitle();
+    if (!currentCover) coverInitial.textContent = hasTrack ? title.slice(0, 1) : '♪';
+  }
+  const cover = hasTrack && typeof state.cover === 'string' ? state.cover : '';
+  if (cover !== currentCover) {
+    currentCover = cover;
+    if (cover) {
+      coverImg.src = cover;
+      coverImg.hidden = false;
+      coverInitial.hidden = true;
+    } else {
+      coverImg.hidden = true;
+      coverImg.removeAttribute('src');
+      coverInitial.hidden = false;
+      coverInitial.textContent = hasTrack ? title.slice(0, 1) : '♪';
+    }
   }
   const duration = Number(state.duration) || 0;
   const currentTime = Number(state.currentTime) || 0;
