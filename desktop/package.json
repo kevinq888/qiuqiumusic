@@ -1,6 +1,6 @@
 {
   "name": "weimo-music-desktop",
-  "version": "1.2.9",
+  "version": "1.2.10",
   "private": true,
   "description": "未末音乐本地桌面播放器",
   "main": "main.js",

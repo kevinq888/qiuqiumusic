@@ -18,6 +18,7 @@ import android.system.Os;
 import android.system.OsConstants;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -133,8 +134,7 @@ public class MainActivity extends Activity {
         BootLog.mark();
 
         if (Build.VERSION.SDK_INT >= 21) {
-            getWindow().setStatusBarColor(Color.parseColor("#f1f8f5"));
-            getWindow().setNavigationBarColor(Color.parseColor("#f1f8f5"));
+            applyBarTheme(false);
         }
         buildUi(previous != null);
 
@@ -167,6 +167,7 @@ public class MainActivity extends Activity {
             view.setBackgroundColor(Color.parseColor("#f1f8f5"));
             view.setWebViewClient(new BootClient(this));
             view.setWebChromeClient(new WebChromeClient());
+            view.addJavascriptInterface(new NativeBridge(this), "WeiMoNative");
             if (safeMode) {
                 // 上次启动没完成，先退到软件渲染，排除 GPU/hwui 侧的问题。
                 view.setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null);
@@ -331,15 +332,49 @@ public class MainActivity extends Activity {
         }
     }
 
+    /** 给网页调用：全屏播放器打开时系统栏切成深色白字，关闭时回到浅色深字。 */
+    void setPlayerModeFromScript(boolean playing) {
+        ui.post(new PlayerModeTask(this, playing));
+    }
+
+    private static final class PlayerModeTask implements Runnable {
+        private final MainActivity host;
+        private final boolean playing;
+
+        PlayerModeTask(MainActivity host, boolean playing) {
+            this.host = host;
+            this.playing = playing;
+        }
+
+        @Override
+        public void run() {
+            host.applyBarTheme(playing);
+        }
+    }
+
+    private void applyBarTheme(boolean player) {
+        if (Build.VERSION.SDK_INT < 21) return;
+        getWindow().setStatusBarColor(Color.parseColor(player ? "#14121a" : "#f1f8f5"));
+        getWindow().setNavigationBarColor(Color.parseColor(player ? "#0d0c11" : "#f1f8f5"));
+        int flags = getWindow().getDecorView().getSystemUiVisibility();
+        if (player) {
+            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            if (Build.VERSION.SDK_INT >= 26) flags &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        } else {
+            flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            if (Build.VERSION.SDK_INT >= 26) flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        }
+        getWindow().getDecorView().setSystemUiVisibility(flags);
+    }
+
     private void showSplash() {
         if (web == null) {
-            if (fallback != null) fallback.setText("正在启动本地服务…");
+            if (fallback != null) fallback.setText("");
             return;
         }
+        // 启动阶段只铺一层与首页一致的底色，不再显示“正在启动服务”之类提示
         web.loadDataWithBaseURL(null,
-                "<html><body style='margin:0;height:100vh;display:flex;align-items:center;"
-                        + "justify-content:center;background:#f1f8f5;color:#173c36;"
-                        + "font-family:sans-serif;font-size:15px'>正在启动本地服务…</body></html>",
+                "<html><body style='margin:0;height:100vh;background:#f1f8f5'></body></html>",
                 "text/html", "utf-8", null);
     }
 

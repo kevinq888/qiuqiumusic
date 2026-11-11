@@ -892,47 +892,46 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   [data-theme="glass"] .mobile-tabbar{background:rgba(247,250,255,.92);border-top-color:rgba(255,255,255,.7)}
   /* 全屏播放页：隐藏底部 TabBar，让播放页真正铺满整屏 */
   body.player-open .mobile-tabbar{display:none}
-  /* 顶部胶囊浮在内容之上时，把首屏内容往下让一点，避免压住标题 */
-  body.mini-open .main-content{padding-top:62px}
-
-  .main-content{padding-top:14px;padding-bottom:96px}
+  .main-content{padding-top:14px;padding-bottom:152px}
   .site-footer{display:none}
   .nav-shell{padding-left:12px;padding-right:12px}
+  /* 品牌字在浅色、深色或图片背景上都要清晰：手机端用深绿胶囊托白字 */
+  .brand{flex:none;padding:3px 10px 3px 5px;border-radius:999px;background:rgba(16,54,45,.92);box-shadow:0 4px 14px rgba(10,35,29,.18)}
+  .brand strong{color:#fff;font-size:15px}
+  .brand small{color:rgba(255,255,255,.58)}
 
-  /* 迷你播放器：收进屏幕顶部中央，像灵动岛一样显示当前歌曲与进度 */
+  /* 播放条：沉在 TabBar 上方，打开 App 就能看到从哪里开始播放 */
   .vinyl-toggle{display:none!important}
   .mini-player{
-    position:fixed;left:50%;right:auto;bottom:auto;
-    top:calc(env(safe-area-inset-top) + 62px);
-    transform:translateX(-50%);
-    z-index:90;display:flex;align-items:center;gap:8px;
-    width:min(78vw,330px);height:44px;padding:0 8px 0 6px;
-    border-radius:999px;background:rgba(15,15,19,.88);
-    border:1px solid rgba(255,255,255,.14);
-    box-shadow:0 12px 34px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.16);
-    backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);
-    overflow:hidden;animation:island-in .3s var(--ease) both;
+    position:fixed;left:12px;right:12px;bottom:calc(56px + env(safe-area-inset-bottom) + 9px);z-index:52;
+    display:flex;align-items:center;gap:10px;height:56px;padding:0 10px 0 7px;
+    border-radius:16px;background:rgba(18,38,33,.94);color:#fff;
+    border:1px solid rgba(255,255,255,.1);
+    box-shadow:0 16px 38px rgba(6,18,15,.3);
+    backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);
+    overflow:hidden;animation:dock-in .28s var(--ease) both;
   }
   .mini-player[hidden]{display:none}
-  @keyframes island-in{from{opacity:0;transform:translateX(-50%) translateY(-10px) scale(.94)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
-  [data-theme="glass"] .mini-player{background:rgba(20,22,28,.88);border-color:rgba(255,255,255,.2)}
-  .mini-open{display:flex;align-items:center;gap:8px;flex:1;min-width:0;border:0;background:transparent;padding:0;color:#fff;text-align:left}
+  @keyframes dock-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  [data-theme="glass"] .mini-player{background:rgba(20,22,28,.92);border-color:rgba(255,255,255,.18)}
+  .mini-open{display:flex;align-items:center;gap:10px;flex:1;min-width:0;border:0;background:transparent;padding:0;color:#fff;text-align:left}
   .mini-cover{
-    position:relative;display:grid;place-items:center;width:32px;height:32px;flex:none;border-radius:50%;overflow:hidden;
+    position:relative;display:grid;place-items:center;width:38px;height:38px;flex:none;border-radius:50%;overflow:hidden;
     background:linear-gradient(145deg,hsl(var(--hue,160) 52% 64%),hsl(var(--hue,160) 46% 38%));
     box-shadow:0 2px 8px rgba(0,0,0,.28);
   }
   .mini-cover:before{content:'';position:absolute;inset:0;background:repeating-radial-gradient(circle,transparent 0 4px,rgba(255,255,255,.12) 5px,transparent 6px 8px)}
-  .mini-cover b{position:relative;z-index:1;color:#fff;font-size:13px;font-weight:800}
-  .mini-meta{display:flex;flex-direction:column;min-width:0;line-height:1.2}
-  .mini-meta strong{font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff}
-  .mini-meta small{font-size:9.5px;color:rgba(255,255,255,.58);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .mini-play,.mini-queue{display:grid;place-items:center;width:30px;height:30px;flex:none;border:0;border-radius:50%;background:transparent;color:#fff;padding:0}
+  .mini-cover b{position:relative;z-index:1;color:#fff;font-size:14px;font-weight:800}
+  .mini-meta{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+  .mini-meta strong{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff}
+  .mini-meta small{font-size:10px;color:rgba(255,255,255,.62);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mini-play,.mini-queue{display:grid;place-items:center;width:32px;height:32px;flex:none;border:0;border-radius:50%;background:transparent;color:#fff;padding:0}
+  .mini-play{background:rgba(255,255,255,.12)}
   .mini-play .icon{width:20px;height:20px}
-  .mini-queue .icon{width:17px;height:17px}
+  .mini-queue .icon{width:18px;height:18px}
   .mini-play .tp-icon,.tp-icon{display:grid;place-items:center;line-height:0}
-  .mini-progress{position:absolute;left:18px;right:18px;bottom:0;height:2px;border-radius:2px;background:rgba(255,255,255,.18);overflow:hidden}
-  .mini-progress i{display:block;height:100%;width:0;background:#8fe3c1;border-radius:2px;transition:width .2s linear;box-shadow:0 0 8px rgba(143,227,193,.65)}
+  .mini-progress{position:absolute;left:16px;right:16px;bottom:2px;height:2px;border-radius:2px;background:rgba(255,255,255,.16);overflow:hidden}
+  .mini-progress i{display:block;height:100%;width:0;background:#8fe3c1;border-radius:2px;transition:width .2s linear;box-shadow:0 0 8px rgba(143,227,193,.6)}
 
   /* 播放/暂停图标切换 */
   .player-host.is-playing .tp-play,
@@ -982,12 +981,48 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   .np-top .np-icon .icon{width:22px;height:22px}
   .np-top .np-icon:last-child{background:rgba(255,255,255,.12)}
   .np-top-title{font-size:12px;font-weight:700;letter-spacing:.18em;color:rgba(255,255,255,.6)}
+  .np-top .np-lyrics-btn{font-size:13px;font-weight:800;letter-spacing:0;color:rgba(255,255,255,.62)}
+  .np-top .np-lyrics-btn[aria-pressed="true"]{background:rgba(255,255,255,.16);color:#fff}
   /* 黑胶 + 唱臂：唱臂用独立转盘容器定位，保证跟碟片一起缩放 */
   .np-art{
     display:flex;align-items:center;justify-content:center;position:relative;
     flex:1 1 auto;min-height:0;padding:10px 0 18px;
   }
-  .np-turntable{position:relative;width:min(76vw,330px);aspect-ratio:1}
+  .np-turntable{position:relative;width:min(68vw,296px);aspect-ratio:1}
+  /* 歌词视图：整块替换黑胶与唱臂，一屏 7 行左右，当前句按 KTV 方式点亮 */
+  .np-lyrics{display:none;width:100%;height:100%;align-items:center;justify-content:center}
+  .np-art.is-lyrics .np-turntable{display:none}
+  .np-art.is-lyrics .np-lyrics{display:flex}
+  .np-lyrics-track{
+    position:relative;width:100%;height:min(44vh,330px);max-height:100%;overflow-y:auto;scroll-behavior:smooth;scrollbar-width:none;
+    display:flex;flex-direction:column;align-items:center;gap:16px;padding:0 4px;
+    -webkit-mask:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent);
+    mask:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent);
+  }
+  .np-lyrics-track::-webkit-scrollbar{display:none}
+  .np-lyrics-line{
+    flex:none;max-width:100%;margin:0;font-size:16px;line-height:1.45;font-weight:700;text-align:center;
+    color:rgba(255,255,255,.34);transition:color .25s,font-size .25s,transform .25s;
+  }
+  .np-lyrics-line.is-active{
+    font-size:19px;
+    background-image:linear-gradient(90deg,#fff var(--sing,0%),rgba(255,255,255,.4) var(--sing,0%));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    transform:scale(1.01);
+  }
+  .np-lyrics-empty{margin:0;color:rgba(255,255,255,.5);font-size:14px}
+  /* 歌词展开时不再重复显示标题下方的单行歌词 */
+  body.lyrics-open #player-lyric{visibility:hidden}
+  /* 黑胶外圈的"魔幻光晕"，只做 transform 动画，避免拖慢碟片旋转 */
+  .np-halo{
+    position:absolute;inset:-9%;border-radius:50%;pointer-events:none;z-index:0;
+    background:conic-gradient(from 0deg,rgba(143,227,193,0),rgba(143,227,193,.6),rgba(255,198,146,.55),rgba(123,180,255,.5),rgba(143,227,193,0));
+    filter:blur(15px);opacity:.75;
+    -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 30px),#000 calc(100% - 26px));
+    mask:radial-gradient(farthest-side,transparent calc(100% - 30px),#000 calc(100% - 26px));
+    animation:halo-spin 18s linear infinite;will-change:transform;transform:translateZ(0);
+  }
+  @keyframes halo-spin{to{transform:rotate(360deg)}}
   .np-disc{
     position:relative;display:grid;place-items:center;
     width:100%;aspect-ratio:1;border-radius:50%;
@@ -995,8 +1030,9 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
       radial-gradient(circle at 32% 22%,rgba(255,255,255,.16),transparent 34%),
       repeating-radial-gradient(circle at center,rgba(255,255,255,.055) 0 1px,transparent 2px 7px),
       conic-gradient(from 26deg,#12161c,#2a3138 18%,#0c1014 42%,#2b333a 64%,#0b0f13 86%,#12161c);
-    box-shadow:0 26px 55px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.1),inset 0 2px 18px rgba(0,0,0,.5);
-    animation:record-spin 9s linear infinite;animation-play-state:paused;
+    box-shadow:0 20px 44px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.1),inset 0 2px 18px rgba(0,0,0,.5);
+    animation:record-spin 20s linear infinite;animation-play-state:paused;
+    will-change:transform;transform:translateZ(0);backface-visibility:hidden;
   }
   .player-host.is-playing .np-disc{animation-play-state:running}
   .np-cover{
@@ -1012,8 +1048,8 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   .np-cover b{position:relative;z-index:1;font-size:clamp(30px,10vw,44px);font-weight:800;color:#fff;text-shadow:0 3px 14px rgba(0,0,0,.35)}
   /* 唱臂：近乎竖直的杆 + 底端短折角，参考主流播放器的黑胶唱臂 */
   .np-arm{
-    position:absolute;left:46%;top:-30%;width:34%;height:54%;
-    background:none;transform:none;border-radius:0;box-shadow:none;
+    position:absolute;left:auto;right:-4%;top:-34%;width:36%;height:58%;
+    background:none;transform:scaleX(-1);transform-origin:center;border-radius:0;box-shadow:none;
     z-index:2;pointer-events:none;
   }
   .np-arm svg{display:block;width:100%;height:100%;overflow:visible}

@@ -45,6 +45,12 @@
   const dockTitle = document.getElementById('player-dock-title');
   const artistNode = document.getElementById('player-artist');
   const lyricNode = document.getElementById('player-lyric');
+  const artNode = document.getElementById('np-art');
+  const lyricsPanel = document.getElementById('np-lyrics');
+  const lyricsTrack = document.getElementById('np-lyrics-track');
+  const lyricsToggle = document.getElementById('player-lyrics-toggle');
+  let lyricsMode = false;
+  let lyricsActiveLine = -1;
   const queueBackdrop = document.getElementById('queue-backdrop');
   let installPrompt = null;
   let installPromptConsumed = false;
@@ -600,6 +606,53 @@
       lyricNode.hidden = true;
       lyricNode.textContent = '';
     }
+    renderLyricsTrack();
+  }
+  // 全屏播放页的歌词视图：固定显示约 7 行，当前句按 KTV 方式逐字点亮
+  function renderLyricsTrack() {
+    if (!lyricsTrack) return;
+    lyricsTrack.replaceChildren();
+    lyricsActiveLine = -1;
+    if (!lyricLines.length) {
+      const empty = document.createElement('p');
+      empty.className = 'np-lyrics-empty';
+      empty.textContent = '暂无歌词';
+      lyricsTrack.append(empty);
+      return;
+    }
+    for (const line of lyricLines) {
+      const node = document.createElement('p');
+      node.className = 'np-lyrics-line';
+      node.textContent = line.text || '♪';
+      lyricsTrack.append(node);
+    }
+  }
+  function syncLyricsTrack(index) {
+    if (!lyricsTrack) return;
+    const nodes = lyricsTrack.children;
+    const previous = nodes[lyricsActiveLine];
+    if (previous) previous.classList.remove('is-active');
+    lyricsActiveLine = index;
+    const node = nodes[index];
+    if (!node) return;
+    node.classList.add('is-active');
+    const top = node.offsetTop - lyricsTrack.clientHeight / 2 + node.offsetHeight / 2;
+    lyricsTrack.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  }
+  function setLyricsMode(on) {
+    if (!artNode || !lyricsPanel) return;
+    lyricsMode = !!on;
+    artNode.classList.toggle('is-lyrics', lyricsMode);
+    document.body.classList.toggle('lyrics-open', lyricsMode);
+    lyricsPanel.hidden = !lyricsMode;
+    if (lyricsToggle) {
+      lyricsToggle.setAttribute('aria-pressed', String(lyricsMode));
+      lyricsToggle.setAttribute('aria-label', lyricsMode ? '收起歌词' : '显示歌词');
+    }
+    if (lyricsMode) {
+      lyricsActiveLine = -1;
+      syncLyric(Number.isFinite(audio.currentTime) ? audio.currentTime : 0);
+    }
   }
   function lyricTextTarget() {
     if (!lyricNode) return null;
@@ -626,10 +679,14 @@
       node.textContent = line ? line.text : '';
       const wasHidden = lyricNode.hidden;
       lyricNode.hidden = !line;
-      if (!line) return;
+      if (!line) {
+        syncLyricsTrack(index);
+        return;
+      }
       // 歌词出现会改变播放条高度，重新给页面留出空间
       if (wasHidden && host.classList.contains('is-expanded')) syncPlayerSpace();
     }
+    if (index !== lyricsActiveLine) syncLyricsTrack(index);
     if (!line) return;
     // KTV 式填充：按本句已唱时长计算当前句的变色进度
     const next = lyricLines[index + 1];
@@ -637,7 +694,10 @@
     // 压缩到 80% 让高亮追平实际演唱速度
     const length = Math.max(1.2, (next ? next.time : line.time + 5) - line.time) * 0.8;
     const ratio = Math.max(0, Math.min(1, (time - line.time) / length));
-    lyricTextTarget().style.setProperty('--sing', `${(ratio * 100).toFixed(1)}%`);
+    const percent = `${(ratio * 100).toFixed(1)}%`;
+    lyricTextTarget().style.setProperty('--sing', percent);
+    const activeLine = lyricsTrack && lyricsTrack.children[lyricsActiveLine];
+    if (activeLine) activeLine.style.setProperty('--sing', percent);
   }
   // 逐帧驱动歌词填充，避免只靠 timeupdate（约 4 次/秒）导致高亮落后于声音
   let lyricFrame = 0;
@@ -666,6 +726,7 @@
     if (cached) {
       lyricLines = cached;
       lyricIndex = -1;
+      renderLyricsTrack();
       syncLyric(Number.isFinite(audio.currentTime) ? audio.currentTime : 0);
       return;
     }
@@ -679,6 +740,7 @@
         if (request !== lyricRequest) return;
         lyricLines = lines;
         lyricIndex = -1;
+        renderLyricsTrack();
         syncLyric(Number.isFinite(audio.currentTime) ? audio.currentTime : 0);
       })
       .catch(() => {});
@@ -784,13 +846,14 @@
       : '播放清单，暂无曲目');
     syncQueueHighlight();
     updateCacheMeters();
-    miniPlayer.hidden = !current || host.classList.contains('is-expanded');
+    miniPlayer.hidden = host.classList.contains('is-expanded');
     if (!current) {
       stateNode.textContent = queue.length ? '按播放键开始' : '待命中';
       titleNode.textContent = '选择一首歌';
       artistNode.textContent = '未末音乐';
-      miniTitle.textContent = '选择一首歌';
-      miniArtist.textContent = '未末音乐';
+      miniPlayer.classList.add('is-idle');
+      miniTitle.textContent = '未末音乐 · 今日推荐';
+      miniArtist.textContent = '点击开始播放';
       if (dockTitle) dockTitle.textContent = '选择一首歌';
       loadLyrics(null);
       setCoverImage(npCoverImg, npCover);
@@ -799,6 +862,7 @@
       return;
     }
     if (!initializing && !minimizedByUser && !host.classList.contains('is-expanded')) expand();
+    miniPlayer.classList.remove('is-idle');
     const artist = artistOf(current);
     const title = displayTitle(current);
     titleNode.textContent = title;
@@ -833,6 +897,11 @@
     document.documentElement.style.setProperty('--player-dock-height', `${Math.ceil(panel.getBoundingClientRect().height)}px`);
   }
   let restoreVinylPos = null;
+  // 全屏播放页时把状态栏/导航栏切成深色，让时间、电量浮在播放页上；回到首页再切回浅色
+  function syncSystemBars(player) {
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', player ? '#14121a' : '#f1f8f5');
+    try { window.WeiMoNative?.setPlayerMode(!!player); } catch {}
+  }
   function expand() {
     minimizedByUser = false;
     panel.hidden = false;
@@ -843,7 +912,8 @@
     document.body.classList.add('player-open');
     toggle.setAttribute('aria-expanded', 'true');
     miniPlayer.hidden = true;
-    document.body.classList.remove('mini-open');
+    syncSystemBars(true);
+    setLyricsMode(false);
     setQueueOpen(false);
     syncPlayerSpace();
   }
@@ -856,8 +926,8 @@
     document.body.classList.remove('player-open');
     document.documentElement.style.removeProperty('--player-dock-height');
     toggle.setAttribute('aria-expanded', 'false');
-    miniPlayer.hidden = !current;
-    document.body.classList.toggle('mini-open', !miniPlayer.hidden);
+    miniPlayer.hidden = false;
+    syncSystemBars(false);
     if (restoreVinylPos) restoreVinylPos(); // 恢复悬浮球拖动记忆位置
   }
   // 播放计数上报：每首歌每个会话只计一次，驱动本站"本站点播榜"。
@@ -1359,12 +1429,28 @@
     event.stopPropagation();
     setQueueOpen(false);
   });
-  // 手机端迷你播放条与全屏播放页入口
-  document.getElementById('mini-open').addEventListener('click', expand);
+  // 手机端播放条：没有当前歌曲时，点一下就从今日推荐第一首开始
+  function playFirstSong() {
+    const first = document.querySelector('[data-play-id]');
+    if (!first) return false;
+    first.click();
+    return true;
+  }
+  document.getElementById('mini-open').addEventListener('click', () => {
+    if (current) expand();
+    else playFirstSong();
+  });
+  lyricsToggle?.addEventListener('click', () => setLyricsMode(!lyricsMode));
+  artNode?.addEventListener('click', event => {
+    if (event.target.closest('.np-lyrics-track')) return;
+    setLyricsMode(!lyricsMode);
+  });
+  lyricNode?.addEventListener('click', () => setLyricsMode(true));
   document.getElementById('mini-play').addEventListener('click', event => {
     event.preventDefault();
     event.stopPropagation();
-    playbackCommand('toggle');
+    if (current) playbackCommand('toggle');
+    else playFirstSong();
   });
   document.getElementById('mini-queue').addEventListener('click', event => {
     event.preventDefault();
