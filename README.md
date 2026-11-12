@@ -12,6 +12,12 @@
 - 播放清单没有当前选中歌曲时，悬浮唱片回到品牌 Logo 旋转；清空清单后立即恢复。
 - 桌面端悬浮球与网页端使用同一套判断逻辑。
 
+| 系统 | 下载 |
+| --- | --- |
+| macOS（Apple 芯片） | [未末音乐-1.2.11-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.11/未末音乐-1.2.11-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.11-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.11/未末音乐-1.2.11-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.11-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.11/未末音乐-1.2.11-windows-x64.exe) |
+
 ### v1.2.10
 
 - 手机播放页改为真正的全屏：隐藏底部导航，状态栏与导航栏随播放页变为深色白字。
@@ -23,9 +29,9 @@
 
 | 系统 | 下载 |
 | --- | --- |
-| macOS（Apple 芯片） | [未末音乐-1.2.11-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.11/未末音乐-1.2.11-mac-arm64.dmg) |
-| macOS（Intel） | [未末音乐-1.2.11-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.11/未末音乐-1.2.11-mac-x64.dmg) |
-| Windows（64 位） | [未末音乐-1.2.11-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.11/未末音乐-1.2.11-windows-x64.exe) |
+| macOS（Apple 芯片） | [未末音乐-1.2.10-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.10/未末音乐-1.2.10-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.10-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.10/未末音乐-1.2.10-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.10-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.10/未末音乐-1.2.10-windows-x64.exe) |
 
 ### v1.2.9
 
