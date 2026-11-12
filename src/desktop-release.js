@@ -11,14 +11,24 @@ function downloadsFrom(links) {
     const match = decodeURI(link).match(/-(macos-arm64|macos-x64|mac-arm64|mac-x64|windows-x64)\.(zip|dmg|exe)$/);
     if (match) downloads[ALIASES[match[1]] || match[1]] = link;
   }
-  if (!TARGETS.every(target => downloads[target])) throw Error('Incomplete desktop release');
   return downloads;
 }
+function completeRelease(downloads) {
+  return TARGETS.every(target => downloads[target]);
+}
 function readmeRelease() {
-  const readme = fs.readFileSync(path.join(__dirname, '..', 'README.md'), 'utf8');
-  const current = readme.match(/### v([\d.]+)（当前版本）([\s\S]*?)(?=\n### |$)/);
-  if (!current) throw Error('Current desktop version missing in README');
-  return { version: current[1], downloads: downloadsFrom([...current[2].matchAll(/\]\((https:\/\/[^)]+)\)/g)].map(match => match[1])) };
+  // 安卓/旧包可能没带 README 或版本段落不完整，解析失败不能让服务启动失败
+  try {
+    const readme = fs.readFileSync(path.join(__dirname, '..', 'README.md'), 'utf8');
+    const current = readme.match(/### v([\d.]+)（当前版本）([\s\S]*?)(?=\n### |$)/);
+    if (current) {
+      const downloads = downloadsFrom([...current[2].matchAll(/\]\((https:\/\/[^)]+)\)/g)].map(match => match[1]));
+      if (completeRelease(downloads)) return { version: current[1], downloads };
+    }
+  } catch { /* Fall through to the package version. */ }
+  let version = '0.0.0';
+  try { version = require('../package.json').version; } catch {}
+  return { version, downloads: {} };
 }
 let cached = readmeRelease();
 let nextCheck = 0;
@@ -34,6 +44,7 @@ async function latestRelease() {
       const release = await response.json();
       if (release.draft || release.prerelease) throw Error('Not a stable release');
       const downloads = downloadsFrom((release.assets || []).filter(asset => asset.state === 'uploaded' && asset.size > 0).map(asset => asset.browser_download_url));
+      if (!completeRelease(downloads)) throw Error('Incomplete desktop release');
       cached = { version: release.tag_name.replace(/^v/, ''), downloads };
     } catch { /* Keep the last complete release, initially the README's current version. */ }
     nextCheck = Date.now() + 10 * 60 * 1000;

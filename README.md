@@ -6,7 +6,18 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://qiuqiumusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.11（当前版本）
+### v1.2.12（当前版本）
+
+- 修复安卓端启动卡在「server timeout」：发行信息解析失败不再让本地服务进程退出。
+- 安装包缺少或未同步 README 时自动回退到 package.json 版本，服务照常启动。
+
+| 系统 | 下载 |
+| --- | --- |
+| macOS（Apple 芯片） | [未末音乐-1.2.12-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.12/未末音乐-1.2.12-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.12-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.12/未末音乐-1.2.12-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.12-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.12/未末音乐-1.2.12-windows-x64.exe) |
+
+### v1.2.11
 
 - 右下角悬浮唱片改为显示播放清单里当前选中歌曲的封面，暂停时也保持显示，切歌立即换图。
 - 播放清单没有当前选中歌曲时，悬浮唱片回到品牌 Logo 旋转；清空清单后立即恢复。
