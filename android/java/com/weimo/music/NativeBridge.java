@@ -19,4 +19,10 @@ final class NativeBridge {
     public void setNowPlaying(String json) {
         host.setNowPlayingFromScript(json);
     }
+
+    /** 状态栏/导航栏占位，返回 "top,bottom"（CSS px）；播放页据此留出安全区。 */
+    @JavascriptInterface
+    public String safeInsets() {
+        return host.safeInsets();
+    }
 }

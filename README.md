@@ -6,7 +6,20 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://weimomusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.14（当前版本）
+### v1.2.15（当前版本）
+
+- 安卓端播放页真正铺到状态栏与底部导航栏后面，头尾不再有两条系统栏色块，时间和电量直接浮在封面上。
+- 手机播放页的封面加大一半，外围磨砂光晕收小三分之一。
+- 没有封面或封面加载失败的歌曲，统一用站点 Logo 填满圆形封面位。
+- 手机首页的迷你播放条回到屏幕底部（仍在底部导航上方）；离开应用时由系统通知栏在顶部显示播放信息。
+
+| 系统 | 下载 |
+| --- | --- |
+| macOS（Apple 芯片） | [未末音乐-1.2.15-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.15/未末音乐-1.2.15-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.15-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.15/未末音乐-1.2.15-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.15-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.15/未末音乐-1.2.15-windows-x64.exe) |
+
+### v1.2.14
 
 - 手机端播放页的白色唱针会跟着播放状态动起来：暂停时绕转轴抬起、挪开唱片，播放时落回，过程带缓动动画。
 

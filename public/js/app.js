@@ -412,18 +412,20 @@
     img.src = url;
   }
 
-  // 有真实封面时显示图片，缺失时回退到渐变首字块
+  // 有真实封面时显示图片；缺失或加载失败时用站点 Logo 填满圆形，不再留渐变占位块
+  const LOGO_COVER = '/projects/source_code/picture/logo.svg';
   function setCoverImage(img, wrapper, cover) {
     if (!img || !wrapper) return;
-    const url = coverSrc(cover);
-    wrapper.classList.toggle('has-cover', !!url);
-    if (url) {
-      if (img.getAttribute('src') !== url) img.src = url;
-      img.hidden = false;
-    } else {
-      img.removeAttribute('src');
-      img.hidden = true;
+    if (!img.dataset.logoFallback) {
+      img.dataset.logoFallback = '1';
+      img.addEventListener('error', () => {
+        if (img.getAttribute('src') !== LOGO_COVER) img.src = LOGO_COVER;
+      });
     }
+    const url = coverSrc(cover) || LOGO_COVER;
+    wrapper.classList.add('has-cover');
+    if (img.getAttribute('src') !== url) img.src = url;
+    img.hidden = false;
   }
   // 首页大黑胶跟着当前歌曲换封面，没有在播歌曲时回到 Logo
   function syncHeroCover(cover) {
@@ -1025,10 +1027,34 @@
     document.documentElement.style.setProperty('--player-dock-height', `${Math.ceil(panel.getBoundingClientRect().height)}px`);
   }
   let restoreVinylPos = null;
-  // 全屏播放页时把状态栏/导航栏切成深色，让时间、电量浮在播放页上；回到首页再切回浅色
+  // 安卓端播放页会铺到系统栏后面，这里把原生量到的安全区写进 CSS 变量；
+  // 网页版/iOS 没有这个桥接，直接用 env(safe-area-inset-*) 的兜底值。
+  function readSafeInsets() {
+    const bridge = window.WeiMoNative;
+    if (!bridge || typeof bridge.safeInsets !== 'function') return;
+    let text = '0,0';
+    try { text = String(bridge.safeInsets() || '0,0'); } catch { return; }
+    const [top, bottom] = text.split(',').map(value => Math.max(0, Number(value) || 0));
+    const root = document.documentElement;
+    if (top || bottom) {
+      root.style.setProperty('--safe-top', `${top}px`);
+      root.style.setProperty('--safe-bottom', `${bottom}px`);
+    } else {
+      root.style.removeProperty('--safe-top');
+      root.style.removeProperty('--safe-bottom');
+    }
+  }
+  window.qiuqiuSafeInsets = readSafeInsets;
+  // 全屏播放页时把状态栏/导航栏切成透明铺满，让时间和电量浮在播放页上；回到首页再切回不透明
   function syncSystemBars(player) {
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', player ? '#14121a' : '#f1f8f5');
     try { window.WeiMoNative?.setPlayerMode(!!player); } catch {}
+    if (!player) {
+      document.documentElement.style.removeProperty('--safe-top');
+      document.documentElement.style.removeProperty('--safe-bottom');
+      return;
+    }
+    setTimeout(readSafeInsets, 120);
   }
   function expand() {
     panel.hidden = false;

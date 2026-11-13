@@ -965,7 +965,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   .player-host.is-expanded .np-veil{display:block}
   .player-host.is-expanded .player-panel{
     position:relative;z-index:1;flex:1;min-height:0;width:100%;max-width:none;margin:0;
-    padding:0 22px calc(12px + env(safe-area-inset-bottom));
+    padding:0 22px calc(12px + var(--safe-bottom, env(safe-area-inset-bottom)));
     display:flex;flex-direction:column;align-items:stretch;gap:8px;overflow:hidden;
     background:transparent;border:0;border-radius:0;box-shadow:none;color:#f4f1ec;
     grid-template-columns:none;
@@ -973,7 +973,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   /* 全屏播放页顶栏 */
   .np-top{
     display:flex;align-items:center;justify-content:space-between;gap:12px;
-    padding-top:calc(10px + env(safe-area-inset-top));flex:none;
+    padding-top:calc(10px + var(--safe-top, env(safe-area-inset-top)));flex:none;
   }
   .np-top .np-icon{
     display:grid;place-items:center;width:36px;height:36px;border:0;border-radius:50%;
@@ -1016,11 +1016,11 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   body.lyrics-open #player-lyric{visibility:hidden}
   /* 黑胶外圈的"魔幻光晕"，只做 transform 动画，避免拖慢碟片旋转 */
   .np-halo{
-    position:absolute;inset:-9%;border-radius:50%;pointer-events:none;z-index:0;
+    position:absolute;inset:-6%;border-radius:50%;pointer-events:none;z-index:0;
     background:conic-gradient(from 0deg,rgba(143,227,193,0),rgba(143,227,193,.6),rgba(255,198,146,.55),rgba(123,180,255,.5),rgba(143,227,193,0));
-    filter:blur(15px);opacity:.75;
-    -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 30px),#000 calc(100% - 26px));
-    mask:radial-gradient(farthest-side,transparent calc(100% - 30px),#000 calc(100% - 26px));
+    filter:blur(10px);opacity:.75;
+    -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 20px),#000 calc(100% - 17px));
+    mask:radial-gradient(farthest-side,transparent calc(100% - 20px),#000 calc(100% - 17px));
     animation:halo-spin 18s linear infinite;will-change:transform;transform:translateZ(0);
   }
   @keyframes halo-spin{to{transform:rotate(360deg)}}
@@ -1038,7 +1038,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   .player-host.is-playing .np-disc{animation-play-state:running}
   .np-cover{
     position:relative;display:grid;place-items:center;
-    width:58%;aspect-ratio:1;border-radius:50%;overflow:hidden;
+    width:86%;aspect-ratio:1;border-radius:50%;overflow:hidden;
     background:linear-gradient(145deg,hsl(var(--hue,160) 52% 62%),hsl(var(--hue,160) 46% 34%));
     border:4px solid rgba(255,255,255,.1);
     box-shadow:0 0 0 3px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.4);
@@ -1971,7 +1971,7 @@ html:not([data-theme="glass"]) .mobile-menu{color:#fff;border-color:rgba(255,255
 }
 
 
-/* ===== 1.2.13：顶部灵动岛迷你播放器、全屏播放页收边、清单简化、交互手感 ===== */
+/* ===== 1.2.13：迷你播放器、全屏播放页收边、清单简化、交互手感 ===== */
 button,a,.song-row,.song-card,.personal-song{-webkit-tap-highlight-color:transparent}
 body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
 .main-content.page-enter{animation:page-enter .22s var(--ease) both}
@@ -2011,43 +2011,38 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
 .queue-select-bar{margin-top:8px}
 
 @media(max-width:680px){
-  /* 顶部居中灵动岛：只有封面、歌名、播放键和一条细进度 */
+  /* 播放条：打开 App 时常驻底部，沉在 TabBar 上方；离开 App 后由系统通知栏接管顶部 */
   .mini-player{
-    left:50%;right:auto;bottom:auto;top:calc(env(safe-area-inset-top) + 7px);
-    transform:translateX(-50%);width:auto;max-width:min(62vw,224px);height:34px;
-    padding:0 9px 0 3px;gap:7px;border-radius:999px;
-    background:rgba(10,15,14,.95);border:1px solid rgba(255,255,255,.12);
-    box-shadow:0 10px 26px rgba(4,12,10,.3);
-    overflow:hidden;animation:island-drop .24s var(--ease) both;
+    left:12px;right:12px;top:auto;bottom:calc(56px + env(safe-area-inset-bottom) + 9px);
+    transform:none;width:auto;max-width:none;height:56px;
+    padding:0 10px 0 7px;gap:10px;border-radius:16px;
+    background:rgba(18,38,33,.94);border:1px solid rgba(255,255,255,.1);
+    box-shadow:0 16px 38px rgba(6,18,15,.3);
+    backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);
+    overflow:hidden;animation:dock-in .28s var(--ease) both;
   }
-  @keyframes island-drop{from{opacity:0;transform:translate(-50%,-10px) scale(.94)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
-  .mini-open{flex:0 1 auto;gap:7px}
-  .mini-cover{width:26px;height:26px;box-shadow:none}
-  .mini-cover b{font-size:11px}
-  .mini-meta strong{font-size:12px;font-weight:650;max-width:7.6em}
-  .mini-meta small{display:none}
-  .mini-play{width:24px;height:24px;background:transparent}
-  .mini-play .icon{width:16px;height:16px}
-  .mini-queue{display:none}
-  .mini-progress{left:9px;right:9px;bottom:2.5px;height:1.5px;background:rgba(255,255,255,.14)}
-  .mini-progress i{background:#7fe0c0;box-shadow:none;transition:width .35s linear}
-  .mini-player.is-idle .mini-meta strong{max-width:9.4em;color:rgba(255,255,255,.82);font-weight:600}
-  /* 有歌时顶栏品牌收成图标，给居中灵动岛让位 */
-  body.has-current .brand{padding:0;width:32px;height:32px;justify-content:center;background:transparent;box-shadow:none}
-  body.has-current .brand span{display:none}
-  body.has-current .brand img{width:30px;height:30px;border-radius:9px}
-  body.has-current .nav-shell{padding-top:9px}
-  .main-content{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+  .mini-open{flex:1;gap:10px}
+  .mini-cover{width:38px;height:38px;box-shadow:0 2px 8px rgba(0,0,0,.28)}
+  .mini-cover b{font-size:14px}
+  .mini-meta strong{font-size:13px;font-weight:700;max-width:none}
+  .mini-meta small{display:block;font-size:10px}
+  .mini-play{width:32px;height:32px;background:rgba(255,255,255,.12)}
+  .mini-play .icon{width:20px;height:20px}
+  .mini-queue{display:grid}
+  .mini-progress{left:16px;right:16px;bottom:2px;height:2px;background:rgba(255,255,255,.16)}
+  .mini-progress i{background:#8fe3c1;box-shadow:0 0 8px rgba(143,227,193,.6);transition:width .2s linear}
+  .mini-player.is-idle .mini-meta strong{max-width:none;color:#fff;font-weight:700}
+  body.player-open .queue-panel{padding-bottom:calc(14px + var(--safe-bottom, env(safe-area-inset-bottom)))}
 
   /* 全屏播放页：去掉头尾多余的留白，歌词区吃满可用高度 */
   body.player-open{overflow:hidden;overscroll-behavior:none}
   body.player-open .player-host.is-expanded .player-panel{
-    padding:0 20px calc(4px + env(safe-area-inset-bottom));
+    padding:0 20px calc(4px + var(--safe-bottom, env(safe-area-inset-bottom)));
     gap:4px;justify-content:space-between;
     animation:np-in .28s var(--ease) both;
   }
   @keyframes np-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-  body.player-open .np-top{padding-top:calc(4px + env(safe-area-inset-top))}
+  body.player-open .np-top{padding-top:calc(4px + var(--safe-top, env(safe-area-inset-top)))}
   body.player-open .np-art{padding:2px 0 0}
   body.player-open .np-art.is-lyrics .np-lyrics{height:100%}
   body.player-open .np-lyrics-track{height:100%;max-height:none;gap:14px;padding:10px 2px}
@@ -2064,7 +2059,7 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
     .song-row:active,.queue-items .personal-song:active{background:color-mix(in srgb,var(--subtle) 70%,transparent)}
     .song-card:active,.entry:active,.collection-card:active,.artist-card:active{transform:scale(.985)}
     .song-card,.entry,.collection-card,.artist-card{transition:transform .16s var(--ease)}
-    .mini-player:active{transform:translate(-50%,0) scale(.97)}
+    .mini-player:active{transform:scale(.97)}
     .mobile-tabbar a:active{opacity:.7}
     .queue-text-button:active,.queue-close:active{background:color-mix(in srgb,var(--ink) 8%,transparent)}
   }
@@ -2073,14 +2068,3 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
 /* 清单当前曲目：只留绿色标题和左侧细条，不做整行色块 */
 .player-host.is-expanded .queue-items .personal-song.is-current{background:transparent;box-shadow:inset 2px 0 0 var(--forest);border-radius:0;padding-left:8px}
 .queue-items .personal-song.is-current .cache-meter{display:none}
-@media(max-width:680px){
-  /* 有歌时手机顶栏只留菜单和右侧操作，灵动岛独占中间 */
-  body.has-current .brand{display:none}
-}
-@media(max-width:680px){
-  /* 灵动岛占用中间位置时，顶栏搜索框收起（底部导航仍有搜索入口） */
-  body.has-current .nav-search,
-  body.has-current .mobile-search{display:none}
-  /* 中间让给灵动岛后，右侧操作按钮仍然靠右，形成「菜单 / 岛 / 按钮」三段式 */
-  body.has-current .header-actions{margin-left:auto}
-}

@@ -473,17 +473,61 @@ public class MainActivity extends Activity {
 
     private void applyBarTheme(boolean player) {
         if (Build.VERSION.SDK_INT < 21) return;
-        getWindow().setStatusBarColor(Color.parseColor(player ? "#14121a" : "#f1f8f5"));
-        getWindow().setNavigationBarColor(Color.parseColor(player ? "#0d0c11" : "#f1f8f5"));
-        int flags = getWindow().getDecorView().getSystemUiVisibility();
+        android.view.Window window = getWindow();
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        // 播放页让网页铺到状态栏、导航栏后面，头尾不再出现两条系统栏色块；
+        // 回到首页时系统栏重新不透明，网页内容不会被状态栏压住。
+        window.setStatusBarColor(player ? Color.TRANSPARENT : Color.parseColor("#f1f8f5"));
+        window.setNavigationBarColor(player ? Color.TRANSPARENT : Color.parseColor("#f1f8f5"));
+        if (Build.VERSION.SDK_INT >= 29) {
+            window.setStatusBarContrastEnforced(!player);
+            window.setNavigationBarContrastEnforced(!player);
+        }
+        int flags = window.getDecorView().getSystemUiVisibility() | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
         if (player) {
+            flags |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
             flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
             if (Build.VERSION.SDK_INT >= 26) flags &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
         } else {
+            flags &= ~(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
             flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
             if (Build.VERSION.SDK_INT >= 26) flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
         }
-        getWindow().getDecorView().setSystemUiVisibility(flags);
+        window.getDecorView().setSystemUiVisibility(flags);
+        window.getDecorView().requestApplyInsets();
+        pushSafeInsets();
+    }
+
+    /** 系统栏实际占位（CSS px，即 dp），网页据此给播放页留出安全区。 */
+    String safeInsets() {
+        if (Build.VERSION.SDK_INT < 21) return "0,0";
+        try {
+            android.view.WindowInsets insets = getWindow().getDecorView().getRootWindowInsets();
+            if (insets == null) return "0,0";
+            int top;
+            int bottom;
+            if (Build.VERSION.SDK_INT >= 30) {
+                android.graphics.Insets bars = insets.getInsets(android.view.WindowInsets.Type.systemBars());
+                top = bars.top;
+                bottom = bars.bottom;
+            } else {
+                top = insets.getSystemWindowInsetTop();
+                bottom = insets.getSystemWindowInsetBottom();
+            }
+            float density = getResources().getDisplayMetrics().density;
+            return Math.round(top / density) + "," + Math.round(bottom / density);
+        } catch (Throwable error) {
+            return "0,0";
+        }
+    }
+
+    /** 系统栏切换后布局还没重算，等一帧再让网页重新读取安全区。 */
+    private void pushSafeInsets() {
+        final WebView view = web;
+        if (view == null) return;
+        ui.postDelayed(() -> {
+            if (view == web) view.evaluateJavascript("window.qiuqiuSafeInsets&&window.qiuqiuSafeInsets()", null);
+        }, 80);
     }
 
     private void showSplash() {
