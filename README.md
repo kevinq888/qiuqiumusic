@@ -6,7 +6,17 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://qiuqiumusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.13（当前版本）
+### v1.2.14（当前版本）
+
+- 手机端播放页的白色唱针会跟着播放状态动起来：暂停时绕转轴抬起、挪开唱片，播放时落回，过程带缓动动画。
+
+| 系统 | 下载 |
+| --- | --- |
+| macOS（Apple 芯片） | [未末音乐-1.2.14-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.14/未末音乐-1.2.14-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.14-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.14/未末音乐-1.2.14-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.14-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.14/未末音乐-1.2.14-windows-x64.exe) |
+
+### v1.2.13
 
 - 修复退出应用后重新打开出现白屏：本地服务异常不再让页面无限等待，安卓端会复用仍在运行的服务，空白页自动重载。
 - 手机端迷你播放器改为顶部居中的灵动岛胶囊，只显示封面、歌名和一条细进度，点一下进入全屏播放页。
