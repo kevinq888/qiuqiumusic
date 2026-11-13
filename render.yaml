@@ -1,7 +1,7 @@
 services:
-  # 新主站：wmusic.onrender.com（与 qiuqiumusic 同仓库同配置）
+  # 主站：weimomusic.onrender.com（wmusic 子域名已被其他账号占用，只能加后缀，故用 weimomusic）
   - type: web
-    name: wmusic
+    name: weimomusic
     runtime: node
     plan: free
     region: singapore

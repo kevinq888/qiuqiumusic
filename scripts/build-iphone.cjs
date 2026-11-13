@@ -8,7 +8,7 @@ const { spawnSync } = require('node:child_process');
 
 const root = path.resolve(__dirname, '..');
 const version = require(path.join(root, 'desktop', 'package.json')).version;
-const site = 'https://qiuqiumusic.onrender.com/';
+const site = 'https://weimomusic.onrender.com/';
 const outDir = path.join(root, 'dist', version, 'iphone');
 const archive = path.join(outDir, `未末音乐-${version}-iphone.zip`);
 

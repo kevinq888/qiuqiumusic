@@ -6,9 +6,9 @@
 
 | 项目 | 配置 |
 | --- | --- |
-| 线上地址 | <https://qiuqiumusic.onrender.com/> |
+| 线上地址 | <https://weimomusic.onrender.com/> |
 | 托管平台 | Render Web Service，Free，新加坡区域 |
-| 服务管理 | <https://dashboard.render.com/web/srv-dbc2k6e1egvs7399id90/settings> |
+| 服务管理 | <https://dashboard.render.com/web/srv-dbrjcf6i0phs7381d19g/settings> |
 | 部署源码 | GitHub `kevinq888/qiuqiumusic` 的 `main` 分支 |
 | 部署方式 | Auto-Deploy 为 On Commit；若提交后未触发部署，可在 Deploys 页面手动部署最新提交 |
 | 运行环境 | Node.js 22 或更新版本 |
