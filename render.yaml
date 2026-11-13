@@ -1,4 +1,15 @@
 services:
+  # 新主站：wmusic.onrender.com（与 qiuqiumusic 同仓库同配置）
+  - type: web
+    name: wmusic
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: node --check server.js
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeployTrigger: commit
+  # 旧站：wmusic 验证通过后暂停
   - type: web
     name: qiuqiumusic
     runtime: node
