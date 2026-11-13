@@ -43,6 +43,8 @@ function render(chrome, svgSource, size) {
     const result = spawnSync(chrome, [
       '--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run',
       '--force-device-scale-factor=1', '--default-background-color=00000000',
+      // 独立 profile：避免转发到正在运行的 Chrome 实例而不产出截图（表现为构建卡住）
+      `--user-data-dir=${path.join(scratch, 'profile')}`,
       `--window-size=${size},${size}`, `--screenshot=${output}`,
       `file://${source}`,
     ], { stdio: 'ignore', timeout: 60000 });

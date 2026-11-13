@@ -86,7 +86,38 @@ function readJsonBody(req, limit, onBody, onError) {
 // 每次 startServer 都新建一个实例，失败后可以换地址/端口重试。
 const state = { token: null };
 
+// 本地单进程服务：任何一次请求里的异常都只影响那一次响应，不能让它退出进程。
+// 否则手机端会表现为“App 打开后白屏/一直转圈”。
+process.on('uncaughtException', error => console.error('uncaught', error));
+process.on('unhandledRejection', error => console.error('unhandled rejection', error));
+
+// 页面渲染失败时给一个会自己重连的兜底页，避免 WebView 停在空白页
+function failurePage() {
+  return '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'
+    + '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
+    + '<meta name="theme-color" content="#f1f8f5"><title>未末音乐</title><style>'
+    + 'html,body{margin:0;height:100%;background:#f1f8f5;color:#173c36;font-family:-apple-system,'
+    + '"PingFang SC",sans-serif}body{display:flex;align-items:center;justify-content:center;text-align:center}'
+    + 'h1{margin:0 0 8px;font-size:17px}p{margin:0;font-size:13px;color:#5b7a72}</style></head><body>'
+    + '<div><h1>正在重新连接…</h1><p id="hint">马上就好</p></div><script>'
+    + 'var n=0,t=setInterval(function(){n++;if(n>7){clearInterval(t);'
+    + 'document.getElementById("hint").textContent="本地服务未响应，请退出应用后重新打开";return}'
+    + 'fetch("/healthz?r="+n+"&t="+Date.now(),{cache:"no-store"}).then(function(r){'
+    + 'if(r.ok)location.replace("/?r="+Date.now())}).catch(function(){})},1000);'
+    + '</script></body></html>';
+}
+
 function handleRequest(req, res) {
+  try {
+    routeRequest(req, res);
+  } catch (error) {
+    console.error('request failed', error);
+    if (res.headersSent) { try { res.end(); } catch {} return; }
+    send(res, 500, failurePage());
+  }
+}
+
+function routeRequest(req, res) {
   if (state.token && req.headers['x-qiuqiu-token'] !== state.token) {
     return send(res, 403, 'Forbidden', 'text/plain; charset=utf-8');
   }
@@ -282,16 +313,32 @@ function handleRequest(req, res) {
     // Desktop starts immediately from the bundled catalogue, even offline.
     if (state.token) return send(res, 200, views.homePage());
     // 首页区块接入实时数据（6 小时缓存），失败回退本地种子
+    // 关键：外网慢或不可用时不能拖住首屏，最多等 900ms，其余交给缓存和种子数据
+    const within = promise => Promise.race([
+      promise.catch(() => null),
+      new Promise(resolve => setTimeout(() => resolve(null), 900)),
+    ]);
     Promise.all([
-      sourcePage(1).catch(() => null),
-      ranking('recommend', 1).catch(() => null),
-      ranking('hot', 1).catch(() => null),
+      within(sourcePage(1)),
+      within(ranking('recommend', 1)),
+      within(ranking('hot', 1)),
     ]).then(([latest, recommend, hot]) => {
-      send(res, 200, views.homePage({
-        latest: latest && latest.items,
-        recommend: recommend && recommend.items,
-        hot: hot && hot.items,
-      }));
+      let html;
+      try {
+        html = views.homePage({
+          latest: latest && latest.items,
+          recommend: recommend && recommend.items,
+          hot: hot && hot.items,
+        });
+      } catch (error) {
+        // 实时数据里出现意外字段时退回种子曲库，保证首页永远有内容
+        console.error('home page failed', error);
+        html = views.homePage();
+      }
+      send(res, 200, html);
+    }).catch(error => {
+      console.error('home data failed', error);
+      try { send(res, 200, views.homePage()); } catch { send(res, 500, failurePage()); }
     });
     return;
   }
@@ -310,7 +357,7 @@ function handleRequest(req, res) {
         }
       }
       send(res, 200, views.recentPage(items, page, MAX_PAGES));
-    });
+    }).catch(() => send(res, 502, '最近更新暂时不可用', 'text/plain; charset=utf-8'));
     return;
   }
   if (p === '/navigation/2/' || p === '/navigation/2') {

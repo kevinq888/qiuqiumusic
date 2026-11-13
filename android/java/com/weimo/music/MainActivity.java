@@ -20,7 +20,10 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -51,8 +54,12 @@ public class MainActivity extends Activity {
     private final Handler ui = new Handler(Looper.getMainLooper());
     private WebView web;
     private TextView fallback;
+    private PlaybackCenter playback;
     private boolean booted;
     private boolean ready;
+    private boolean pageReady;
+    private int activePort = PORT;
+    private int reloads;
     private int variant;
     private int probeRound;
     private String shownLog = "";
@@ -136,14 +143,16 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= 21) {
             applyBarTheme(false);
         }
+        // Android 13 起通知需要运行时授权，否则锁屏/通知栏的播放控制不会出现
+        if (Build.VERSION.SDK_INT >= 33) {
+            requestPermissions(new String[] { "android.permission.POST_NOTIFICATIONS" }, 1);
+        }
         buildUi(previous != null);
 
         if (fails >= 2) return;
-        if (previous != null) {
-            showLogPage("上次启动未完成，日志如下", previous);
-        } else {
-            boot();
-        }
+        // 上次没走到“页面就绪”不代表这次一定失败：仍然正常启动，失败时再展示日志。
+        // 之前这里直接停在日志页，用户看到的就是“退出后重开没有界面”。
+        boot(previous != null ? "上次启动未完成，这次已重新启动" : null);
     }
 
     /** WebView 不可用时（部分 ROM 会禁用或缺少 WebView）退回纯文本，至少能看到日志。 */
@@ -176,6 +185,7 @@ public class MainActivity extends Activity {
             setContentView(view, new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             web = view;
+            playback = new PlaybackCenter(this, this::runRemoteCommand);
             BootLog.append("run: webview ready");
         } catch (Throwable error) {
             BootLog.append("java: webview failed: " + Log.getStackTraceString(error));
@@ -224,11 +234,16 @@ public class MainActivity extends Activity {
 
     /** 启动内置服务；由启动页、日志页的按钮或首次进入触发。 */
     private void boot() {
+        boot(null);
+    }
+
+    private void boot(String note) {
         if (booted) return;
         booted = true;
         BootLog.reset();
         BootLog.append("run: version=" + appVersion() + " sdk=" + Build.VERSION.SDK_INT
                 + " abis=" + joinAbis() + " pageSize=" + pageSize());
+        if (note != null) BootLog.append("run: " + note);
         showSplash();
 
         String base = new File(getFilesDir(), "app").getAbsolutePath();
@@ -240,10 +255,10 @@ public class MainActivity extends Activity {
         }
 
         variant = 0;
-        // 上一次运行留下的端口记录可能已失效，先清掉。
-        File portFile = new File(getFilesDir(), "userdata/port");
-        if (portFile.exists()) //noinspection ResultOfMethodCallIgnored
-            portFile.delete();
+        reloads = 0;
+        pageReady = false;
+        // 保留上次的端口记录：如果之前的 :node 进程还活着，直接复用它的服务，
+        // 删除记录会让探测永远找不到实际端口，表现为启动超时/空白页。
         startNodeService();
         probe(0);
     }
@@ -288,6 +303,76 @@ public class MainActivity extends Activity {
         ui.post(new ServerProbe(this, round, attempt));
     }
 
+    /** 服务就绪后加载首页；每次重试带一个查询参数，绕开 WebView 的旧页面缓存。 */
+    private void loadApp(int port) {
+        activePort = port;
+        if (!pageReady) loadPage();
+    }
+
+    private void loadPage() {
+        if (web == null) return;
+        String query = reloads == 0 ? "" : "?r=" + reloads;
+        web.loadUrl("http://127.0.0.1:" + activePort + "/" + query);
+    }
+
+    /** 页面加载完成：确认 main 里确实有内容，白屏就主动重载，而不是停在那里。 */
+    void onPageRendered(String url) {
+        if (web == null || url == null || !url.contains("127.0.0.1")) return;
+        WebView view = web;
+        view.evaluateJavascript(
+                "(function(){var m=document.querySelector('main.main-content');"
+                        + "return !!(m&&m.textContent.trim().length>2)})()",
+                new PageCheck(this));
+    }
+
+    private static final class PageCheck implements ValueCallback<String> {
+        private final MainActivity host;
+
+        PageCheck(MainActivity host) {
+            this.host = host;
+        }
+
+        @Override
+        public void onReceiveValue(String value) {
+            host.onPageChecked("true".equals(value));
+        }
+    }
+
+    private void onPageChecked(boolean ok) {
+        if (ok) {
+            if (!pageReady) {
+                pageReady = true;
+                BootLog.append("run: page ready");
+                BootLog.finish();
+                BootLog.setFailures(0);
+            }
+            return;
+        }
+        if (pageReady) return;
+        if (reloads >= 3) {
+            BootLog.append("run: page stays blank");
+            showLogPage("页面加载失败", BootLog.read());
+            return;
+        }
+        reloads++;
+        BootLog.append("run: blank page, reload " + reloads);
+        loadPage();
+    }
+
+    /** 主文档加载失败：服务可能还在启动或换了端口，重新探测并重试。 */
+    void onPageError() {
+        if (web == null) return;
+        pageReady = false;
+        ready = false;
+        BootLog.append("run: page load error");
+        if (reloads >= 3) {
+            showLogPage("本地页面打开失败", BootLog.read());
+            return;
+        }
+        reloads++;
+        probe(0);
+    }
+
     /** 拦截日志页上的按钮：重新启动 / 复制日志 / 分享日志。 */
     private static final class BootClient extends WebViewClient {
         private final MainActivity host;
@@ -313,6 +398,24 @@ public class MainActivity extends Activity {
             }
             return false;
         }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            host.onPageRendered(url);
+        }
+
+        @Override
+        public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+            if (request != null && request.isForMainFrame()) host.onPageError();
+        }
+
+        @Override
+        @SuppressWarnings("deprecation")
+        public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+            // API 23 以下只会回调这个版本，只处理首页主文档失败，避免封面等子资源误报
+            if (failingUrl == null) return;
+            if (failingUrl.split("\\?")[0].matches("http://127\\.0\\.0\\.1:\\d+/")) host.onPageError();
+        }
     }
 
     private String joinAbis() {
@@ -335,6 +438,22 @@ public class MainActivity extends Activity {
     /** 给网页调用：全屏播放器打开时系统栏切成深色白字，关闭时回到浅色深字。 */
     void setPlayerModeFromScript(boolean playing) {
         ui.post(new PlayerModeTask(this, playing));
+    }
+
+    /** 给网页调用：同步当前曲目，锁屏与通知栏据此显示封面、进度和控制按钮。 */
+    void setNowPlayingFromScript(String json) {
+        final String payload = json == null ? "" : json;
+        ui.post(() -> {
+            if (playback == null) return;
+            playback.update(payload);
+        });
+    }
+
+    /** 通知栏/锁屏上的按钮点下后，回到网页里执行同一套播放命令。 */
+    private void runRemoteCommand(String command) {
+        if (web == null || command == null) return;
+        String safe = command.replace("\\", "").replace("'", "");
+        web.evaluateJavascript("window.qiuqiuRemote&&window.qiuqiuRemote('" + safe + "')", null);
     }
 
     private static final class PlayerModeTask implements Runnable {
@@ -497,7 +616,7 @@ public class MainActivity extends Activity {
                 BootLog.append("run: server ready port=" + port);
                 BootLog.finish();
                 BootLog.setFailures(0);
-                if (host.web != null) host.web.loadUrl("http://127.0.0.1:" + port + "/");
+                if (host.web != null) host.loadApp(port);
                 return;
             }
             if (attempt >= MAX_ATTEMPTS) {
@@ -587,6 +706,10 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (playback != null) {
+            playback.release();
+            playback = null;
+        }
         if (web != null) {
             web.loadUrl("about:blank");
             web.destroy();

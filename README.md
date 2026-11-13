@@ -6,7 +6,22 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://qiuqiumusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.12（当前版本）
+### v1.2.13（当前版本）
+
+- 修复退出应用后重新打开出现白屏：本地服务异常不再让页面无限等待，安卓端会复用仍在运行的服务，空白页自动重载。
+- 手机端迷你播放器改为顶部居中的灵动岛胶囊，只显示封面、歌名和一条细进度，点一下进入全屏播放页。
+- 播放页真正铺满全屏，歌词区吃满可用高度，去掉头尾多余留白。
+- 新增系统媒体控制：锁屏和下拉通知栏显示封面、进度与上一首/播放/下一首，蓝牙耳机线控可控制播放。
+- 播放清单改为简洁的单行列表，去掉多余装饰与说明文字。
+- 全站交互优化：页面切换、按压反馈和弹出面板更跟手。
+
+| 系统 | 下载 |
+| --- | --- |
+| macOS（Apple 芯片） | [未末音乐-1.2.13-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.13/未末音乐-1.2.13-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.13-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.13/未末音乐-1.2.13-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.13-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.13/未末音乐-1.2.13-windows-x64.exe) |
+
+### v1.2.12
 
 - 修复安卓端启动卡在「server timeout」：发行信息解析失败不再让本地服务进程退出。
 - 安装包缺少或未同步 README 时自动回退到 package.json 版本，服务照常启动。
