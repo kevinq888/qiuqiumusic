@@ -1565,7 +1565,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
 [data-theme="glass"] .subnav a.active{color:#0f3a31;background:rgba(255,255,255,.62)}
 @media(max-width:680px){
   [data-theme="glass"] .mobile-tabbar{background:rgba(255,255,255,.46);border-top-color:rgba(255,255,255,.62);backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%)}
-  [data-theme="glass"] .mini-player{background:rgba(255,255,255,.5);border-color:rgba(255,255,255,.68);backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%)}
+  [data-theme="glass"] .mini-player{background:rgba(16,24,28,.86);border-color:rgba(255,255,255,.16);backdrop-filter:blur(26px) saturate(170%);-webkit-backdrop-filter:blur(26px) saturate(170%);box-shadow:0 16px 38px rgba(6,18,15,.34)}
 }
 
 /* ==================== 2026 视觉精修：皮肤调色 / 播放栏协同 / 播放清单 / 局部加载 ==================== */
@@ -2137,7 +2137,8 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
 /* 榜单卡片：名次、走势、播放三列固定宽度，榜首大卡与 Top5 行对齐 */
 .chart-mini-row{display:grid;grid-template-columns:28px minmax(0,1fr) 46px 30px;align-items:center;gap:10px}
 .chart-mini-row .song-main{min-width:0}
-.chart-top1{display:grid;grid-template-columns:28px minmax(0,1fr) 46px 18px;align-items:center;gap:12px}
+.chart-top1{display:grid;grid-template-columns:28px minmax(0,1fr) 46px 30px;align-items:center;gap:12px}
+.chart-top1>.icon{width:20px;height:20px;justify-self:center}
 .chart-mini-row .trend-badge,.chart-top1 .trend-badge{
   min-width:0;width:100%;display:inline-flex;align-items:center;justify-content:center;
 }
@@ -2149,7 +2150,8 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
   .song-row-meta .song-plays,.song-row-meta .song-date{font-size:10px}
   .song-row-meta .song-date{min-width:0}
   .chart-mini-row{grid-template-columns:24px minmax(0,1fr) 40px 30px;gap:8px}
-  .chart-top1{grid-template-columns:24px minmax(0,1fr) 40px 16px;gap:8px}
+  .chart-top1{grid-template-columns:24px minmax(0,1fr) 40px 30px;gap:8px}
+  .chart-top1>.icon{width:18px;height:18px;justify-self:center}
 }
 
 /* ---------- 1.2.20：全屏播放页背景色、进度可读性、底部快捷入口 ---------- */

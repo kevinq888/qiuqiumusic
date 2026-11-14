@@ -1597,6 +1597,8 @@
   window.addEventListener('resize', syncPlayerSpace);
   document.getElementById('player-collapse').addEventListener('click', collapse);
   document.getElementById('player-collapse-desktop').addEventListener('click', collapse);
+  // 播放页底部快捷入口：先收起全屏播放面板再跳转，否则新页面会被播放页挡在后面
+  document.querySelectorAll('.np-links a').forEach(link => link.addEventListener('click', collapse));
   document.getElementById('player-prev').addEventListener('click', () => playbackCommand('prev'));
   document.getElementById('player-next').addEventListener('click', () => playbackCommand('next'));
   document.getElementById('player-mode').addEventListener('click', () => setPlayMode(PLAY_MODES[(PLAY_MODES.indexOf(playMode) + 1) % PLAY_MODES.length]));
