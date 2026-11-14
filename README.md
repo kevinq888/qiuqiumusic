@@ -14,11 +14,11 @@
 
 | 系统 | 下载 |
 | --- | --- |
-| Android（arm64-v8a） | [未末音乐-1.2.16-android-arm64-v8a.apk](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.16/未末音乐-1.2.16-android-arm64-v8a.apk) |
-| iPhone / iPad（PWA） | [未末音乐-1.2.16-iphone.zip](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.16/未末音乐-1.2.16-iphone.zip) |
-| macOS（Apple 芯片） | [未末音乐-1.2.16-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.16/未末音乐-1.2.16-mac-arm64.dmg) |
-| macOS（Intel） | [未末音乐-1.2.16-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.16/未末音乐-1.2.16-mac-x64.dmg) |
-| Windows（64 位） | [未末音乐-1.2.16-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.16/未末音乐-1.2.16-windows-x64.exe) |
+| Android（arm64-v8a） | [未末音乐-1.2.16-android-arm64-v8a.apk](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.16/-1.2.16-android-arm64-v8a.apk) |
+| iPhone / iPad（PWA） | [未末音乐-1.2.16-iphone.zip](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.16/-1.2.16-iphone.zip) |
+| macOS（Apple 芯片） | [未末音乐-1.2.16-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.16/-1.2.16-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.16-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.16/-1.2.16-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.16-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.16/-1.2.16-windows-x64.exe) |
 
 ### v1.2.15
 

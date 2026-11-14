@@ -2,11 +2,11 @@
 // 版本以本服务的 package.json 为准（部署与打包同源），GitHub Release 只用来补全精确的资产地址与大小。
 const REPO = 'https://github.com/kevinq888/qiuqiumusic';
 const PLATFORMS = {
-  android: { label: 'Android', match: /-android-arm64-v8a\.apk$/, file: version => `未末音乐-${version}-android-arm64-v8a.apk` },
-  iphone: { label: 'iPhone', match: /-iphone\.zip$/, file: version => `未末音乐-${version}-iphone.zip` },
-  'mac-arm64': { label: 'macOS Apple 芯片', match: /-mac-arm64\.dmg$/, file: version => `未末音乐-${version}-mac-arm64.dmg` },
-  'mac-x64': { label: 'macOS Intel', match: /-mac-x64\.dmg$/, file: version => `未末音乐-${version}-mac-x64.dmg` },
-  'windows-x64': { label: 'Windows', match: /-windows-x64\.exe$/, file: version => `未末音乐-${version}-windows-x64.exe` },
+  android: { label: 'Android', match: /-android-arm64-v8a\.apk$/, file: version => `-${version}-android-arm64-v8a.apk` },
+  iphone: { label: 'iPhone', match: /-iphone\.zip$/, file: version => `-${version}-iphone.zip` },
+  'mac-arm64': { label: 'macOS Apple 芯片', match: /-mac-arm64\.dmg$/, file: version => `-${version}-mac-arm64.dmg` },
+  'mac-x64': { label: 'macOS Intel', match: /-mac-x64\.dmg$/, file: version => `-${version}-mac-x64.dmg` },
+  'windows-x64': { label: 'Windows', match: /-windows-x64\.exe$/, file: version => `-${version}-windows-x64.exe` },
 };
 
 function currentVersion() {
@@ -25,11 +25,12 @@ function compareVersions(a, b) {
 }
 
 // 资产地址是固定规则：仓库 + Release 标签 + 文件名。Release 没查到也能直接拼出来。
+// 注意：GitHub 会把上传资产名里的中文替换成 "-"，所以兜底名以 "-" 开头。
 function assetUrl(version, file) {
   return `${REPO}/releases/download/v${version}/${encodeURIComponent(file)}`;
 }
 
-function manifest(version, sizes = {}) {
+function manifest(version, sizes = {}, downloads = {}) {
   const platforms = {};
   for (const [key, def] of Object.entries(PLATFORMS)) {
     const name = def.file(version);
@@ -38,7 +39,7 @@ function manifest(version, sizes = {}) {
       label: def.label,
       name,
       size: sizes[key] || 0,
-      url: assetUrl(version, name),
+      url: downloads[key] || assetUrl(version, name),
     };
   }
   return { current: currentVersion(), latest: version, platforms };
@@ -81,13 +82,18 @@ async function latestAppRelease() {
     const local = currentVersion();
     let version = local;
     let sizes = {};
+    let downloads = {};
     try {
       const release = await githubRelease();
       const remote = release.tag_name.replace(/^v/, '');
       if (compareVersions(remote, local) > 0) version = remote;
-      if (version === remote) sizes = assetsFrom(release).sizes;
+      if (version === remote) {
+        const assets = assetsFrom(release);
+        sizes = assets.sizes;
+        downloads = assets.downloads;
+      }
     } catch { /* 网络或限流失败时按本地版本拼地址，客户端仍然可下载 */ }
-    cached = manifest(version, sizes);
+    cached = manifest(version, sizes, downloads);
     nextCheck = Date.now() + 10 * 60 * 1000;
     return cached;
   })().finally(() => { pending = undefined; });
