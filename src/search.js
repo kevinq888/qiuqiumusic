@@ -1,8 +1,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const https = require('node:https');
 const crypto = require('node:crypto');
 const { addSongs, searchSongs } = require('./store');
+const sources = require('./sources');
 
 const CACHE_DIR = path.join(require('./runtime-paths').dataDir, 'cache');
 const TTL = 6 * 60 * 60 * 1000;
@@ -62,27 +62,10 @@ function parseSearch(html, query, page) {
   return { items, hasNext: pageLinks.some(x => x > page) || matches.length >= 20 && pageLinks.length === 0 };
 }
 
-function fetchHtml(query, page) {
-  const url = `https://myfreemp3ku.com/search.php?q=${encodeURIComponent(query)}${page > 1 ? `&page=${page}` : ''}`;
-  return new Promise((resolve, reject) => {
-    const request = https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0 qiuqiumusic' } }, response => {
-      response.on('error', reject);
-      if (response.statusCode !== 200) {
-        response.resume();
-        reject(new Error(`source HTTP ${response.statusCode}`));
-        return;
-      }
-      let html = '';
-      response.setEncoding('utf8');
-      response.on('data', chunk => {
-        html += chunk;
-        if (html.length > 2_000_000) request.destroy(new Error('search page too large'));
-      });
-      response.on('end', () => resolve(html));
-    });
-    request.setTimeout(20000, () => request.destroy(new Error('search timeout')));
-    request.on('error', reject);
-  });
+async function fetchHtml(query, page) {
+  const pathname = `/search.php?q=${encodeURIComponent(query)}${page > 1 ? `&page=${page}` : ''}`;
+  const { html } = await sources.fetchHtml(pathname, { timeout: 20000 });
+  return html;
 }
 
 async function search(query, requestedPage) {

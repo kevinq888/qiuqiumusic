@@ -1,8 +1,8 @@
-const { seed, getSong, proxyMediaUrl } = require('./store');
+const { seed, extra, getSong, proxyMediaUrl } = require('./store');
 const { lookup: coverLookup, warm: warmCovers } = require('./covers');
 
 const SITE = '未末音乐';
-const ASSET_VERSION = '20261116-update1';
+const ASSET_VERSION = '20261114-extra1';
 const APP_VERSION = (() => { try { return require('../package.json').version; } catch { return '0.0.0'; } })();
 function esc(value) {
   return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -43,6 +43,7 @@ function icon(name) {
     check: '<path d="m4.6 12.4 4.9 4.9L19.4 6.8"/>',
     keyboard: '<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6 10h.01M9.5 10h.01M13 10h.01M16.5 10h.01M6.5 13.5h11"/>',
     refresh: '<path d="M20 11a8 8 0 1 0-2.6 6.9"/><path d="M20 4v7h-7"/>',
+    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.9 5.7 3.9 9s-1.3 6.4-3.9 9c-2.6-2.6-3.9-5.7-3.9-9s1.3-6.4 3.9-9Z"/>',
   };
   return `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.note}</svg>`;
 }
@@ -114,7 +115,7 @@ function pageHead(title, description = '听见喜欢的声音。未末音乐，�
 }
 // 顶栏：电脑端深色导航 + 红色调分类条；手机端只保留菜单、标识与搜索入口
 function nav(active = '') {
-  const links = [['/', '发现音乐'], ['/charts', '排行榜'], ['/navigation/1/', '最近更新'], ['/navigation/2/', '歌单'], ['/hotsgr.html', '歌手'], ['/keyword.html', '热搜'], ['/my-music', '我的音乐']];
+  const links = [['/', '发现音乐'], ['/charts', '排行榜'], ['/picks', '华语精选'], ['/navigation/1/', '最近更新'], ['/navigation/2/', '歌单'], ['/hotsgr.html', '歌手'], ['/keyword.html', '热搜'], ['/my-music', '我的音乐']];
   const tabs = [['/', '推荐'], ['/charts', '排行榜'], ['/navigation/2/', '歌单'], ['/hotsgr.html', '歌手'], ['/navigation/1/', '新歌'], ['/keyword.html', '热搜']];
   return `<header class="site-header"><div class="shell nav-shell"><button class="mobile-menu" id="mobile-menu" type="button" aria-label="打开导航" aria-expanded="false" aria-controls="main-nav">${icon('menu')}</button><a class="brand" href="/" aria-label="未末音乐首页"><img src="/projects/source_code/picture/logo.svg" alt="" width="40" height="40"><span><strong>未末音乐</strong><small>weimomusic</small></span></a><a class="mobile-search" href="/keyword.html" aria-label="搜索音乐">${icon('search')}<span>搜索歌曲、歌手</span>${icon('scan')}</a><nav class="main-nav" id="main-nav" aria-label="主导航">${links.map(([url, text]) => `<a href="${url}" class="${active === url ? 'active' : ''}">${text}</a>`).join('')}</nav><button id="nav-scroll-next" class="nav-scroll-next" type="button" aria-label="向右查看更多导航">${icon('arrow')}</button><form class="nav-search" action="/search.php" method="get" role="search"><label class="sr-only" for="nav-search-input">搜索歌曲或歌手</label><input id="nav-search-input" name="q" type="search" placeholder="搜索歌曲/歌手"><button type="submit" aria-label="搜索">${icon('search')}</button></form><div class="header-actions"><div class="desktop-download-wrap" hidden><a id="desktop-download" aria-label="下载桌面版" class="desktop-download-button" href="https://github.com/kevinq888/qiuqiumusic/releases/latest" data-desktop-package hidden aria-controls="desktop-download-choices" aria-expanded="false">${icon('download')}<span class="download-label">下载桌面版</span></a><div id="desktop-download-choices" class="desktop-download-choices" hidden><strong>选择你的 Mac 芯片</strong><a href="/download/desktop/mac-arm64" data-desktop-package>Apple 芯片 <small>M1 / M2 / M3 / M4 / M5</small></a><a href="/download/desktop/mac-x64" data-desktop-package>Intel 芯片 <small>Intel Mac</small></a><p>下载后双击打开安装包，按提示完成安装。</p></div></div><button class="install-button" id="install-app" type="button" aria-label="保存未末音乐链接">${icon('save')}<span>保存链接</span></button><div class="theme-picker"><button class="theme-trigger" id="theme-mobile-trigger" type="button" aria-label="切换皮肤" aria-haspopup="dialog" aria-expanded="false"><span class="theme-trigger-mark" aria-hidden="true">◐</span><span id="theme-mobile-label">薄荷绿</span></button></div></div></div></header><nav class="subnav" aria-label="分类导航">${tabs.map(([url, text]) => `<a href="${url}" class="${active === url ? 'active' : ''}">${text}</a>`).join('')}</nav>`;
 }
@@ -186,6 +187,25 @@ function featurePanel(title, eyebrow, content, more, tabs = [], iconName = 'flam
 function bulkAction(items) {
   return items.length ? `<button class="add-all-button" type="button" data-add-page aria-live="polite" aria-label="一键将本页 ${items.length} 首歌曲加入播放清单"><span class="add-all-icon">${icon('plus')}</span><span class="add-all-text">一键加入歌单</span><span class="add-all-count">${items.length} 首</span></button>` : '';
 }
+// 多组歌单交替取歌，让精选区里每位歌手都能露脸
+function interleaveSongs(lists, limit) {
+  const out = [];
+  const seen = new Set();
+  let index = 0;
+  while (out.length < limit) {
+    let added = false;
+    for (const list of lists) {
+      const song = list[index];
+      if (!song) continue;
+      added = true;
+      if (!seen.has(String(song.id))) { seen.add(String(song.id)); out.push(song); }
+      if (out.length >= limit) break;
+    }
+    if (!added) break;
+    index++;
+  }
+  return out;
+}
 function homePage(live = {}) {
   const hot = seed.hot_tags.slice(0, 16).map(song => `<a href="/library/${esc(song.id)}.html" class="mood-tag" ${songData(song)}>${coverMark(song, 'song-cover mood-tag-cover')}<span class="mood-tag-text">${esc(displayTitle(song))}</span></a>`).join('');
   const hero = `<section class="hero"><span class="hero-badge">每日推荐</span><div class="hero-copy"><span class="hero-kicker">今日好音乐 <span>✦</span></span><h1>让喜欢的音乐，<br><em>刚好遇见你。</em></h1><p>从此刻的心情出发，听一首属于今天的歌。</p>${searchForm()}<div class="hero-notes"><span>${icon('headphones')} 随时在线聆听</span><span>${icon('spark')} 每日发现新声</span></div></div><div class="hero-graphic" aria-hidden="true"><div class="disc"><div class="disc-inner"><img src="/projects/source_code/picture/logo.svg" alt=""></div></div><span class="float-note note-one">♫</span><span class="float-note note-two">♪</span><span class="graphic-caption">听见此刻的喜欢。</span></div></section>`;
@@ -194,8 +214,9 @@ function homePage(live = {}) {
   const latestItems = (live.latest?.length ? live.latest : seed.nav1).map(enrichSong);
   const recItems = (live.recommend?.length ? live.recommend : seed.rank_recommend).map(enrichSong);
   const hotItems = (live.hot?.length ? live.hot : seed.rank_hot).map(enrichSong);
+  const pickItems = interleaveSongs(Object.values(extra.picks || {}), 8).map(enrichSong);
   // 首页实时歌曲缺封面时，后台按「歌手 + 歌名」补图并写盘缓存，下次访问即可直接命中
-  warmCovers([...latestItems, ...recItems, ...hotItems].map(song => ({ artist: rawArtist(song), song: displayTitle(song) })));
+  warmCovers([...latestItems, ...recItems, ...hotItems, ...pickItems].map(song => ({ artist: rawArtist(song), song: displayTitle(song) })));
   // 去重：源站同一首歌可能存在多个条目，同一区块内按标题去重，避免卡片重复
   const unique = list => {
     const seen = new Set();
@@ -203,12 +224,13 @@ function homePage(live = {}) {
   };
   const recommended = featurePanel('热门推荐', '此刻流行', songCards(unique(hotItems).slice(0, 8)), '/ranking/hot', ['华语', '流行', '摇滚', '民谣', '电子'], 'flame');
   const latest = featurePanel('最近更新', '新歌上架', songCards(unique(latestItems).slice(0, 8)), '/navigation/1/', ['新歌', '推荐', '原创'], 'clock');
+  const chinese = featurePanel('华语精选', '陈楚生 · 陆虎 · 苏醒', songCards(unique(pickItems)), '/picks', ['陈楚生', '陆虎', '苏醒'], 'user');
   const featured = section('此刻热门', '此刻流行', `<div class="mood-tags">${hot}</div>`, '/viewmor.html', 'flame', 'trending-panel');
   // 首页右栏原本为空，用精选歌单补足版面：每行可直接播放
   const picks = section('精选歌单', '编辑精选', `<div class="picks-list">${seed.collections.slice(0, 5).map((item, index) => `<a class="pick-row" href="/library/${esc(item.id)}.html" ${songData(item)} title="播放 ${esc(item.title)}"><img class="pick-cover" src="/projects/source_code/picture/picks/pick-${index + 1}.jpg" alt="" loading="lazy"><span class="pick-copy"><b>${esc(displayTitle(item))}</b><small>精选歌单 · 点击直接播放</small></span><span class="pick-play">${icon('play')}</span></a>`).join('')}</div>`, '/navigation/2/', 'note', 'picks-panel');
   const rec = section('为你推荐', '猜你喜欢', songRows(unique(recItems).slice(0, 7)), '/ranking/recommend', 'spark');
   const popular = section('热门点播', '热门歌曲', songRows(unique(hotItems).slice(0, 7)), '/ranking/hot', 'flame');
-  return layout('发现好音乐', `<div class="home-top">${hero}${side}</div>${entries}${recommended}${latest}<div class="home-grid ranking-grid">${popular}${rec}</div><div class="home-grid ranking-grid">${featured}${picks}</div>`, '/');
+  return layout('发现好音乐', `<div class="home-top">${hero}${side}</div>${entries}${recommended}${latest}${chinese}<div class="home-grid ranking-grid">${popular}${rec}</div><div class="home-grid ranking-grid">${featured}${picks}</div>`, '/');
 }
 function pager(base, page, pages) {
   if (pages <= 1) return '';
@@ -272,7 +294,7 @@ function chartsHubPage(charts) {
     }).join('')}</div>` : '<div class="empty-state">榜单数据暂时不可用，稍后刷新试试。</div>';
     return `<section class="panel chart-card chart-${chart.kind}"><div class="panel-heading"><div class="heading-icon">${icon(chart.def.icon)}</div><div><span class="eyebrow">${esc(chart.def.eyebrow)}</span><h2>${esc(chart.def.name)}</h2></div><a class="more-link" href="/charts/${chart.kind}">完整榜单 ${icon('arrow')}</a></div><p class="chart-desc">${esc(chart.def.description)}</p>${list}</section>`;
   }).join('');
-  return layout('排行榜', `${searchIntro('排行榜', '热门、新歌、编辑推荐与本站真实点播，走势每日更新。')}<div class="charts-grid">${cards}</div>`, '/charts');
+  return layout('排行榜', `${searchIntro('排行榜', '热门、新歌、编辑推荐、日韩与欧美精选，以及本站真实点播，走势每日更新。')}<div class="charts-grid">${cards}</div>`, '/charts');
 }
 // 完整榜单页：金银铜徽章 + 走势列 + 点播数（本站榜）+ 分页
 function chartPage(kind, def, data) {
@@ -287,9 +309,17 @@ function collectionsPage() {
   return layout('精选歌单', `<div class="page-intro"><span class="eyebrow">精选歌单</span><h1>精选歌单</h1><p>按心情收藏你的音乐灵感。</p></div><div class="collection-grid">${seed.collections.map((item, index) => `<article class="collection-card">${coverMark(item, 'collection-cover')}<span>0${index + 1}</span><h2>${esc(displayTitle(item))}</h2><p>发现更多好音乐</p>${songLink(item, `打开歌单 ${icon('arrow')}`)}</article>`).join('')}</div>`, '/navigation/2/');
 }
 function artistsPage() {
-  return layout('人气歌手', `${searchIntro('人气歌手', '从熟悉的名字，找到下一首喜欢的歌。')}<div class="artist-grid">${seed.artists.map((artist, i) => `<a href="/search.php?q=${encodeURIComponent(artist)}" class="artist-card"><span>${String(i + 1).padStart(2, '0')}</span><strong>${esc(artist)}</strong>${icon('arrow')}</a>`).join('')}</div>`, '/hotsgr.html');
+  const artists = [...new Set([...seed.artists, ...(extra.artists || [])])];
+  return layout('人气歌手', `${searchIntro('人气歌手', '从熟悉的名字，找到下一首喜欢的歌。')}<div class="artist-grid">${artists.map((artist, i) => `<a href="/search.php?q=${encodeURIComponent(artist)}" class="artist-card"><span>${String(i + 1).padStart(2, '0')}</span><strong>${esc(artist)}</strong>${icon('arrow')}</a>`).join('')}</div>`, '/hotsgr.html');
+}
+// 华语精选：把陈楚生、陆虎等歌手的扩展曲库按歌手分组展示，整组可直接加入歌单
+function picksPage() {
+  const groups = Object.entries(extra.picks || {});
+  const panels = groups.map(([artist, songs]) => section(`${artist} · ${songs.length} 首`, '华语精选', songRows(songs.slice(0, 8), 1), `/search.php?q=${encodeURIComponent(artist)}`, 'user', 'bulk-panel', bulkAction(songs.slice(0, 8)))).join('');
+  const intro = `<div class="page-intro"><span class="eyebrow">华语精选曲库</span><h1>陈楚生、陆虎等华语男声</h1><p>新增 ${groups.length} 位歌手、${groups.reduce((sum, [, songs]) => sum + songs.length, 0)} 首曲目，点开即可播放，也可以整组加入播放清单。</p></div>`;
+  return layout('华语精选', `${intro}<div class="home-grid">${panels || '<div class="empty-state">精选曲库正在整理中。</div>'}</div>`, '/picks');
 }
 function keywordsPage() {
   return layout('热门搜索', `${searchIntro('热门搜索', '大家正在听什么？')}<div class="keyword-grid">${seed.keywords.map((word, i) => `<a href="/search.php?q=${encodeURIComponent(word)}"><span>${String(i + 1).padStart(2, '0')}</span>${esc(word)}${icon('arrow')}</a>`).join('')}</div>`, '/keyword.html');
 }
-module.exports = { homePage, rankingPage, searchPage, songPage, myMusicPage, collectionsPage, artistsPage, keywordsPage, recentPage, viewmorPage, downPage, chartsHubPage, chartPage };
+module.exports = { homePage, rankingPage, searchPage, songPage, myMusicPage, collectionsPage, artistsPage, picksPage, keywordsPage, recentPage, viewmorPage, downPage, chartsHubPage, chartPage };

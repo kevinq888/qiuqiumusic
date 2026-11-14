@@ -1,6 +1,6 @@
 {
   "name": "weimo-music-desktop",
-  "version": "1.2.16",
+  "version": "1.2.17",
   "private": true,
   "description": "未末音乐本地桌面播放器",
   "main": "main.js",
@@ -49,11 +49,15 @@
       "target": [
         "nsis"
       ],
+      "icon": "build/icon.ico",
+      "signAndEditExecutable": false,
       "artifactName": "未末音乐-${version}-windows-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico"
     },
     "extraResources": [
       {
@@ -66,6 +70,7 @@
           "src/**/*.js",
           "public/**/*",
           "data/seed.json",
+          "data/extra.json",
           "data/covers.json"
         ]
       }

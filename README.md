@@ -6,7 +6,21 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://weimomusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.16（当前版本）
+### v1.2.17（当前版本）
+
+- 扩充华语曲库：新增陈楚生、陆虎、苏醒、王栎鑫、张远、俞灏明、王铮亮、周深、毛不易、汪苏泷等歌手精选，新增「华语精选」页（`/picks`）。
+- 排行榜新增「日韩榜」与「欧美榜」，内置日韩及欧美热门单曲，支持分页浏览。
+- 音源入口支持多域名自动切换，主站不可用时自动改用备用入口，减少搜索与榜单失败。
+
+| 系统 | 下载 |
+| --- | --- |
+| Android（arm64-v8a） | [未末音乐-1.2.17-android-arm64-v8a.apk](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.17/-1.2.17-android-arm64-v8a.apk) |
+| iPhone / iPad（PWA） | [未末音乐-1.2.17-iphone.zip](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.17/-1.2.17-iphone.zip) |
+| macOS（Apple 芯片） | [未末音乐-1.2.17-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.17/-1.2.17-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.17-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.17/-1.2.17-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.17-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.17/-1.2.17-windows-x64.exe) |
+
+### v1.2.16
 
 - 手机端「我的」页新增「设置与关于 → 应用更新」，一键识别当前系统与版本，并下载对应安装包。
 - 安卓 App 支持多线程加速下载与断点续传：网络中断或退出应用后再次点击会接着上次进度下载，完成后直接调起系统安装器。

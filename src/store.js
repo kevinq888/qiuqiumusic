@@ -3,6 +3,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const seed = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'seed.json'), 'utf8'));
+// 扩展曲库：华语歌手精选（陈楚生、陆虎等）+ 日韩/欧美榜单曲目，脚本抓取后随仓库发布。
+let extra = { artists: [], picks: {}, charts: { jp: [], kr: [], west: [] } };
+try {
+  extra = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'extra.json'), 'utf8'));
+} catch {}
 
 // 解码抓取数据中残留的 HTML 实体
 function decodeEntities(s) {
@@ -53,7 +58,7 @@ let covers = {};
 try { covers = JSON.parse(fs.readFileSync(coversPath, 'utf8')); } catch {}
 
 const songs = new Map();
-function addSong(id, title, extra = {}) {
+function addSong(id, title, meta = {}) {
   id = String(id);
   title = decodeEntities(title).replace(/\s+/g, ' ').trim();
   if (!title) return;
@@ -62,10 +67,11 @@ function addSong(id, title, extra = {}) {
   songs.set(id, {
     id,
     title,
-    artist: prev.artist || artist,
-    song: prev.song || song,
-    date: prev.date || extra.date || '',
-    quality: prev.quality || extra.quality || '高品质',
+    // 扩展曲库条目自带解析好的歌手/歌名，优先采用（避免 "How Sweet-NewJeans" 这类标题颠倒）
+    artist: meta.artist || prev.artist || artist,
+    song: meta.song || prev.song || song,
+    date: prev.date || meta.date || '',
+    quality: prev.quality || meta.quality || '高品质',
     cover: prev.cover || covers[id] || '',
     ...(detailOverrides[id] || {}),
   });
@@ -84,6 +90,8 @@ for (const x of seed.collections) addSong(x.id, x.title);
 for (const x of seed.viewmor) addSong(x.id, x.title);
 for (const x of seed.down) addSong(x.id, x.title);
 for (const x of seed.nav1) addSong(x.id, x.title, { date: x.date, quality: x.quality });
+for (const list of Object.values(extra.picks || {})) addSongs(list);
+for (const list of Object.values(extra.charts || {})) addSongs(list);
 
 function getSong(id) {
   return songs.get(String(id)) || null;
@@ -119,6 +127,7 @@ function searchSongs(query) {
 
 module.exports = {
   seed,
+  extra,
   songs,
   getSong,
   mediaUrl,

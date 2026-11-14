@@ -34,7 +34,7 @@ cp "$ROOT/server.js" "$ROOT/README.md" "$ASSETS/"
 cp "$SRC/mobile-boot.js" "$ASSETS/"
 cp -R "$ROOT/src" "$ASSETS/"
 cp -R "$ROOT/public" "$ASSETS/"
-for file in seed.json covers.json live-covers.json live-lyrics.json play-stats.json; do
+for file in seed.json extra.json covers.json live-covers.json live-lyrics.json play-stats.json; do
   [ -f "$ROOT/data/$file" ] && cp "$ROOT/data/$file" "$ASSETS/data/"
 done
 

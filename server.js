@@ -248,14 +248,14 @@ function routeRequest(req, res) {
 
   // 排行榜中心：热门/新歌/推荐/本站点播 四张榜单
   if (p === '/charts' || p === '/charts/') {
-    Promise.all(['hot', 'new', 'recommend', 'local'].map(kind => charts.chartTop(kind).catch(() => null)))
+    Promise.all(['hot', 'new', 'recommend', 'asia', 'west', 'local'].map(kind => charts.chartTop(kind).catch(() => null)))
       .then(list => send(res, 200, views.chartsHubPage(list.filter(Boolean))))
       .catch(() => send(res, 502, '榜单暂时不可用', 'text/plain; charset=utf-8'));
     return;
   }
 
   // 完整榜单页
-  const chartMatch = p.match(/^\/charts\/(hot|new|recommend|local)\/?$/);
+  const chartMatch = p.match(/^\/charts\/(hot|new|recommend|local|asia|west)\/?$/);
   if (chartMatch) {
     const kind = chartMatch[1];
     const page = Number(u.searchParams.get('page') || '1') || 1;
@@ -381,6 +381,10 @@ function routeRequest(req, res) {
   }
   if (p === '/hotsgr.html') {
     send(res, 200, views.artistsPage());
+    return;
+  }
+  if (p === '/picks' || p === '/picks/') {
+    send(res, 200, views.picksPage());
     return;
   }
   if (p === '/keyword.html') {

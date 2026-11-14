@@ -8,9 +8,10 @@ const repo = path.resolve(desktop, '..');
 const pkg = require(path.join(desktop, 'package.json'));
 const [platform, ...args] = process.argv.slice(2);
 const targets = {
-  mac: [['--mac', 'dmg', '--x64', '--arm64', ...args]],
+  // 两种架构分两次调用：同时构建会各自挂载同名 DMG 卷「未末音乐」，导致写入卷图标时权限冲突。
+  mac: [['--mac', 'dmg', '--x64', ...args], ['--mac', 'dmg', '--arm64', ...args]],
   win: [['--win', 'nsis', '--x64', ...args]],
-  all: [['--mac', 'dmg', '--x64', '--arm64'], ['--win', 'nsis', '--x64']],
+  all: [['--mac', 'dmg', '--x64'], ['--mac', 'dmg', '--arm64'], ['--win', 'nsis', '--x64']],
 };
 
 // 安装包统一落在 dist/<版本>/<平台>/，四个平台使用同一套文件名前缀。
@@ -33,7 +34,7 @@ function build() {
   const icons = spawnSync(process.execPath, [path.join(desktop, 'generate-icons.js')], { cwd: desktop, stdio: 'inherit' });
   if (icons.error) throw icons.error;
   if (icons.status !== 0) throw Error('Icon generation failed.');
-  const expected = platform === 'all' ? 3 : 1;
+  const expected = platform === 'all' ? 3 : platform === 'mac' ? 2 : 1;
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'qiuqiu-build-'));
   const cli = path.join(path.dirname(require.resolve('electron-builder/package.json')), 'cli.js');
   let complete = false;

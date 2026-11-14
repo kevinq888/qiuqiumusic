@@ -2,6 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { ranking, sourcePage, MAX_PAGES } = require('./rankings');
+const { extra } = require('./store');
 
 const DATA_DIR = require('./runtime-paths').dataDir;
 const STATS_FILE = path.join(DATA_DIR, 'play-stats.json');
@@ -15,6 +16,33 @@ const CHARTS = {
   new: { name: '新歌榜', eyebrow: 'NEW RELEASES', icon: 'clock', description: '最新上架歌曲速报，先听为快。' },
   recommend: { name: '推荐榜', eyebrow: "EDITOR'S PICK", icon: 'spark', description: '编辑精选好歌，每一首都值得一听。' },
   local: { name: '本站点播榜', eyebrow: 'WEIMO TOP', icon: 'headphones', description: '根据本站听众最近 7 天的真实点播生成，越听越靠前。' },
+  asia: { name: '日韩榜', eyebrow: 'J-POP & K-POP', icon: 'spark', description: '日本与韩国热门单曲，日系摇滚、动漫主题曲到 K-POP 一榜听全。' },
+  west: { name: '欧美榜', eyebrow: 'GLOBAL HITS', icon: 'globe', description: '欧美流行、摇滚与 R&B 热门单曲，跟着全球榜单一起听。' },
+};
+
+// 扩展曲库内置的日韩/欧美曲目，交替排列保证榜单里各地区歌手都有展示。
+function interleave(lists, cap) {
+  const out = [];
+  const seen = new Set();
+  let index = 0;
+  while (out.length < cap) {
+    let added = false;
+    for (const list of lists) {
+      const song = list[index];
+      if (!song) continue;
+      added = true;
+      if (!seen.has(String(song.id))) { seen.add(String(song.id)); out.push(song); }
+      if (out.length >= cap) break;
+    }
+    if (!added) break;
+    index++;
+  }
+  return out;
+}
+
+const curated = {
+  asia: interleave([extra.charts?.jp || [], extra.charts?.kr || []], 60),
+  west: (extra.charts?.west || []).slice(0, 60),
 };
 
 function dayKey(date = new Date()) {
@@ -99,6 +127,7 @@ function trendFor(kind, ids) {
 
 async function chartItems(kind) {
   if (kind === 'local') return { items: localChart(), plays: true };
+  if (kind === 'asia' || kind === 'west') return { items: curated[kind] };
   if (kind === 'new') {
     const results = await Promise.all([sourcePage(1), sourcePage(2)]);
     const seen = new Set();
@@ -131,6 +160,16 @@ async function chartPageData(kind, requestedPage) {
       items: all.slice((page - 1) * 20, page * 20),
       page, pages, plays: true,
       trend: trendFor('local', all.map(s => String(s.id))),
+    };
+  }
+  if (kind === 'asia' || kind === 'west') {
+    const all = curated[kind];
+    const pages = Math.max(1, Math.ceil(all.length / 20));
+    const page = Math.max(1, Math.min(pages, Number.isSafeInteger(requestedPage) ? requestedPage : 1));
+    return {
+      items: all.slice((page - 1) * 20, page * 20),
+      page, pages,
+      trend: page === 1 ? trendFor(kind, all.map(song => String(song.id))) : null,
     };
   }
   if (kind === 'new') {

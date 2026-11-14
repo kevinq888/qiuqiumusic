@@ -1,8 +1,8 @@
 // 按需抓取最近更新，补齐站内推荐和热门榜单；每个源站分页独立落盘缓存。
 const fs = require('node:fs');
 const path = require('node:path');
-const https = require('node:https');
 const { seed, addSongs } = require('./store');
+const sources = require('./sources');
 
 const CACHE_DIR = path.join(require('./runtime-paths').dataDir, 'cache');
 const TTL = 6 * 60 * 60 * 1000;
@@ -40,27 +40,9 @@ function parseSongs(html) {
   return items.slice(0, 10);
 }
 
-function download(page) {
-  const url = `https://myfreemp3ku.com/navigation/1/${page}/`;
-  return new Promise((resolve, reject) => {
-    const req = https.get(url, { headers: { 'User-Agent': 'qiuqiumusic/1.0' } }, res => {
-      res.on('error', reject);
-      if (res.statusCode !== 200) {
-        res.resume();
-        reject(new Error(`source HTTP ${res.statusCode}`));
-        return;
-      }
-      let html = '';
-      res.setEncoding('utf8');
-      res.on('data', chunk => {
-        html += chunk;
-        if (html.length > 2_000_000) req.destroy(new Error('source page too large'));
-      });
-      res.on('end', () => resolve(html));
-    });
-    req.setTimeout(9000, () => req.destroy(new Error('source timeout')));
-    req.on('error', reject);
-  });
+async function download(page) {
+  const { html } = await sources.fetchHtml(`/navigation/1/${page}/`, { timeout: 9000 });
+  return html;
 }
 
 async function sourcePage(page) {
