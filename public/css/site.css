@@ -1032,10 +1032,8 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
       repeating-radial-gradient(circle at center,rgba(255,255,255,.055) 0 1px,transparent 2px 7px),
       conic-gradient(from 26deg,#12161c,#2a3138 18%,#0c1014 42%,#2b333a 64%,#0b0f13 86%,#12161c);
     box-shadow:0 20px 44px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.1),inset 0 2px 18px rgba(0,0,0,.5);
-    animation:record-spin 20s linear infinite;animation-play-state:paused;
     will-change:transform;transform:translateZ(0);backface-visibility:hidden;
   }
-  .player-host.is-playing .np-disc{animation-play-state:running}
   .np-cover{
     position:relative;display:grid;place-items:center;
     width:86%;aspect-ratio:1;border-radius:50%;overflow:hidden;

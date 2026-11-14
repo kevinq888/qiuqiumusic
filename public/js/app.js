@@ -948,6 +948,23 @@
     const top = active.offsetTop - items.clientHeight / 2 + active.offsetHeight / 2;
     items.scrollTop = Math.max(0, top);
   }
+  // 播放碟片由 JS 驱动旋转：播放时匀速转动，暂停/无歌曲时停住当前角度。
+  // 不走 CSS animation，避免系统「移除动画」或合成器状态导致旋转失效。
+  const npDisc = document.getElementById('np-disc');
+  const DISC_TURN_MS = 20000;
+  let discAngle = 0;
+  let discLastTick = 0;
+  function spinDisc(now) {
+    if (!discLastTick) discLastTick = now;
+    const delta = Math.min(64, now - discLastTick);
+    discLastTick = now;
+    if (npDisc && isPlaying && current) {
+      discAngle = (discAngle + delta * 360 / DISC_TURN_MS) % 360;
+      npDisc.style.transform = `rotate(${discAngle.toFixed(2)}deg) translateZ(0)`;
+    }
+    requestAnimationFrame(spinDisc);
+  }
+  requestAnimationFrame(spinDisc);
   function updatePlayer() {
     host.hidden = false;
     host.classList.toggle('has-track', !!current);

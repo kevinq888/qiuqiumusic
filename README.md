@@ -6,7 +6,20 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://weimomusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.18（当前版本）
+### v1.2.19（当前版本）
+
+- 播放页碟片/封面恢复旋转：播放时匀速旋转，暂停时停在当前角度，继续播放接着转。
+- 旋转改由脚本驱动，系统开启「移除动画」或省电模式下也能正常旋转。
+
+| 系统 | 下载 |
+| --- | --- |
+| Android（arm64-v8a） | [未末音乐-1.2.19-android-arm64-v8a.apk](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.19/-1.2.19-android-arm64-v8a.apk) |
+| iPhone / iPad（PWA） | [未末音乐-1.2.19-iphone.zip](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.19/-1.2.19-iphone.zip) |
+| macOS（Apple 芯片） | [未末音乐-1.2.19-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.19/-1.2.19-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.19-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.19/-1.2.19-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.19-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.19/-1.2.19-windows-x64.exe) |
+
+### v1.2.18
 
 - 修复安卓端从左边缘右滑返回后出现白屏、无法恢复的问题：启动后清理 WebView 历史，空白页按返回键会自动重开首页。
 - 手机端首页顶栏与底部导航栏铺满全屏，状态栏和导航栏区域不再留空，与播放页一致。
