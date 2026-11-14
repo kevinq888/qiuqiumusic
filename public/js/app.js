@@ -412,17 +412,23 @@
     img.src = url;
   }
 
-  // 有真实封面时显示图片；缺失或加载失败时用站点 Logo 填满圆形，不再留渐变占位块
-  const LOGO_COVER = '/projects/source_code/picture/logo.svg';
+  // 有真实封面时显示图片；缺失或加载失败时回退到渐变首字块（歌名首字），不再用 Logo 顶替
   function setCoverImage(img, wrapper, cover) {
     if (!img || !wrapper) return;
-    if (!img.dataset.logoFallback) {
-      img.dataset.logoFallback = '1';
+    if (!img.dataset.coverFallback) {
+      img.dataset.coverFallback = '1';
+      // 图床加载失败时收起图片，露出底下的渐变色 + 歌名首字，避免整屏都是 Logo
       img.addEventListener('error', () => {
-        if (img.getAttribute('src') !== LOGO_COVER) img.src = LOGO_COVER;
+        img.hidden = true;
+        wrapper.classList.remove('has-cover');
       });
     }
-    const url = coverSrc(cover) || LOGO_COVER;
+    const url = coverSrc(cover);
+    if (!url) {
+      img.hidden = true;
+      wrapper.classList.remove('has-cover');
+      return;
+    }
     wrapper.classList.add('has-cover');
     if (img.getAttribute('src') !== url) img.src = url;
     img.hidden = false;
@@ -977,6 +983,8 @@
       loadLyrics(null);
       setCoverImage(npCoverImg, npCover);
       setCoverImage(miniCoverImg, miniCover);
+      npInitial.textContent = '♪';
+      miniInitial.textContent = '♪';
       syncHeroCover('');
       applyVinylCover();
       setPlayerBackdrop('');
@@ -1006,8 +1014,8 @@
     npCover.style.setProperty('--hue', hue);
     miniCover.style.setProperty('--hue', hue);
     host.style.setProperty('--hue', hue);
-    npInitial.textContent = '♪';
-    miniInitial.textContent = '♪';
+    npInitial.textContent = (title || '♪').slice(0, 2);
+    miniInitial.textContent = (title || '♪').slice(0, 1);
     document.getElementById('player-favorite').classList.toggle('selected', contains(favorites, current));
     host.classList.toggle('is-playing', isPlaying);
     host.classList.toggle('is-remote', owner !== tabId);
@@ -1045,15 +1053,13 @@
     }
   }
   window.qiuqiuSafeInsets = readSafeInsets;
-  // 全屏播放页时把状态栏/导航栏切成透明铺满，让时间和电量浮在播放页上；回到首页再切回不透明
+  // 首页与播放页都铺到系统栏后面，启动和转屏时都要重新量一次安全区
+  setTimeout(readSafeInsets, 60);
+  window.addEventListener('resize', () => setTimeout(readSafeInsets, 80));
+  // 首页与播放页都保持透明系统栏，仅切换状态栏图标深浅
   function syncSystemBars(player) {
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', player ? '#14121a' : '#f1f8f5');
     try { window.WeiMoNative?.setPlayerMode(!!player); } catch {}
-    if (!player) {
-      document.documentElement.style.removeProperty('--safe-top');
-      document.documentElement.style.removeProperty('--safe-bottom');
-      return;
-    }
     setTimeout(readSafeInsets, 120);
   }
   function expand() {

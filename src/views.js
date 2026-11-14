@@ -2,7 +2,7 @@ const { seed, extra, getSong, proxyMediaUrl } = require('./store');
 const { lookup: coverLookup, warm: warmCovers } = require('./covers');
 
 const SITE = '未末音乐';
-const ASSET_VERSION = '20261114-extra1';
+const ASSET_VERSION = '20261114-ux1';
 const APP_VERSION = (() => { try { return require('../package.json').version; } catch { return '0.0.0'; } })();
 function esc(value) {
   return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')

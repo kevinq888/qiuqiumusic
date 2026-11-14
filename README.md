@@ -6,7 +6,22 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://weimomusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.17（当前版本）
+### v1.2.18（当前版本）
+
+- 修复安卓端从左边缘右滑返回后出现白屏、无法恢复的问题：启动后清理 WebView 历史，空白页按返回键会自动重开首页。
+- 手机端首页顶栏与底部导航栏铺满全屏，状态栏和导航栏区域不再留空，与播放页一致。
+- 提升顶栏「未末音乐」品牌字与播放页歌词的对比度，毛玻璃皮肤下也清晰可读。
+- 播放页旋转碟片优先使用歌曲封面；无封面时显示歌名首字，不再大面积回退成站点 Logo。
+
+| 系统 | 下载 |
+| --- | --- |
+| Android（arm64-v8a） | [未末音乐-1.2.18-android-arm64-v8a.apk](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.18/-1.2.18-android-arm64-v8a.apk) |
+| iPhone / iPad（PWA） | [未末音乐-1.2.18-iphone.zip](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.18/-1.2.18-iphone.zip) |
+| macOS（Apple 芯片） | [未末音乐-1.2.18-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.18/-1.2.18-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.18-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.18/-1.2.18-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.18-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.18/-1.2.18-windows-x64.exe) |
+
+### v1.2.17
 
 - 扩充华语曲库：新增陈楚生、陆虎、苏醒、王栎鑫、张远、俞灏明、王铮亮、周深、毛不易、汪苏泷等歌手精选，新增「华语精选」页（`/picks`）。
 - 排行榜新增「日韩榜」与「欧美榜」，内置日韩及欧美热门单曲，支持分页浏览。

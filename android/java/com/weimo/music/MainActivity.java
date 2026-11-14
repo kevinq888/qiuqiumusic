@@ -342,6 +342,9 @@ public class MainActivity extends Activity {
         if (ok) {
             if (!pageReady) {
                 pageReady = true;
+                // 启动阶段的空白页/日志页会留在 WebView 历史里，左滑返回会退到白屏；
+                // 页面就绪后清一次历史，返回键从首页直接退出应用，不会再出现空白页。
+                if (web != null) web.clearHistory();
                 BootLog.append("run: page ready");
                 BootLog.finish();
                 BootLog.setFailures(0);
@@ -475,21 +478,26 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT < 21) return;
         android.view.Window window = getWindow();
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        // 播放页让网页铺到状态栏、导航栏后面，头尾不再出现两条系统栏色块；
-        // 回到首页时系统栏重新不透明，网页内容不会被状态栏压住。
-        window.setStatusBarColor(player ? Color.TRANSPARENT : Color.parseColor("#f1f8f5"));
-        window.setNavigationBarColor(player ? Color.TRANSPARENT : Color.parseColor("#f1f8f5"));
+        // 首页与播放页都铺到系统栏后面：顶栏/底部 TabBar 自己延伸到状态栏与导航栏区域，
+        // 不再出现两条系统栏色块。网页用 --safe-top / --safe-bottom 给内容留出安全区。
+        window.setStatusBarColor(Color.TRANSPARENT);
+        window.setNavigationBarColor(Color.TRANSPARENT);
+        // Android 8.0 以下无法把导航栏图标改成深色，透明栏会让白色按键看不见，退回深绿底
+        if (Build.VERSION.SDK_INT < 26) window.setNavigationBarColor(Color.parseColor("#0b3a31"));
         if (Build.VERSION.SDK_INT >= 29) {
-            window.setStatusBarContrastEnforced(!player);
-            window.setNavigationBarContrastEnforced(!player);
+            window.setStatusBarContrastEnforced(false);
+            window.setNavigationBarContrastEnforced(false);
         }
-        int flags = window.getDecorView().getSystemUiVisibility() | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+        int flags = window.getDecorView().getSystemUiVisibility()
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
         if (player) {
-            flags |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+            // 播放页是深色底，状态栏图标用浅色
             flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
             if (Build.VERSION.SDK_INT >= 26) flags &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
         } else {
-            flags &= ~(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+            // 首页是浅色底，状态栏与导航栏图标用深色
             flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
             if (Build.VERSION.SDK_INT >= 26) flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
         }
@@ -761,8 +769,20 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (web != null && web.canGoBack()) web.goBack();
-        else moveTaskToBack(true);
+        if (web != null) {
+            String url = web.getUrl();
+            // 空白页/日志页不是应用页面：直接重新打开首页，避免退到白屏后无法恢复。
+            if (url == null || !url.startsWith("http://127.0.0.1:")) {
+                pageReady = false;
+                loadPage();
+                return;
+            }
+            if (web.canGoBack()) {
+                web.goBack();
+                return;
+            }
+        }
+        moveTaskToBack(true);
     }
 
     @Override

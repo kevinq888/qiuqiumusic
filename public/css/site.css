@@ -95,7 +95,7 @@ body.player-docked{padding-bottom:var(--player-dock-height,112px)}
   width:min(1160px,100%);
   max-height:none;
   margin:0 auto;
-  padding:14px 24px calc(14px + env(safe-area-inset-bottom));
+  padding:14px 24px calc(14px + var(--safe-bottom, env(safe-area-inset-bottom)));
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(220px,1.25fr) auto;
   align-items:center;
@@ -132,7 +132,7 @@ body.player-docked{padding-bottom:var(--player-dock-height,112px)}
     grid-template-columns:minmax(0,1fr) auto;
     grid-template-areas:"head actions" "audio audio";
     gap:6px 10px;
-    padding:9px 14px calc(9px + env(safe-area-inset-bottom));
+    padding:9px 14px calc(9px + var(--safe-bottom, env(safe-area-inset-bottom)));
   }
   .player-host.is-expanded .player-panel audio{grid-area:audio;margin:0;height:28px;border-radius:999px}
   .player-host.is-expanded .player-panel-head{grid-area:head;display:flex;align-items:center;gap:6px;margin:0}
@@ -381,7 +381,7 @@ body{min-height:100dvh;display:flex;flex-direction:column}
 .theme-sheet[hidden]{display:none}
 .theme-sheet{position:fixed;inset:0;z-index:90;display:grid;align-items:end}
 .theme-sheet-backdrop{position:absolute;inset:0;border:0;background:rgba(8,24,23,.57);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
-.theme-sheet-card{position:relative;width:100%;max-height:min(84dvh,640px);overflow:auto;padding:22px 20px calc(24px + env(safe-area-inset-bottom));border:1px solid var(--line);border-radius:26px 26px 0 0;background:var(--white);color:var(--ink);box-shadow:0 -18px 45px rgba(0,0,0,.16)}
+.theme-sheet-card{position:relative;width:100%;max-height:min(84dvh,640px);overflow:auto;padding:22px 20px calc(24px + var(--safe-bottom, env(safe-area-inset-bottom)));border:1px solid var(--line);border-radius:26px 26px 0 0;background:var(--white);color:var(--ink);box-shadow:0 -18px 45px rgba(0,0,0,.16)}
 .theme-sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:20px}
 .theme-sheet-head small{color:var(--orange);font-size:11px;font-weight:800;letter-spacing:.12em}
 .theme-sheet-head h2{margin:3px 0 0;font-size:23px;letter-spacing:-.035em}
@@ -478,7 +478,7 @@ body.theme-sheet-open{overflow:hidden}
   .player-host.is-expanded .player-actions{grid-column:1/-1;justify-content:center}
 }
 @media(max-width:640px){
-  .player-host.is-expanded .player-panel{grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "actions" "audio";gap:8px;padding:10px 14px calc(10px + env(safe-area-inset-bottom))}
+  .player-host.is-expanded .player-panel{grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "actions" "audio";gap:8px;padding:10px 14px calc(10px + var(--safe-bottom, env(safe-area-inset-bottom)))}
   .player-host.is-expanded .player-panel-head{grid-area:head;min-width:0}
   .player-host.is-expanded .player-panel-head h2{font-size:14px;max-width:none}
   .player-host.is-expanded .player-actions{grid-area:actions;grid-column:1;justify-content:space-between;gap:8px}
@@ -876,8 +876,8 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   /* 底部 TabBar */
   .mobile-tabbar{
     position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;align-items:stretch;
-    height:calc(56px + env(safe-area-inset-bottom));
-    padding-bottom:env(safe-area-inset-bottom);
+    height:calc(56px + var(--safe-bottom, env(safe-area-inset-bottom)));
+    padding-bottom:var(--safe-bottom, env(safe-area-inset-bottom));
     background:color-mix(in srgb,var(--white) 94%,transparent);
     border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent);
     backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);
@@ -904,7 +904,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   /* 播放条：沉在 TabBar 上方，打开 App 就能看到从哪里开始播放 */
   .vinyl-toggle{display:none!important}
   .mini-player{
-    position:fixed;left:12px;right:12px;bottom:calc(56px + env(safe-area-inset-bottom) + 9px);z-index:52;
+    position:fixed;left:12px;right:12px;bottom:calc(56px + var(--safe-bottom, env(safe-area-inset-bottom)) + 9px);z-index:52;
     display:flex;align-items:center;gap:10px;height:56px;padding:0 10px 0 7px;
     border-radius:16px;background:rgba(18,38,33,.94);color:#fff;
     border:1px solid rgba(255,255,255,.1);
@@ -1130,7 +1130,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   body.queue-open .player-host{z-index:72}
   .queue-panel{
     position:fixed;left:0;right:0;bottom:0;z-index:76;
-    width:auto;max-height:78dvh;padding:8px 16px calc(14px + env(safe-area-inset-bottom));
+    width:auto;max-height:78dvh;padding:8px 16px calc(14px + var(--safe-bottom, env(safe-area-inset-bottom)));
     border-radius:22px 22px 0 0;background:var(--white);color:var(--ink);
     box-shadow:0 -18px 50px rgba(6,10,18,.3);
     display:flex;flex-direction:column;
@@ -1244,7 +1244,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
     left:0;right:0;width:100%;transform:none;
     bottom:0;max-height:min(78dvh,600px);
     border-radius:26px 26px 0 0;
-    padding:10px 16px calc(14px + env(safe-area-inset-bottom));
+    padding:10px 16px calc(14px + var(--safe-bottom, env(safe-area-inset-bottom)));
     background:linear-gradient(180deg,color-mix(in srgb,var(--white) 98%,transparent),color-mix(in srgb,var(--white) 94%,transparent));
     box-shadow:0 -22px 60px rgba(0,0,0,.45);
   }
@@ -1369,7 +1369,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   .player-host.is-expanded .player-panel{
     grid-template-columns:clamp(196px,21vw,276px) minmax(0,1fr) auto;
     align-items:center;gap:20px;
-    padding:15px 26px calc(15px + env(safe-area-inset-bottom));
+    padding:15px 26px calc(15px + var(--safe-bottom, env(safe-area-inset-bottom)));
   }
   /* 左侧固定宽度：按常见「歌手 + 歌名」长度留出余量，标题区两行不再跳动 */
   .player-host.is-expanded .player-panel-head{
@@ -1436,7 +1436,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   .player-host.is-expanded .player-panel{
     grid-template-columns:clamp(200px,26vw,235px) minmax(0,1fr) auto;
     grid-template-areas:none;
-    gap:12px;padding:15px 16px calc(15px + env(safe-area-inset-bottom));
+    gap:12px;padding:15px 16px calc(15px + var(--safe-bottom, env(safe-area-inset-bottom)));
   }
   .player-host.is-expanded .player-panel-head small{font-size:9.5px}
   .player-host.is-expanded #player-artist{max-width:none;flex:0 0 auto;font-size:12.5px}
@@ -1979,7 +1979,7 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
 @media(prefers-reduced-motion:reduce){.main-content.page-enter{animation:none}}
 
 /* 播放清单：去装饰、单行、细分割线 */
-.queue-panel{background:var(--white);padding:12px 16px calc(14px + env(safe-area-inset-bottom))}
+.queue-panel{background:var(--white);padding:12px 16px calc(14px + var(--safe-bottom, env(safe-area-inset-bottom)))}
 .queue-head{align-items:center}
 .queue-title{display:flex;flex-direction:column;gap:1px;min-width:0}
 .queue-head h2{font-size:17px;font-weight:800;letter-spacing:-.01em;color:var(--ink);margin:0;display:block}
@@ -2013,7 +2013,7 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
 @media(max-width:680px){
   /* 播放条：打开 App 时常驻底部，沉在 TabBar 上方；离开 App 后由系统通知栏接管顶部 */
   .mini-player{
-    left:12px;right:12px;top:auto;bottom:calc(56px + env(safe-area-inset-bottom) + 9px);
+    left:12px;right:12px;top:auto;bottom:calc(56px + var(--safe-bottom, env(safe-area-inset-bottom)) + 9px);
     transform:none;width:auto;max-width:none;height:56px;
     padding:0 10px 0 7px;gap:10px;border-radius:16px;
     background:rgba(18,38,33,.94);border:1px solid rgba(255,255,255,.1);
@@ -2090,4 +2090,31 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
   .update-progress{grid-column:1/-1;display:block;height:4px;margin-top:4px;border-radius:99px;background:color-mix(in srgb,var(--forest) 14%,transparent);overflow:hidden}
   .update-progress[hidden]{display:none}
   .update-progress i{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--forest),#8fe3c1);transition:width .25s linear}
+}
+
+/* ---------- 手机端全屏：顶栏/底栏铺到系统栏后面，内容留在安全区内 ---------- */
+@media(max-width:680px){
+  .site-header{
+    height:calc(54px + var(--safe-top, env(safe-area-inset-top)));
+    padding-top:var(--safe-top, env(safe-area-inset-top));
+  }
+  .site-header .nav-shell{height:54px}
+  .mobile-tabbar{
+    height:calc(56px + var(--safe-bottom, env(safe-area-inset-bottom)));
+    padding-bottom:var(--safe-bottom, env(safe-area-inset-bottom));
+  }
+  .main-content{padding-bottom:calc(152px + var(--safe-bottom, env(safe-area-inset-bottom)))}
+  /* 品牌胶囊：不透明深绿底 + 纯白字，任何皮肤/系统深色模式下都保持清晰 */
+  .brand{background:#0b3a31;color:#fff}
+  .brand strong,
+  [data-theme="glass"] .brand strong{
+    color:#fff;-webkit-text-fill-color:#fff;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.35);
+  }
+  /* 歌词：提高未唱部分的亮度并加暗影，避免白字压在毛玻璃/亮色封面上看不清 */
+  .np-lyrics-line{color:rgba(255,255,255,.62);text-shadow:0 1px 4px rgba(0,0,0,.55)}
+  .np-lyrics-line.is-active{
+    background-image:linear-gradient(90deg,#fff var(--sing,0%),rgba(255,255,255,.66) var(--sing,0%));
+    filter:drop-shadow(0 1px 4px rgba(0,0,0,.55));
+  }
+  .np-cover b{max-width:76%;line-height:1.1;letter-spacing:.04em}
 }
