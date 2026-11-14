@@ -35,17 +35,14 @@
   const miniTitle = document.getElementById('mini-title');
   const miniArtist = document.getElementById('mini-artist');
   const miniCover = document.getElementById('mini-cover');
-  const miniInitial = document.getElementById('mini-initial');
   const miniBar = document.getElementById('mini-progress-bar');
   const npCover = document.getElementById('np-cover');
-  const npInitial = document.getElementById('np-initial');
   const npCoverImg = document.getElementById('np-cover-img');
   const npBackdrop = document.getElementById('np-bg');
   const miniCoverImg = document.getElementById('mini-cover-img');
   const heroCoverImg = document.querySelector('.disc-inner img');
   const heroLogoSrc = heroCoverImg?.getAttribute('src') || '';
   const vinylCoverImg = document.getElementById('vinyl-cover-img');
-  const vinylLogoSrc = vinylCoverImg?.getAttribute('src') || '';
   const dockTitle = document.getElementById('player-dock-title');
   const artistNode = document.getElementById('player-artist');
   const lyricNode = document.getElementById('player-lyric');
@@ -251,11 +248,24 @@
     audio.load();
     persistPlayback();
   }
+  // 无封面时按皮肤显示精选意境图，而不是品牌 Logo
+  const FALLBACK_ART = { mint: 'mint', sky: 'sky', lilac: 'lilac', sunset: 'sunset', sakura: 'sakura', dark: 'dark', glass: 'glass' };
+  function fallbackArtUrl() {
+    const theme = document.documentElement.dataset.theme || 'mint';
+    return `/projects/source_code/picture/fallback/${FALLBACK_ART[theme] || 'mint'}.jpg`;
+  }
+  function syncFallbackArt() {
+    const url = fallbackArtUrl();
+    document.querySelectorAll('img[data-fallback-art]').forEach(img => {
+      if (img.getAttribute('src') !== url) img.src = url;
+    });
+  }
   // 切换皮肤并同步浏览器状态栏颜色（PWA 与移动端浏览体验）
   function applyTheme(theme) {
     document.documentElement.dataset.theme = THEMES.includes(theme) ? theme : 'mint';
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.content = THEME_COLORS[theme] || THEME_COLORS.mint;
+    syncFallbackArt();
     updateThemeControls();
   }
   function updateThemeControls() {
@@ -485,10 +495,10 @@
       })
       .catch(() => {});
   }
-  // 最小化后的悬浮唱片：清单里有当前选中歌曲时用它封面（暂停也显示），否则回到 Logo
+  // 最小化后的悬浮唱片：清单里有当前选中歌曲时用它封面（暂停也显示），否则回到皮肤意境图
   function syncVinylCover(cover) {
     if (!vinylCoverImg) return;
-    const next = coverSrc(cover) || vinylLogoSrc;
+    const next = coverSrc(cover) || fallbackArtUrl();
     if (!next || vinylCoverImg.getAttribute('src') === next) return;
     vinylCoverImg.src = next;
   }
@@ -504,26 +514,43 @@
       updatePlayer();
     });
   }
-  // 全屏播放页的背景直接取自当前封面：两层交替淡入，换歌时像参考应用一样整体换色
+  // 全屏播放页背景：每首歌一套现代渐变配色，切歌时整屏淡入换色
+  const PLAYER_PALETTE = [
+    ['#0d3b34', '#1a5b4c', '#08241f'],
+    ['#141f3d', '#2a4472', '#0d1626'],
+    ['#241a3f', '#47316f', '#170f2b'],
+    ['#3a1f1a', '#63382a', '#231210'],
+    ['#121b18', '#21453a', '#0a1310'],
+    ['#3a1628', '#5f2442', '#250d19'],
+    ['#141d2e', '#243c66', '#0c1320'],
+    ['#0f2a22', '#1f4e3d', '#081a15'],
+    ['#3b2412', '#6d4020', '#26160c'],
+    ['#171b22', '#2e3745', '#0d1014'],
+  ];
   let backdropSlot = 0;
-  let backdropUrl = '';
-  function setPlayerBackdrop(cover) {
+  let backdropIndex = -1;
+  function setPlayerBackdrop(song) {
     if (!npBackdrop) return;
     const layers = npBackdrop.children;
     if (!layers || layers.length < 2) return;
-    const url = cover ? coverSrc(cover) : '';
-    if (url === backdropUrl) return;
-    backdropUrl = url;
-    if (!url) {
+    const index = song ? coverHue(song.id || song.title) % PLAYER_PALETTE.length : -1;
+    // 同一首歌不重复换色；换歌时取到相同色系就顺延一套，保证「一切换就换一种背景色」
+    const next = index < 0 ? -1 : (index === backdropIndex ? (index + 1) % PLAYER_PALETTE.length : index);
+    if (next === backdropIndex) return;
+    backdropIndex = next;
+    if (next < 0) {
+      npBackdrop.classList.remove('is-gradient');
       for (const layer of layers) {
         layer.classList.remove('is-active');
         layer.style.backgroundImage = '';
       }
       return;
     }
+    const [a, b, c] = PLAYER_PALETTE[next];
     backdropSlot = backdropSlot ? 0 : 1;
     const layer = layers[backdropSlot];
-    layer.style.backgroundImage = `url("${url}")`;
+    layer.style.backgroundImage = `radial-gradient(circle at 28% 16%,rgba(255,255,255,.16),transparent 56%),linear-gradient(160deg,${a} 0%,${b} 54%,${c} 100%)`;
+    npBackdrop.classList.add('is-gradient');
     for (const item of layers) item.classList.toggle('is-active', item === layer);
   }
   function contains(list, song) { return list.some(item => item.id === song.id); }
@@ -1000,11 +1027,9 @@
       loadLyrics(null);
       setCoverImage(npCoverImg, npCover);
       setCoverImage(miniCoverImg, miniCover);
-      npInitial.textContent = '♪';
-      miniInitial.textContent = '♪';
       syncHeroCover('');
       applyVinylCover();
-      setPlayerBackdrop('');
+      setPlayerBackdrop(null);
       syncNativeNowPlaying(false);
       return;
     }
@@ -1026,13 +1051,11 @@
     setCoverImage(miniCoverImg, miniCover, queuedCurrent() ? current.cover : '');
     syncHeroCover(current.cover);
     applyVinylCover();
-    setPlayerBackdrop(current.cover);
+    setPlayerBackdrop(current);
     const hue = coverHue(current.id);
     npCover.style.setProperty('--hue', hue);
     miniCover.style.setProperty('--hue', hue);
     host.style.setProperty('--hue', hue);
-    npInitial.textContent = (title || '♪').slice(0, 2);
-    miniInitial.textContent = (title || '♪').slice(0, 1);
     document.getElementById('player-favorite').classList.toggle('selected', contains(favorites, current));
     host.classList.toggle('is-playing', isPlaying);
     host.classList.toggle('is-remote', owner !== tabId);

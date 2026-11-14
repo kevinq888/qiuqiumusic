@@ -1036,7 +1036,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   }
   .np-cover{
     position:relative;display:grid;place-items:center;
-    width:86%;aspect-ratio:1;border-radius:50%;overflow:hidden;
+    width:66%;aspect-ratio:1;border-radius:50%;overflow:hidden;
     background:linear-gradient(145deg,hsl(var(--hue,160) 52% 62%),hsl(var(--hue,160) 46% 34%));
     border:4px solid rgba(255,255,255,.1);
     box-shadow:0 0 0 3px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.4);
@@ -2115,4 +2115,90 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
     filter:drop-shadow(0 1px 4px rgba(0,0,0,.55));
   }
   .np-cover b{max-width:76%;line-height:1.1;letter-spacing:.04em}
+}
+
+/* ---------- 1.2.20：歌曲行与榜单行右列严格对齐 ---------- */
+.song-row{
+  display:grid;
+  grid-template-columns:29px 44px minmax(0,1fr) auto 28px 28px 30px;
+  align-items:center;gap:12px;
+}
+.song-row>.song-main{min-width:0}
+.song-row>.song-action{width:28px;justify-self:center}
+.song-row>.play-button{justify-self:end}
+/* 趋势 / 点播数 / 日期统一收进右对齐的元信息列，缺项也不会挤动右侧按钮 */
+.song-row-meta{
+  display:flex;align-items:center;justify-content:flex-end;gap:10px;
+  min-width:0;white-space:nowrap;
+}
+.song-row-meta .trend-badge{min-width:38px;display:inline-flex;align-items:center;justify-content:center}
+.song-row-meta .song-plays{text-align:right}
+.song-row-meta .song-date{text-align:right;min-width:62px}
+/* 榜单卡片：名次、走势、播放三列固定宽度，榜首大卡与 Top5 行对齐 */
+.chart-mini-row{display:grid;grid-template-columns:28px minmax(0,1fr) 46px 30px;align-items:center;gap:10px}
+.chart-mini-row .song-main{min-width:0}
+.chart-top1{display:grid;grid-template-columns:28px minmax(0,1fr) 46px 18px;align-items:center;gap:12px}
+.chart-mini-row .trend-badge,.chart-top1 .trend-badge{
+  min-width:0;width:100%;display:inline-flex;align-items:center;justify-content:center;
+}
+@media(max-width:680px){
+  .song-row{grid-template-columns:23px 40px minmax(0,1fr) auto 22px 22px 30px;gap:8px}
+  .song-row>.song-action{width:22px}
+  .song-row-meta{gap:6px}
+  .song-row-meta .trend-badge{min-width:32px}
+  .song-row-meta .song-plays,.song-row-meta .song-date{font-size:10px}
+  .song-row-meta .song-date{min-width:0}
+  .chart-mini-row{grid-template-columns:24px minmax(0,1fr) 40px 30px;gap:8px}
+  .chart-top1{grid-template-columns:24px minmax(0,1fr) 40px 16px;gap:8px}
+}
+
+/* ---------- 1.2.20：全屏播放页背景色、进度可读性、底部快捷入口 ---------- */
+.np-bg.is-gradient span{inset:0;filter:none;transform:none;background-size:cover;transition:opacity .55s ease}
+/* 无封面时用按皮肤精选的意境图兜底（有封面时隐藏） */
+.np-cover .fallback-art{
+  position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;
+  border-radius:50%;filter:saturate(1.05) contrast(1.02);
+}
+.np-cover.has-cover .fallback-art{display:none}
+.mini-cover .fallback-art{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;border-radius:50%}
+.mini-cover.has-cover .fallback-art{display:none}
+.np-links{display:none}
+@media(max-width:680px){
+  /* 渐变背景本身够深，遮罩减淡，避免底部压成一片死黑 */
+  body.player-open .np-veil{background:linear-gradient(180deg,rgba(6,10,14,.04) 0%,rgba(6,10,14,.1) 38%,rgba(6,10,14,.52) 100%)}
+  /* 进度时间与音质标签：提亮、加粗、加深色投影，毛玻璃/亮色封面下也清晰 */
+  /* 进度/歌词区加一层深色毛玻璃底，保证任何背景、任一皮肤下文字都有对比 */
+  body.player-open .player-host.is-expanded .player-center{
+    position:relative;isolation:isolate;padding:10px 14px 8px;border-radius:20px;
+  }
+  body.player-open .player-host.is-expanded .player-center:before{
+    content:'';position:absolute;inset:-2px -10px;z-index:-1;border-radius:22px;
+    background:rgba(8,13,12,.45);
+    backdrop-filter:blur(20px) saturate(1.1);-webkit-backdrop-filter:blur(20px) saturate(1.1);
+    box-shadow:0 10px 30px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  body.player-open .player-host.is-expanded .player-timeline{color:rgba(255,255,255,.92);gap:9px 10px}
+  body.player-open .player-host.is-expanded .player-timeline>span{
+    font-size:13px;font-weight:700;color:rgba(255,255,255,.96);
+    text-shadow:0 1px 4px rgba(0,0,0,.6);letter-spacing:.01em;
+  }
+  body.player-open .player-host.is-expanded .player-timeline .np-quality{
+    font-size:11px;font-weight:700;letter-spacing:.05em;color:rgba(255,255,255,.82);
+    text-shadow:0 1px 4px rgba(0,0,0,.6);
+  }
+  body.player-open .player-host.is-expanded .player-timeline input[type="range"]{height:4px}
+  /* 底部快捷入口：与首页底部 tab 一样等宽分列、图标在上文字在下 */
+  body.player-open .np-links{
+    display:flex;align-items:stretch;justify-content:space-between;
+    flex:none;padding:8px 6px 3px;gap:2px;
+  }
+  body.player-open .np-links a{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;
+    padding:4px 0;border-radius:12px;
+    color:rgba(255,255,255,.6);font-size:10px;font-weight:600;letter-spacing:.02em;
+  }
+  body.player-open .np-links a:active{background:rgba(255,255,255,.1);color:#fff}
+  body.player-open .np-links .icon{width:21px;height:21px;stroke-width:1.7}
+  /* 进度区整体稍微上移：收紧黑胶下方空隙 */
+  body.player-open .np-art{padding-bottom:8px}
 }
