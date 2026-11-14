@@ -13,6 +13,7 @@ const covers = require('./src/covers');
 const lyrics = require('./src/lyrics');
 const charts = require('./src/charts');
 const { latestRelease } = require('./src/desktop-release');
+const { latestAppRelease } = require('./src/app-release');
 
 const PORT = Number(process.env.PORT || 3000);
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -140,6 +141,16 @@ function routeRequest(req, res) {
       res.writeHead(302, { Location: release.downloads[target] });
       res.end();
     }).catch(() => send(res, 503, 'Download temporarily unavailable', 'text/plain; charset=utf-8'));
+    return;
+  }
+
+  // 手机端更新检查：安卓 App 内置的是本地服务，版本比线上旧，必须允许跨域查询线上清单。
+  if (p === '/api/app-release') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cache-Control', 'no-store');
+    latestAppRelease().then(release => {
+      send(res, 200, JSON.stringify(release), 'application/json; charset=utf-8');
+    }).catch(() => send(res, 503, JSON.stringify({ ok: false }), 'application/json; charset=utf-8'));
     return;
   }
 

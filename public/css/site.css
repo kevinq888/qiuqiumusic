@@ -2068,3 +2068,26 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
 /* 清单当前曲目：只留绿色标题和左侧细条，不做整行色块 */
 .player-host.is-expanded .queue-items .personal-song.is-current{background:transparent;box-shadow:inset 2px 0 0 var(--forest);border-radius:0;padding-left:8px}
 .queue-items .personal-song.is-current .cache-meter{display:none}
+
+/* ---------- 我的页「应用更新」：只在手机端出现，桌面端继续用顶栏更新按钮 ---------- */
+.settings-panel{display:none}
+@media(max-width:768px){
+  .settings-panel{display:block;margin-top:18px;padding:16px 14px}
+  .settings-panel .panel-heading{margin-bottom:12px}
+  .settings-list{display:flex;flex-direction:column;gap:10px}
+  .settings-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px 12px;width:100%;padding:13px 14px;border-radius:14px;background:var(--subtle);border:1px solid var(--line);text-align:left;font:inherit;color:inherit;overflow:hidden}
+  .settings-action{cursor:pointer;transition:transform .16s var(--ease)}
+  .settings-action:active{transform:scale(.99)}
+  .settings-label{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .settings-label>span{font-size:14px;font-weight:700}
+  .settings-label small{font-size:11px;line-height:1.45;color:var(--muted)}
+  .settings-version{font-size:14px;font-weight:800;color:var(--forest);white-space:nowrap}
+  .settings-value{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--forest);white-space:nowrap}
+  .settings-value .icon{width:15px;height:15px}
+  .settings-action[data-busy="true"] .settings-value{opacity:.75}
+  .settings-action[data-status="error"] .settings-value{color:#d94b3d}
+  .settings-note{margin:11px 2px 0;font-size:11px;line-height:1.6;color:var(--muted)}
+  .update-progress{grid-column:1/-1;display:block;height:4px;margin-top:4px;border-radius:99px;background:color-mix(in srgb,var(--forest) 14%,transparent);overflow:hidden}
+  .update-progress[hidden]{display:none}
+  .update-progress i{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--forest),#8fe3c1);transition:width .25s linear}
+}

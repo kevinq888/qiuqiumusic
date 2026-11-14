@@ -680,6 +680,23 @@ public class MainActivity extends Activity {
         }
     }
 
+    /** 网页更新入口取当前安装包版本与系统版本。 */
+    String appVersionForScript() {
+        return appVersion();
+    }
+
+    String platformForScript() {
+        return "Android " + Build.VERSION.RELEASE;
+    }
+
+    boolean startUpdateDownload(String url, String fileName, String version) {
+        return UpdateManager.start(this, url, fileName, version);
+    }
+
+    String installUpdate() {
+        return UpdateManager.install(this);
+    }
+
     /** 首次启动或 App 升级后把打包内置的后端解到私有目录。 */
     private void copyBackend(String target, String version) throws IOException {
         File marker = new File(target, ".ready");

@@ -13,7 +13,8 @@ LIBROOT="${LIBROOT:-/tmp/njm/package/android/libnode}"
 BUILD="$SRC/build"
 # 版本号与桌面端保持一致；输出按版本/平台分层：dist/<版本>/android/
 VERSION_NAME="${VERSION_NAME:-$(node -p "require('$ROOT/desktop/package.json').version")}"
-VERSION_CODE="${VERSION_CODE:-10}"
+# versionCode 以 AndroidManifest.xml 为准，避免升级安装时被系统当成低版本拒绝
+VERSION_CODE="${VERSION_CODE:-$(node -p "((require('fs').readFileSync('$ROOT/android/AndroidManifest.xml','utf8').match(/versionCode=\"(\\d+)\"/)||[])[1]||10)")}"
 OUT="${OUT:-$ROOT/dist/$VERSION_NAME/android}"
 ABI="${ABI:-arm64-v8a}"
 API_LEVEL=24
