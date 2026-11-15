@@ -730,6 +730,12 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
 }
 .entry-grid{display:none}
 .home-grid{margin-top:18px;gap:18px}
+/* 桌面/平板统一区块间距：与内容区顶部留白一致，每块之间都保持 26px，避免出现 0 / 18 / 22px 混排 */
+@media(min-width:681px){
+  .main-content>*{margin-bottom:0}
+  .main-content>.panel{margin-bottom:0}
+  .main-content>*+*{margin-top:26px}
+}
 
 /* 首页分区标题：小圆点图标 + 分类 tab + 更多 */
 .feature-panel{padding:22px 26px 24px}
