@@ -50,6 +50,10 @@
   const lyricsPanel = document.getElementById('np-lyrics');
   const lyricsTrack = document.getElementById('np-lyrics-track');
   const lyricsToggle = document.getElementById('player-lyrics-toggle');
+  const npFloat = document.getElementById('np-float');
+  const floatBefore = npFloat?.querySelector('[data-float-before]');
+  const floatCurrent = npFloat?.querySelector('[data-float-current]');
+  const floatAfter = npFloat?.querySelector('[data-float-after]');
   let lyricsMode = false;
   let lyricsActiveLine = -1;
   const queueBackdrop = document.getElementById('queue-backdrop');
@@ -741,6 +745,12 @@
       lyricNode.textContent = '';
     }
     renderLyricsTrack();
+    if (npFloat) {
+      npFloat.hidden = true;
+      floatBefore.textContent = '';
+      floatCurrent.textContent = '';
+      floatAfter.textContent = '';
+    }
   }
   // 全屏播放页的歌词视图：固定显示约 7 行，当前句按 KTV 方式逐字点亮
   function renderLyricsTrack() {
@@ -760,6 +770,20 @@
       node.textContent = line.text || '♪';
       lyricsTrack.append(node);
     }
+  }
+  // 首页播放条上方的悬浮歌词：三行透明歌词，当前句高亮，不拦截任何点击
+  function updateFloatLyric(index) {
+    if (!npFloat) return;
+    const pick = i => (lyricLines[i] && lyricLines[i].text) || '';
+    const currentText = index >= 0 ? pick(index) : '';
+    if (!currentText) {
+      npFloat.hidden = true;
+      return;
+    }
+    floatBefore.textContent = pick(index - 1);
+    floatCurrent.textContent = currentText;
+    floatAfter.textContent = pick(index + 1);
+    npFloat.hidden = false;
   }
   function syncLyricsTrack(index) {
     if (!lyricsTrack) return;
@@ -808,6 +832,7 @@
     const line = lyricLines[index];
     if (index !== lyricIndex) {
       lyricIndex = index;
+      updateFloatLyric(index);
       const node = lyricTextTarget();
       if (!node) return;
       node.textContent = line ? line.text : '';
@@ -998,7 +1023,7 @@
     // 手机上选中歌曲后顶部品牌收成小图标，把中间位置让给灵动岛胶囊
     document.body.classList.toggle('has-current', !!current);
     document.body.classList.toggle('has-queue', queue.length > 0);
-    for (const id of ['player-prev', 'player-next', 'player-favorite']) {
+    for (const id of ['player-prev', 'player-next', 'player-favorite', 'mini-prev', 'mini-next']) {
       document.getElementById(id).disabled = !current;
     }
     // 计数徽标无条件刷新；清单有歌时播放键保持可用，解决"清单有歌却显示 0 首且无法播放"
@@ -1601,6 +1626,8 @@
   document.querySelectorAll('.np-links a').forEach(link => link.addEventListener('click', collapse));
   document.getElementById('player-prev').addEventListener('click', () => playbackCommand('prev'));
   document.getElementById('player-next').addEventListener('click', () => playbackCommand('next'));
+  document.getElementById('mini-prev').addEventListener('click', () => playbackCommand('prev'));
+  document.getElementById('mini-next').addEventListener('click', () => playbackCommand('next'));
   document.getElementById('player-mode').addEventListener('click', () => setPlayMode(PLAY_MODES[(PLAY_MODES.indexOf(playMode) + 1) % PLAY_MODES.length]));
   document.getElementById('player-play-pause').addEventListener('click', () => playbackCommand('toggle'));
   seek.addEventListener('input', () => {
@@ -1677,7 +1704,7 @@
   });
   // 播放条上除播放、播放清单以外的区域，点了都进入播放页
   miniPlayer.addEventListener('click', event => {
-    if (event.target.closest('#mini-play, #mini-queue, #mini-open')) return;
+    if (event.target.closest('#mini-play, #mini-queue, #mini-open, #mini-prev, #mini-next')) return;
     if (current) expand();
     else playFirstSong();
   });

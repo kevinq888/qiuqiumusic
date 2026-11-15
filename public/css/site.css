@@ -905,7 +905,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   .vinyl-toggle{display:none!important}
   .mini-player{
     position:fixed;left:0;right:0;bottom:calc(56px + var(--safe-bottom, env(safe-area-inset-bottom)));z-index:52;
-    display:flex;align-items:center;gap:10px;height:56px;padding:0 12px 0 10px;
+    display:flex;align-items:center;gap:4px;height:56px;padding:0 8px;
     border-radius:0;background:color-mix(in srgb,var(--white) 94%,transparent);color:var(--ink);
     border:0;
     box-shadow:0 -10px 26px color-mix(in srgb,var(--forest) 8%,transparent);
@@ -916,7 +916,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   @keyframes dock-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
   [data-theme="dark"] .mini-player{background:rgba(18,32,28,.94);box-shadow:0 -10px 26px rgba(0,0,0,.28)}
   [data-theme="glass"] .mini-player{background:rgba(255,255,255,.55);box-shadow:0 -10px 26px rgba(20,60,50,.08)}
-  .mini-open{display:flex;align-items:center;gap:10px;flex:1;min-width:0;border:0;background:transparent;padding:0;color:var(--ink);text-align:left}
+  .mini-open{display:flex;align-items:center;gap:8px;flex:1;min-width:0;border:0;background:transparent;padding:0;color:var(--ink);text-align:left}
   .mini-cover{
     position:relative;display:grid;place-items:center;width:38px;height:38px;flex:none;border-radius:50%;overflow:hidden;
     background:linear-gradient(145deg,hsl(var(--hue,160) 52% 64%),hsl(var(--hue,160) 46% 38%));
@@ -927,20 +927,50 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   .mini-meta{display:flex;flex-direction:column;min-width:0;line-height:1.25}
   .mini-meta strong{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
   .mini-meta small{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .mini-play,.mini-queue{display:grid;place-items:center;width:32px;height:32px;flex:none;border:0;border-radius:50%;background:transparent;color:var(--forest);padding:0}
-  .mini-play{background:color-mix(in srgb,var(--forest) 12%,transparent)}
+  .mini-skip,.mini-play,.mini-queue{display:grid;place-items:center;width:32px;height:32px;flex:none;border:0;border-radius:50%;background:transparent;color:var(--forest);padding:0;position:relative}
+  /* 32px 圆形按钮在 56px 高的播放条里上下补足触摸热区，不改变视觉尺寸 */
+  .mini-skip:after{content:'';position:absolute;left:0;right:0;top:-12px;bottom:-12px}
+  .mini-play{width:34px;height:34px;background:color-mix(in srgb,var(--forest) 12%,transparent)}
   .mini-play .icon{width:20px;height:20px}
-  .mini-queue .icon{width:18px;height:18px}
+  .mini-skip .icon{width:18px;height:18px}
+  .mini-queue .icon{width:17px;height:17px}
+  .mini-skip:disabled,.mini-play:disabled{opacity:.38;pointer-events:none}
+  .mini-skip:active{background:color-mix(in srgb,var(--forest) 10%,transparent)}
   .mini-play .tp-icon,.tp-icon{display:grid;place-items:center;line-height:0}
   .mini-progress{position:absolute;left:0;right:0;bottom:0;height:2px;border-radius:0;background:color-mix(in srgb,var(--ink) 10%,transparent);overflow:hidden}
   .mini-progress i{display:block;height:100%;width:0;background:var(--forest);border-radius:0;transition:width .2s linear;box-shadow:0 0 8px color-mix(in srgb,var(--forest) 45%,transparent)}
   [data-theme="dark"] .mini-meta strong{color:#fff}
   [data-theme="dark"] .mini-meta small{color:rgba(255,255,255,.62)}
   [data-theme="dark"] .mini-open{color:#fff}
-  [data-theme="dark"] .mini-play,[data-theme="dark"] .mini-queue{color:#fff}
+  [data-theme="dark"] .mini-play,[data-theme="dark"] .mini-queue,[data-theme="dark"] .mini-skip{color:#fff}
+  [data-theme="dark"] .mini-skip:active{background:rgba(255,255,255,.1)}
   [data-theme="dark"] .mini-play{background:rgba(255,255,255,.14)}
   [data-theme="dark"] .mini-progress{background:rgba(255,255,255,.16)}
   [data-theme="dark"] .mini-progress i{background:#8fe3c1;box-shadow:0 0 8px rgba(143,227,193,.6)}
+  /* 播放条上方的悬浮歌词：透明无底板，三行展示当前句高亮；pointer-events 关闭，不挡任何按钮 */
+  .np-float{
+    position:fixed;left:0;right:0;
+    bottom:calc(118px + var(--safe-bottom, env(safe-area-inset-bottom)));
+    z-index:51;display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:10px 24px 8px;pointer-events:none;text-align:center;
+    background:radial-gradient(125% 100% at 50% 100%,color-mix(in srgb,var(--cream) 90%,transparent) 0%,color-mix(in srgb,var(--cream) 62%,transparent) 52%,transparent 100%);
+  }
+  .np-float[hidden]{display:none}
+  .np-float p{
+    margin:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    font-size:11.5px;font-weight:600;line-height:1.4;
+    color:color-mix(in srgb,var(--ink) 52%,transparent);
+    text-shadow:0 0 2px color-mix(in srgb,var(--white) 96%,transparent),0 1px 3px color-mix(in srgb,var(--white) 92%,transparent),0 0 14px color-mix(in srgb,var(--white) 88%,transparent);
+    transition:color .2s var(--ease);
+  }
+  .np-float p:empty{display:none}
+  .np-float p.is-current{
+    font-size:15px;font-weight:800;letter-spacing:.01em;color:var(--forest);
+    text-shadow:0 1px 2px color-mix(in srgb,var(--white) 96%,transparent),0 0 16px color-mix(in srgb,var(--white) 92%,transparent);
+  }
+  [data-theme="dark"] .np-float p{color:rgba(255,255,255,.6);text-shadow:0 1px 10px rgba(0,0,0,.6)}
+  [data-theme="dark"] .np-float p.is-current{color:#fff;text-shadow:0 1px 12px rgba(0,0,0,.7)}
+  body.player-open .np-float,body.queue-open .np-float{opacity:0;visibility:hidden}
 
   /* 播放/暂停图标切换 */
   .player-host.is-playing .tp-play,
@@ -2021,18 +2051,18 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
   .mini-player{
     left:0;right:0;top:auto;bottom:calc(56px + var(--safe-bottom, env(safe-area-inset-bottom)));
     transform:none;width:auto;max-width:none;height:56px;
-    padding:0 12px 0 10px;gap:10px;border-radius:0;
+    padding:0 8px;gap:4px;border-radius:0;
     background:color-mix(in srgb,var(--white) 94%,transparent);border:0;
     box-shadow:0 -10px 26px color-mix(in srgb,var(--forest) 8%,transparent);
     backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);
     overflow:hidden;animation:dock-in .28s var(--ease) both;
   }
-  .mini-open{flex:1;gap:10px}
-  .mini-cover{width:38px;height:38px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+  .mini-open{flex:1;gap:8px}
+  .mini-cover{width:36px;height:36px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
   .mini-cover b{font-size:14px}
   .mini-meta strong{font-size:13px;font-weight:700;max-width:none}
   .mini-meta small{display:block;font-size:10px}
-  .mini-play{width:32px;height:32px;background:color-mix(in srgb,var(--forest) 12%,transparent)}
+  .mini-play{width:34px;height:34px;background:color-mix(in srgb,var(--forest) 12%,transparent)}
   .mini-play .icon{width:20px;height:20px}
   .mini-queue{display:grid}
   .mini-progress{left:0;right:0;bottom:0;height:2px;background:color-mix(in srgb,var(--ink) 10%,transparent)}
@@ -2207,3 +2237,5 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
   /* 进度区整体稍微上移：收紧黑胶下方空隙 */
   body.player-open .np-art{padding-bottom:8px}
 }
+/* 悬浮歌词只在手机端播放条上方展示，电脑端隐藏 */
+@media(min-width:681px){.np-float{display:none}}
