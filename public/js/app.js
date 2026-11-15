@@ -1675,6 +1675,12 @@
     event.stopPropagation();
     setQueueOpen(queuePanel.hidden);
   });
+  // 播放条上除播放、播放清单以外的区域，点了都进入播放页
+  miniPlayer.addEventListener('click', event => {
+    if (event.target.closest('#mini-play, #mini-queue, #mini-open')) return;
+    if (current) expand();
+    else playFirstSong();
+  });
   function setMobileMenuOpen(open) {
     document.body.classList.toggle('nav-open', open);
     const button = document.getElementById('mobile-menu');

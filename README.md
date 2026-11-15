@@ -6,7 +6,22 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://weimomusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.22（当前版本）
+### v1.2.23（当前版本）
+
+- 去掉全屏播放页进度/音质区域的黑色暗带：原先铺了一层深色毛玻璃底板，现在改为只靠文字投影保证对比，整块背景恢复干净。
+- 播放页底部四个快捷入口只保留图标，不再显示文字，图标放大并与底部 tab 等宽对齐。
+- 首页迷你播放条背景改回浅色，并与底部导航栏同色、贴齐无间隙，形成一整块底栏，不再有色差和悬浮感。
+- 迷你播放条交互调整：点播放按钮保持当前页面，点播放清单按钮只打开清单，点其余任意区域进入播放页。
+
+| 系统 | 下载 |
+| --- | --- |
+| Android（arm64-v8a） | [未末音乐-1.2.23-android-arm64-v8a.apk](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.23/-1.2.23-android-arm64-v8a.apk) |
+| iPhone / iPad（PWA） | [未末音乐-1.2.23-iphone.zip](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.23/-1.2.23-iphone.zip) |
+| macOS（Apple 芯片） | [未末音乐-1.2.23-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.23/-1.2.23-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.23-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.23/-1.2.23-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.23-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.23/-1.2.23-windows-x64.exe) |
+
+### v1.2.22
 
 - 修复播放页底部「首页 / 搜索 / 歌单 / 我的音乐」点击无反应：之前跳转后全屏播放页仍盖在页面之上，现在点击会先收起播放页再跳转，四个入口均可用。
 - 排行榜榜首行的 NEW 走势徽标与播放三角，已与下方每行严格同列（数字、NEW、三角三列对齐）。

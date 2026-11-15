@@ -879,7 +879,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
     height:calc(56px + var(--safe-bottom, env(safe-area-inset-bottom)));
     padding-bottom:var(--safe-bottom, env(safe-area-inset-bottom));
     background:color-mix(in srgb,var(--white) 94%,transparent);
-    border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent);
+    border-top:0;
     backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);
   }
   .mobile-tabbar a{
@@ -904,18 +904,19 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   /* 播放条：沉在 TabBar 上方，打开 App 就能看到从哪里开始播放 */
   .vinyl-toggle{display:none!important}
   .mini-player{
-    position:fixed;left:12px;right:12px;bottom:calc(56px + var(--safe-bottom, env(safe-area-inset-bottom)) + 9px);z-index:52;
-    display:flex;align-items:center;gap:10px;height:56px;padding:0 10px 0 7px;
-    border-radius:16px;background:rgba(18,38,33,.94);color:#fff;
-    border:1px solid rgba(255,255,255,.1);
-    box-shadow:0 16px 38px rgba(6,18,15,.3);
-    backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);
+    position:fixed;left:0;right:0;bottom:calc(56px + var(--safe-bottom, env(safe-area-inset-bottom)));z-index:52;
+    display:flex;align-items:center;gap:10px;height:56px;padding:0 12px 0 10px;
+    border-radius:0;background:color-mix(in srgb,var(--white) 94%,transparent);color:var(--ink);
+    border:0;
+    box-shadow:0 -10px 26px color-mix(in srgb,var(--forest) 8%,transparent);
+    backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);
     overflow:hidden;animation:dock-in .28s var(--ease) both;
   }
   .mini-player[hidden]{display:none}
   @keyframes dock-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-  [data-theme="glass"] .mini-player{background:rgba(20,22,28,.92);border-color:rgba(255,255,255,.18)}
-  .mini-open{display:flex;align-items:center;gap:10px;flex:1;min-width:0;border:0;background:transparent;padding:0;color:#fff;text-align:left}
+  [data-theme="dark"] .mini-player{background:rgba(18,32,28,.94);box-shadow:0 -10px 26px rgba(0,0,0,.28)}
+  [data-theme="glass"] .mini-player{background:rgba(255,255,255,.55);box-shadow:0 -10px 26px rgba(20,60,50,.08)}
+  .mini-open{display:flex;align-items:center;gap:10px;flex:1;min-width:0;border:0;background:transparent;padding:0;color:var(--ink);text-align:left}
   .mini-cover{
     position:relative;display:grid;place-items:center;width:38px;height:38px;flex:none;border-radius:50%;overflow:hidden;
     background:linear-gradient(145deg,hsl(var(--hue,160) 52% 64%),hsl(var(--hue,160) 46% 38%));
@@ -924,15 +925,22 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   .mini-cover:before{content:'';position:absolute;inset:0;background:repeating-radial-gradient(circle,transparent 0 4px,rgba(255,255,255,.12) 5px,transparent 6px 8px)}
   .mini-cover b{position:relative;z-index:1;color:#fff;font-size:14px;font-weight:800}
   .mini-meta{display:flex;flex-direction:column;min-width:0;line-height:1.25}
-  .mini-meta strong{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff}
-  .mini-meta small{font-size:10px;color:rgba(255,255,255,.62);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .mini-play,.mini-queue{display:grid;place-items:center;width:32px;height:32px;flex:none;border:0;border-radius:50%;background:transparent;color:#fff;padding:0}
-  .mini-play{background:rgba(255,255,255,.12)}
+  .mini-meta strong{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
+  .mini-meta small{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mini-play,.mini-queue{display:grid;place-items:center;width:32px;height:32px;flex:none;border:0;border-radius:50%;background:transparent;color:var(--forest);padding:0}
+  .mini-play{background:color-mix(in srgb,var(--forest) 12%,transparent)}
   .mini-play .icon{width:20px;height:20px}
   .mini-queue .icon{width:18px;height:18px}
   .mini-play .tp-icon,.tp-icon{display:grid;place-items:center;line-height:0}
-  .mini-progress{position:absolute;left:16px;right:16px;bottom:2px;height:2px;border-radius:2px;background:rgba(255,255,255,.16);overflow:hidden}
-  .mini-progress i{display:block;height:100%;width:0;background:#8fe3c1;border-radius:2px;transition:width .2s linear;box-shadow:0 0 8px rgba(143,227,193,.6)}
+  .mini-progress{position:absolute;left:0;right:0;bottom:0;height:2px;border-radius:0;background:color-mix(in srgb,var(--ink) 10%,transparent);overflow:hidden}
+  .mini-progress i{display:block;height:100%;width:0;background:var(--forest);border-radius:0;transition:width .2s linear;box-shadow:0 0 8px color-mix(in srgb,var(--forest) 45%,transparent)}
+  [data-theme="dark"] .mini-meta strong{color:#fff}
+  [data-theme="dark"] .mini-meta small{color:rgba(255,255,255,.62)}
+  [data-theme="dark"] .mini-open{color:#fff}
+  [data-theme="dark"] .mini-play,[data-theme="dark"] .mini-queue{color:#fff}
+  [data-theme="dark"] .mini-play{background:rgba(255,255,255,.14)}
+  [data-theme="dark"] .mini-progress{background:rgba(255,255,255,.16)}
+  [data-theme="dark"] .mini-progress i{background:#8fe3c1;box-shadow:0 0 8px rgba(143,227,193,.6)}
 
   /* 播放/暂停图标切换 */
   .player-host.is-playing .tp-play,
@@ -1565,7 +1573,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
 [data-theme="glass"] .subnav a.active{color:#0f3a31;background:rgba(255,255,255,.62)}
 @media(max-width:680px){
   [data-theme="glass"] .mobile-tabbar{background:rgba(255,255,255,.46);border-top-color:rgba(255,255,255,.62);backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%)}
-  [data-theme="glass"] .mini-player{background:rgba(16,24,28,.86);border-color:rgba(255,255,255,.16);backdrop-filter:blur(26px) saturate(170%);-webkit-backdrop-filter:blur(26px) saturate(170%);box-shadow:0 16px 38px rgba(6,18,15,.34)}
+  [data-theme="glass"] .mini-player{background:rgba(255,255,255,.55);box-shadow:0 -10px 26px rgba(20,60,50,.08);backdrop-filter:blur(26px) saturate(170%);-webkit-backdrop-filter:blur(26px) saturate(170%)}
 }
 
 /* ==================== 2026 视觉精修：皮肤调色 / 播放栏协同 / 播放清单 / 局部加载 ==================== */
@@ -2011,25 +2019,25 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
 @media(max-width:680px){
   /* 播放条：打开 App 时常驻底部，沉在 TabBar 上方；离开 App 后由系统通知栏接管顶部 */
   .mini-player{
-    left:12px;right:12px;top:auto;bottom:calc(56px + var(--safe-bottom, env(safe-area-inset-bottom)) + 9px);
+    left:0;right:0;top:auto;bottom:calc(56px + var(--safe-bottom, env(safe-area-inset-bottom)));
     transform:none;width:auto;max-width:none;height:56px;
-    padding:0 10px 0 7px;gap:10px;border-radius:16px;
-    background:rgba(18,38,33,.94);border:1px solid rgba(255,255,255,.1);
-    box-shadow:0 16px 38px rgba(6,18,15,.3);
-    backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);
+    padding:0 12px 0 10px;gap:10px;border-radius:0;
+    background:color-mix(in srgb,var(--white) 94%,transparent);border:0;
+    box-shadow:0 -10px 26px color-mix(in srgb,var(--forest) 8%,transparent);
+    backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);
     overflow:hidden;animation:dock-in .28s var(--ease) both;
   }
   .mini-open{flex:1;gap:10px}
-  .mini-cover{width:38px;height:38px;box-shadow:0 2px 8px rgba(0,0,0,.28)}
+  .mini-cover{width:38px;height:38px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
   .mini-cover b{font-size:14px}
   .mini-meta strong{font-size:13px;font-weight:700;max-width:none}
   .mini-meta small{display:block;font-size:10px}
-  .mini-play{width:32px;height:32px;background:rgba(255,255,255,.12)}
+  .mini-play{width:32px;height:32px;background:color-mix(in srgb,var(--forest) 12%,transparent)}
   .mini-play .icon{width:20px;height:20px}
   .mini-queue{display:grid}
-  .mini-progress{left:16px;right:16px;bottom:2px;height:2px;background:rgba(255,255,255,.16)}
-  .mini-progress i{background:#8fe3c1;box-shadow:0 0 8px rgba(143,227,193,.6);transition:width .2s linear}
-  .mini-player.is-idle .mini-meta strong{max-width:none;color:#fff;font-weight:700}
+  .mini-progress{left:0;right:0;bottom:0;height:2px;background:color-mix(in srgb,var(--ink) 10%,transparent)}
+  .mini-progress i{background:var(--forest);box-shadow:0 0 8px color-mix(in srgb,var(--forest) 45%,transparent);transition:width .2s linear}
+  .mini-player.is-idle .mini-meta strong{max-width:none;color:var(--ink);font-weight:700}
   body.player-open .queue-panel{padding-bottom:calc(14px + var(--safe-bottom, env(safe-area-inset-bottom)))}
 
   /* 全屏播放页：去掉头尾多余的留白，歌词区吃满可用高度 */
@@ -2169,15 +2177,9 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
   /* 渐变背景本身够深，遮罩减淡，避免底部压成一片死黑 */
   body.player-open .np-veil{background:linear-gradient(180deg,rgba(6,10,14,.04) 0%,rgba(6,10,14,.1) 38%,rgba(6,10,14,.52) 100%)}
   /* 进度时间与音质标签：提亮、加粗、加深色投影，毛玻璃/亮色封面下也清晰 */
-  /* 进度/歌词区加一层深色毛玻璃底，保证任何背景、任一皮肤下文字都有对比 */
+  /* 进度/歌词区不再压深色底板，避免出现一条突兀的暗带；只靠文字投影保证可读 */
   body.player-open .player-host.is-expanded .player-center{
-    position:relative;isolation:isolate;padding:10px 14px 8px;border-radius:20px;
-  }
-  body.player-open .player-host.is-expanded .player-center:before{
-    content:'';position:absolute;inset:-2px -10px;z-index:-1;border-radius:22px;
-    background:rgba(8,13,12,.45);
-    backdrop-filter:blur(20px) saturate(1.1);-webkit-backdrop-filter:blur(20px) saturate(1.1);
-    box-shadow:0 10px 30px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.06);
+    padding:10px 14px 8px;
   }
   body.player-open .player-host.is-expanded .player-timeline{color:rgba(255,255,255,.92);gap:9px 10px}
   body.player-open .player-host.is-expanded .player-timeline>span{
@@ -2189,18 +2191,19 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
     text-shadow:0 1px 4px rgba(0,0,0,.6);
   }
   body.player-open .player-host.is-expanded .player-timeline input[type="range"]{height:4px}
-  /* 底部快捷入口：与首页底部 tab 一样等宽分列、图标在上文字在下 */
+  /* 底部快捷入口：只留图标，等宽分列，与首页底部 tab 的节奏一致 */
   body.player-open .np-links{
-    display:flex;align-items:stretch;justify-content:space-between;
-    flex:none;padding:8px 6px 3px;gap:2px;
+    display:flex;align-items:center;justify-content:space-between;
+    flex:none;padding:6px 6px 2px;gap:2px;
   }
   body.player-open .np-links a{
-    flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;
-    padding:4px 0;border-radius:12px;
-    color:rgba(255,255,255,.6);font-size:10px;font-weight:600;letter-spacing:.02em;
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:6px 0;border-radius:12px;
+    color:rgba(255,255,255,.66);
   }
   body.player-open .np-links a:active{background:rgba(255,255,255,.1);color:#fff}
-  body.player-open .np-links .icon{width:21px;height:21px;stroke-width:1.7}
+  body.player-open .np-links a span{display:none}
+  body.player-open .np-links .icon{width:23px;height:23px;stroke-width:1.7}
   /* 进度区整体稍微上移：收紧黑胶下方空隙 */
   body.player-open .np-art{padding-bottom:8px}
 }
