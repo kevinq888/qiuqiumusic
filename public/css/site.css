@@ -916,7 +916,9 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   @keyframes dock-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
   [data-theme="dark"] .mini-player{background:rgba(18,32,28,.94);box-shadow:0 -10px 26px rgba(0,0,0,.28)}
   [data-theme="glass"] .mini-player{background:rgba(255,255,255,.55);box-shadow:0 -10px 26px rgba(20,60,50,.08)}
-  .mini-open{display:flex;align-items:center;gap:8px;flex:1;min-width:0;border:0;background:transparent;padding:0;color:var(--ink);text-align:left}
+  .mini-open{display:flex;align-items:center;gap:8px;flex:1 1 40%;max-width:44%;min-width:0;border:0;background:transparent;padding:0;color:var(--ink);text-align:left}
+  /* 播放条右侧五个控件与播放页一致：播放模式 / 上一首 / 播放暂停 / 下一首 / 播放清单，均匀铺开 */
+  .mini-controls{display:flex;align-items:center;justify-content:space-between;flex:1 1 60%;min-width:0;padding-left:2px}
   .mini-cover{
     position:relative;display:grid;place-items:center;width:38px;height:38px;flex:none;border-radius:50%;overflow:hidden;
     background:linear-gradient(145deg,hsl(var(--hue,160) 52% 64%),hsl(var(--hue,160) 46% 38%));
@@ -928,8 +930,13 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   .mini-meta strong{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
   .mini-meta small{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .mini-skip,.mini-play,.mini-queue{display:grid;place-items:center;width:32px;height:32px;flex:none;border:0;border-radius:50%;background:transparent;color:var(--forest);padding:0;position:relative}
+  .mini-mode{display:grid;place-items:center;width:30px;height:32px;flex:none;border:0;border-radius:50%;background:transparent;color:var(--forest);padding:0;position:relative}
+  .mini-mode .mode-icon{display:none;position:relative;width:18px;height:18px}
+  .mini-mode .mode-icon .icon{width:18px;height:18px}
+  .mini-mode[data-mode="sequence"] .mode-sequence,.mini-mode[data-mode="repeat-all"] .mode-repeat,.mini-mode[data-mode="repeat-one"] .mode-one{display:inline-flex}
+  .mini-mode:active{background:color-mix(in srgb,var(--forest) 10%,transparent)}
   /* 32px 圆形按钮在 56px 高的播放条里上下补足触摸热区，不改变视觉尺寸 */
-  .mini-skip:after{content:'';position:absolute;left:0;right:0;top:-12px;bottom:-12px}
+  .mini-skip:after,.mini-mode:after{content:'';position:absolute;left:0;right:0;top:-12px;bottom:-12px}
   .mini-play{width:34px;height:34px;background:color-mix(in srgb,var(--forest) 12%,transparent)}
   .mini-play .icon{width:20px;height:20px}
   .mini-skip .icon{width:18px;height:18px}
@@ -942,7 +949,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   [data-theme="dark"] .mini-meta strong{color:#fff}
   [data-theme="dark"] .mini-meta small{color:rgba(255,255,255,.62)}
   [data-theme="dark"] .mini-open{color:#fff}
-  [data-theme="dark"] .mini-play,[data-theme="dark"] .mini-queue,[data-theme="dark"] .mini-skip{color:#fff}
+  [data-theme="dark"] .mini-play,[data-theme="dark"] .mini-queue,[data-theme="dark"] .mini-skip,[data-theme="dark"] .mini-mode{color:#fff}
   [data-theme="dark"] .mini-skip:active{background:rgba(255,255,255,.1)}
   [data-theme="dark"] .mini-play{background:rgba(255,255,255,.14)}
   [data-theme="dark"] .mini-progress{background:rgba(255,255,255,.16)}
@@ -2057,7 +2064,7 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
     backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);
     overflow:hidden;animation:dock-in .28s var(--ease) both;
   }
-  .mini-open{flex:1;gap:8px}
+  .mini-open{flex:1 1 40%;max-width:44%;gap:8px}
   .mini-cover{width:36px;height:36px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
   .mini-cover b{font-size:14px}
   .mini-meta strong{font-size:13px;font-weight:700;max-width:none}

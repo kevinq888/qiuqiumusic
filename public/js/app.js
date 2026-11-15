@@ -300,10 +300,13 @@
     themeReturnFocus = null;
   }
   function updateModeButton() {
-    const button = document.getElementById('player-mode');
-    button.dataset.mode = playMode;
-    button.setAttribute('aria-label', `播放模式：${PLAY_MODE_NAMES[playMode]}，点击切换`);
-    button.querySelector('.mode-label').textContent = PLAY_MODE_NAMES[playMode];
+    const buttons = [document.getElementById('player-mode'), document.getElementById('mini-mode')].filter(Boolean);
+    for (const button of buttons) {
+      button.dataset.mode = playMode;
+      button.setAttribute('aria-label', `播放模式：${PLAY_MODE_NAMES[playMode]}，点击切换`);
+      const label = button.querySelector('.mode-label');
+      if (label) label.textContent = PLAY_MODE_NAMES[playMode];
+    }
     const queueLabel = document.getElementById('queue-mode-label');
     if (queueLabel) queueLabel.textContent = PLAY_MODE_NAMES[playMode];
   }
@@ -1629,6 +1632,7 @@
   document.getElementById('mini-prev').addEventListener('click', () => playbackCommand('prev'));
   document.getElementById('mini-next').addEventListener('click', () => playbackCommand('next'));
   document.getElementById('player-mode').addEventListener('click', () => setPlayMode(PLAY_MODES[(PLAY_MODES.indexOf(playMode) + 1) % PLAY_MODES.length]));
+  document.getElementById('mini-mode').addEventListener('click', () => setPlayMode(PLAY_MODES[(PLAY_MODES.indexOf(playMode) + 1) % PLAY_MODES.length]));
   document.getElementById('player-play-pause').addEventListener('click', () => playbackCommand('toggle'));
   seek.addEventListener('input', () => {
     if (owner !== tabId || !Number.isFinite(audio.duration)) return;
@@ -1704,7 +1708,7 @@
   });
   // 播放条上除播放、播放清单以外的区域，点了都进入播放页
   miniPlayer.addEventListener('click', event => {
-    if (event.target.closest('#mini-play, #mini-queue, #mini-open, #mini-prev, #mini-next')) return;
+    if (event.target.closest('#mini-play, #mini-queue, #mini-open, #mini-prev, #mini-next, #mini-mode')) return;
     if (current) expand();
     else playFirstSong();
   });

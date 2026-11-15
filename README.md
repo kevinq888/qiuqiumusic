@@ -6,7 +6,20 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://weimomusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.24（当前版本）
+### v1.2.25（当前版本）
+
+- 迷你播放条与播放页控件对齐：播放模式 / 上一首 / 播放暂停 / 下一首 / 播放清单五个按钮全部收进播放条，均匀铺满右侧，不再挤在角落留大片空白；切歌、切模式都不跳出当前页面。
+- 手机端播放条上方保留透明悬浮歌词（上一句 / 当前句 / 下一句，当前句高亮），不拦截点击，进入播放页或打开播放清单时自动隐藏。
+
+| 系统 | 下载 |
+| --- | --- |
+| Android（arm64-v8a） | [未末音乐-1.2.25-android-arm64-v8a.apk](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.25/-1.2.25-android-arm64-v8a.apk) |
+| iPhone / iPad（PWA） | [未末音乐-1.2.25-iphone.zip](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.25/-1.2.25-iphone.zip) |
+| macOS（Apple 芯片） | [未末音乐-1.2.25-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.25/-1.2.25-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.25-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.25/-1.2.25-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.25-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.25/-1.2.25-windows-x64.exe) |
+
+### v1.2.24
 
 - 手机端迷你播放条补齐「上一首 / 播放暂停 / 下一首」：与歌名、播放清单共处一条，五个控件在 360px 窄屏下也不溢出；切歌不跳出播放页。
 - 迷你播放条上方新增透明悬浮歌词：显示上一句、当前句、下一句，当前句加粗高亮并随播放实时推进；歌词层不拦截点击，不遮挡任何按钮；进入播放页或打开播放清单时自动隐藏。
