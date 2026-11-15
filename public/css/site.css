@@ -435,9 +435,6 @@ body.theme-sheet-open{overflow:hidden}
   .header-actions .theme-picker select{max-width:55px;font-size:11px}
   .install-button{padding:0 7px}
   .nav-shell{padding-right:16px}
-  .brand{gap:7px;white-space:nowrap}
-  .brand img{width:38px;height:38px}
-  .brand strong{font-size:16px;letter-spacing:0}
 }
 @media(max-width:680px){
   .hero-copy{padding:22px 20px 19px}
@@ -842,10 +839,9 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
     background:transparent;color:var(--ink);padding:0;
   }
   .mobile-menu .icon{width:20px;height:20px}
-  .brand{gap:7px;flex:none;color:var(--ink)}
-  .brand img{width:30px;height:30px;border-radius:8px;box-shadow:none}
-  .brand strong{font-size:15px;color:var(--ink);letter-spacing:0}
-  .brand small{display:none}
+  .brand{gap:0;flex:none;color:var(--ink);padding:0;background:transparent;border-radius:0;box-shadow:none}
+  .brand img{width:32px;height:32px;border-radius:10px;box-shadow:none}
+  .brand span{display:none}
   .mobile-search{
     display:flex;align-items:center;gap:7px;flex:1;min-width:0;height:34px;padding:0 8px 0 11px;
     border-radius:999px;background:var(--subtle);border:1px solid var(--line);color:var(--muted);
@@ -853,7 +849,6 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   }
   .mobile-search span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-weight:600}
   .mobile-search .icon{width:15px;height:15px}
-  .mobile-search .icon:last-child{color:var(--muted);opacity:.6}
   .main-nav{
     display:none;position:absolute;left:0;right:0;top:100%;z-index:6;
     flex-wrap:wrap;gap:4px;padding:10px 12px 13px;background:var(--white);
@@ -896,10 +891,6 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   .main-content{padding-top:14px;padding-bottom:152px}
   .site-footer{display:none}
   .nav-shell{padding-left:12px;padding-right:12px}
-  /* 品牌字在浅色、深色或图片背景上都要清晰：手机端用深绿胶囊托白字 */
-  .brand{flex:none;padding:3px 10px 3px 5px;border-radius:999px;background:rgba(16,54,45,.92);box-shadow:0 4px 14px rgba(10,35,29,.18)}
-  .brand strong{color:#fff;font-size:15px}
-  .brand small{color:rgba(255,255,255,.58)}
 
   /* 播放条：沉在 TabBar 上方，打开 App 就能看到从哪里开始播放 */
   .vinyl-toggle{display:none!important}
@@ -1304,7 +1295,6 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   body.queue-open .mobile-tabbar{opacity:0;pointer-events:none}
 }
 @media(max-width:380px){
-  .brand strong{display:none}
   .mobile-search{padding-left:9px}
   .parse-entry{}
 }
@@ -2112,28 +2102,41 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
 .player-host.is-expanded .queue-items .personal-song.is-current{background:transparent;box-shadow:inset 2px 0 0 var(--forest);border-radius:0;padding-left:8px}
 .queue-items .personal-song.is-current .cache-meter{display:none}
 
-/* ---------- 我的页「应用更新」：只在手机端出现，桌面端继续用顶栏更新按钮 ---------- */
-.settings-panel{display:none}
-@media(max-width:768px){
-  .settings-panel{display:block;margin-top:18px;padding:16px 14px}
-  .settings-panel .panel-heading{margin-bottom:12px}
-  .settings-list{display:flex;flex-direction:column;gap:10px}
-  .settings-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px 12px;width:100%;padding:13px 14px;border-radius:14px;background:var(--subtle);border:1px solid var(--line);text-align:left;font:inherit;color:inherit;overflow:hidden}
-  .settings-action{cursor:pointer;transition:transform .16s var(--ease)}
-  .settings-action:active{transform:scale(.99)}
-  .settings-label{display:flex;flex-direction:column;gap:2px;min-width:0}
-  .settings-label>span{font-size:14px;font-weight:700}
-  .settings-label small{font-size:11px;line-height:1.45;color:var(--muted)}
-  .settings-version{font-size:14px;font-weight:800;color:var(--forest);white-space:nowrap}
-  .settings-value{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--forest);white-space:nowrap}
-  .settings-value .icon{width:15px;height:15px}
-  .settings-action[data-busy="true"] .settings-value{opacity:.75}
-  .settings-action[data-status="error"] .settings-value{color:#d94b3d}
-  .settings-note{margin:11px 2px 0;font-size:11px;line-height:1.6;color:var(--muted)}
-  .update-progress{grid-column:1/-1;display:block;height:4px;margin-top:4px;border-radius:99px;background:color-mix(in srgb,var(--forest) 14%,transparent);overflow:hidden}
-  .update-progress[hidden]{display:none}
-  .update-progress i{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--forest),#8fe3c1);transition:width .25s linear}
+/* ---------- 顶栏「检查更新」：手机 / 平板显示；发现新版本时切到下载图标并点亮徽标 ---------- */
+.update-button{display:none}
+@media(max-width:1000px){
+  .update-button{
+    position:relative;display:none;place-items:center;width:32px;height:32px;flex:none;padding:0;
+    border:1px solid var(--line);border-radius:50%;background:var(--subtle);color:var(--forest);
+  }
+  .update-button[data-enabled]{display:grid}
+  .update-button:active{background:var(--mint)}
+  .update-button .icon{width:17px;height:17px}
+  .update-button .update-icon{display:grid;place-items:center}
+  .update-button .update-icon-download{display:none}
+  .update-button[data-state="available"] .update-icon-refresh,
+  .update-button[data-state="downloading"] .update-icon-refresh,
+  .update-button[data-state="ready"] .update-icon-refresh{display:none}
+  .update-button[data-state="available"] .update-icon-download,
+  .update-button[data-state="downloading"] .update-icon-download,
+  .update-button[data-state="ready"] .update-icon-download{display:grid}
+  .update-button[data-state="checking"] .update-icon-refresh .icon{animation:update-spin .9s linear infinite}
+  .update-badge{
+    position:absolute;top:1px;right:1px;display:none;width:8px;height:8px;border-radius:50%;
+    background:var(--forest);box-shadow:0 0 0 2px var(--white);
+  }
+  .update-button[data-state="available"] .update-badge,
+  .update-button[data-state="downloading"] .update-badge{display:block;background:var(--orange);animation:update-pulse 1.8s ease-in-out infinite}
+  .update-button[data-state="ready"] .update-badge{display:block}
 }
+/* 平板与横屏手机的顶栏是深色的，按钮跟着换成浅色描边 */
+@media(min-width:681px) and (max-width:1000px){
+  .update-button{width:34px;height:34px;border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff}
+  .update-button:active{background:rgba(255,255,255,.2)}
+  .update-badge{box-shadow:0 0 0 2px #1b1a21}
+}
+@keyframes update-spin{to{transform:rotate(360deg)}}
+@keyframes update-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.82)}}
 
 /* ---------- 手机端全屏：顶栏/底栏铺到系统栏后面，内容留在安全区内 ---------- */
 @media(max-width:680px){
@@ -2147,12 +2150,6 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
     padding-bottom:var(--safe-bottom, env(safe-area-inset-bottom));
   }
   .main-content{padding-bottom:calc(152px + var(--safe-bottom, env(safe-area-inset-bottom)))}
-  /* 品牌胶囊：不透明深绿底 + 纯白字，任何皮肤/系统深色模式下都保持清晰 */
-  .brand{background:#0b3a31;color:#fff}
-  .brand strong,
-  [data-theme="glass"] .brand strong{
-    color:#fff;-webkit-text-fill-color:#fff;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.35);
-  }
   /* 歌词：提高未唱部分的亮度并加暗影，避免白字压在毛玻璃/亮色封面上看不清 */
   .np-lyrics-line{color:rgba(255,255,255,.62);text-shadow:0 1px 4px rgba(0,0,0,.55)}
   .np-lyrics-line.is-active{
