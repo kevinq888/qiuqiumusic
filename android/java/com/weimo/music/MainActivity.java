@@ -58,11 +58,13 @@ public class MainActivity extends Activity {
     private boolean booted;
     private boolean ready;
     private boolean pageReady;
+    private boolean resumedOnce;
     private int activePort = PORT;
     private int reloads;
     private int variant;
     private int probeRound;
     private String shownLog = "";
+    private static MainActivity current;
 
     /** 绑定 :node 进程，它一旦崩溃能立刻显示日志，而不是干等超时。 */
     private final ServiceConnection nodeConnection = new NodeConnection(this);
@@ -127,9 +129,64 @@ public class MainActivity extends Activity {
                 "text/html", "utf-8", null);
     }
 
+    /** 从后台回到前台：如果还停在启动页/空白页，直接重新探测服务并加载首页。 */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!resumedOnce) {
+            resumedOnce = true;
+            return;
+        }
+        if (web == null) return;
+        ui.postDelayed(() -> {
+            if (web == null || isFinishing()) return;
+            String url = web.getUrl();
+            if (url == null || !url.startsWith("http://127.0.0.1:")) {
+                // 暂停后重开仍停在启动页：重新走一遍服务探测，绝不把空白页留给用户
+                BootLog.append("run: resume on blank page, restart boot");
+                pageReady = false;
+                ready = false;
+                if (!booted) boot();
+                else probe(0);
+                return;
+            }
+            // 页面还在，但系统恢复后可能是空白的，主动校验一次
+            onPageRendered(url);
+        }, 350);
+    }
+
+    /** WebView 渲染进程被系统回收：重建并立刻显示品牌启动页，避免白屏。 */
+    void onRenderGone() {
+        if (isFinishing() || isDestroyed()) return;
+        BootLog.append("run: webview render process gone, rebuild");
+        pageReady = false;
+        ready = false;
+        web = null;
+        if (playback != null) {
+            playback.release();
+            playback = null;
+        }
+        buildUi(false);
+        showSplash();
+        startNodeService();
+        probe(0);
+    }
+
+    /** 通知卡片被左右滑掉时调用：确认页面暂停后结束任务，并杀干净进程。 */
+    static void finishForExit() {
+        MainActivity host = current;
+        if (host == null) return;
+        try {
+            host.finishAndRemoveTask();
+        } catch (Throwable ignored) {
+            host.finish();
+        }
+    }
+
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
+        current = this;
         BootLog.init(getFilesDir());
         BootLog.append("run: activity created");
 
@@ -342,6 +399,7 @@ public class MainActivity extends Activity {
         if (ok) {
             if (!pageReady) {
                 pageReady = true;
+                resumedOnce = true;
                 // 启动阶段的空白页/日志页会留在 WebView 历史里，左滑返回会退到白屏；
                 // 页面就绪后清一次历史，返回键从首页直接退出应用，不会再出现空白页。
                 if (web != null) web.clearHistory();
@@ -351,7 +409,14 @@ public class MainActivity extends Activity {
             }
             return;
         }
-        if (pageReady) return;
+        if (pageReady) {
+            // 回到前台或系统恢复后页面变成空白：直接重载，不允许停在白屏
+            BootLog.append("run: page blank after restore, reload");
+            pageReady = false;
+            reloads = 0;
+            loadPage();
+            return;
+        }
         if (reloads >= 3) {
             BootLog.append("run: page stays blank");
             showLogPage("页面加载失败", BootLog.read());
@@ -418,6 +483,17 @@ public class MainActivity extends Activity {
             // API 23 以下只会回调这个版本，只处理首页主文档失败，避免封面等子资源误报
             if (failingUrl == null) return;
             if (failingUrl.split("\\?")[0].matches("http://127\\.0\\.0\\.1:\\d+/")) host.onPageError();
+        }
+
+        @Override
+        public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
+            // 渲染进程被系统回收时不要崩溃退出：重建 WebView 并重新加载
+            try {
+                view.destroy();
+            } catch (Throwable ignored) {
+            }
+            host.onRenderGone();
+            return true;
         }
     }
 
@@ -543,9 +619,20 @@ public class MainActivity extends Activity {
             if (fallback != null) fallback.setText("");
             return;
         }
-        // 启动阶段只铺一层与首页一致的底色，不再显示“正在启动服务”之类提示
+        // 启动阶段显示品牌页而不是纯色空白页：任何时候用户看到的都是“未末音乐”
         web.loadDataWithBaseURL(null,
-                "<html><body style='margin:0;height:100vh;background:#f1f8f5'></body></html>",
+                "<html><head><meta name='viewport' content='width=device-width,initial-scale=1'></head>"
+                        + "<body style='margin:0;height:100vh;display:flex;align-items:center;justify-content:center;"
+                        + "background:radial-gradient(120% 90% at 18% 8%,#e9f7f1 0%,#f1f8f5 58%,#e7f4ee 100%);"
+                        + "font-family:-apple-system,'PingFang SC','Noto Sans SC',sans-serif'>"
+                        + "<div style='display:flex;flex-direction:column;align-items:center;gap:14px'>"
+                        + "<div style='width:74px;height:74px;border-radius:22px;display:flex;align-items:center;"
+                        + "justify-content:center;background:linear-gradient(145deg,#33bda5,#167c75);"
+                        + "box-shadow:0 16px 34px rgba(22,124,117,.28)'>"
+                        + "<svg width='38' height='38' viewBox='0 0 24 24' fill='#fff'><path d='M9 18V6l10-2v12a3 3 0 1 1-2-2.83V8.4L11 10v8a3 3 0 1 1-2-2.83z'/></svg>"
+                        + "</div><div style='font-size:17px;font-weight:700;letter-spacing:.14em;color:#173c36'>未末音乐</div>"
+                        + "<div style='font-size:12px;letter-spacing:.06em;color:#8aa39c'>好音乐，马上就来</div></div>"
+                        + "</body></html>",
                 "text/html", "utf-8", null);
     }
 
@@ -787,6 +874,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (current == this) current = null;
         if (playback != null) {
             playback.release();
             playback = null;

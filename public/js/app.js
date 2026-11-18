@@ -226,24 +226,25 @@
     try {
       data = JSON.parse(localStorage.getItem(KEY) || '{}');
     } catch {}
-    queue = Array.isArray(data.queue) ? data.queue.filter(validSong).slice(0, 1000) : [];
-    favorites = Array.isArray(data.favorites) ? data.favorites.filter(validSong).slice(0, 1000) : [];
+    const normalize = list => (Array.isArray(list) ? list.filter(validSong).map(song => ({ ...song, id: String(song.id) })) : []);
+    queue = normalize(data.queue).slice(0, 1000);
+    favorites = normalize(data.favorites).slice(0, 1000);
     if (!restorePlayback) return;
     try { playback = JSON.parse(localStorage.getItem(LAST_PLAYBACK_KEY) || '{}'); } catch {}
     // Prefer the dedicated playback snapshot, but retain an older queue when
     // that snapshot was written by an empty/stale tab. Older app builds saved
     // the queue before they saved the current track, so its last item is the
     // best available migration candidate.
-    const playbackQueue = Array.isArray(playback.queue) ? playback.queue.filter(validSong) : [];
-    const legacyQueue = Array.isArray(data.queue) ? data.queue.filter(validSong) : [];
+    const playbackQueue = normalize(playback.queue);
+    const legacyQueue = normalize(data.queue);
     queue = playbackQueue.length ? playbackQueue.slice(0, 1000) : legacyQueue.slice(0, 1000);
-    const savedSong = validSong(playback.current) ? playback.current
-      : validSong(data.current) ? data.current
+    const savedSong = validSong(playback.current) ? { ...playback.current, id: String(playback.current.id) }
+      : validSong(data.current) ? { ...data.current, id: String(data.current.id) }
         : [...playbackQueue, ...legacyQueue].at(-1);
     if (!validSong(savedSong)) return;
     current = savedSong;
-    if (!queue.some(song => song.id === current.id)) queue.unshift(current);
-    const savedPosition = playback.current?.id === savedSong.id ? playback.position : data.position;
+    if (!queue.some(song => String(song.id) === String(current.id))) queue.unshift(current);
+    const savedPosition = String(playback.current?.id) === savedSong.id ? playback.position : data.position;
     owner = tabId;
     isPlaying = false;
     pendingRestorePosition = Number.isFinite(savedPosition) ? Math.max(0, savedPosition) : 0;
@@ -459,7 +460,7 @@
   }
   // 当前选中曲目必须仍在播放清单里（暂停也算），否则视为没有选中歌曲
   function queuedCurrent() {
-    return current && queue.some(song => song.id === current.id) ? current : null;
+    return current && queue.some(song => sameSong(song, current)) ? current : null;
   }
   // 清单里很多歌曲只存了标题/歌手，封面需要按「歌手|歌名」补查并缓存
   const coverCache = new Map();
@@ -515,7 +516,7 @@
     syncVinylCover(known);
     if (!song || known) return;
     ensureSongCover(song).then(url => {
-      if (!url || queuedCurrent()?.id !== song.id) return;
+      if (!url || !sameSong(queuedCurrent(), song)) return;
       // 补到的封面写回当前曲目，播放页/迷你条/首页黑胶一起更新
       current.cover = url;
       updatePlayer();
@@ -536,12 +537,17 @@
   ];
   let backdropSlot = 0;
   let backdropIndex = -1;
+  let backdropSongKey = '';
   function setPlayerBackdrop(song) {
     if (!npBackdrop) return;
     const layers = npBackdrop.children;
     if (!layers || layers.length < 2) return;
+    // 只有切歌才换背景色：同一首歌无论播放/暂停/收藏等状态刷新都不换色
+    const songKey = song ? String(song.id || song.title) : '';
+    if (song && songKey === backdropSongKey) return;
+    backdropSongKey = songKey;
     const index = song ? coverHue(song.id || song.title) % PLAYER_PALETTE.length : -1;
-    // 同一首歌不重复换色；换歌时取到相同色系就顺延一套，保证「一切换就换一种背景色」
+    // 换歌时取到相同色系就顺延一套，保证「一切换就换一种背景色」
     const next = index < 0 ? -1 : (index === backdropIndex ? (index + 1) % PLAYER_PALETTE.length : index);
     if (next === backdropIndex) return;
     backdropIndex = next;
@@ -560,12 +566,18 @@
     npBackdrop.classList.add('is-gradient');
     for (const item of layers) item.classList.toggle('is-active', item === layer);
   }
-  function contains(list, song) { return list.some(item => item.id === song.id); }
+  // 曲目 id 统一按字符串比较，避免数字/字符串混用导致收藏、移除失效
+  function sameSong(a, b) { return !!a && !!b && String(a.id) === String(b.id); }
+  function contains(list, song) { return list.some(item => sameSong(item, song)); }
   function setBulkButton(button, label, completed) {
     const text = button.querySelector('.add-all-text');
     if (text) text.textContent = label;
     else button.textContent = label;
     button.classList.toggle('completed', completed);
+  }
+  // 正在播放（非暂停）时加入歌单不打断当前播放；没有歌曲或已暂停时才自动播放
+  function shouldStartAfterAdd() {
+    return !current || !isPlaying || audio.paused;
   }
   function addToQueue(song, autoPlay = true) {
     if (!validSong(song)) return;
@@ -574,8 +586,7 @@
       save();
       scheduleCacheStatusRefresh();
     }
-    // 加入歌单后立刻播放这首（新加入的第一首），不用等用户切歌
-    if (autoPlay) playSong(song);
+    if (autoPlay && shouldStartAfterAdd()) playSong(song);
   }
   function addPageToQueue(button) {
     const rows = button.closest('.panel')?.querySelectorAll('.song-row [data-add-id]') || [];
@@ -591,7 +602,8 @@
     if (added) {
       save();
       scheduleCacheStatusRefresh();
-      playSong(firstAdded);
+      // 正在播放（非暂停）时只入列表，不切换当前播放
+      if (shouldStartAfterAdd()) playSong(firstAdded);
     }
     setBulkButton(button, added ? `已加入 ${added} 首` : '本页已加入', true);
   }
@@ -678,7 +690,8 @@
   }
   function toggleFavorite(song) {
     if (!validSong(song)) return;
-    favorites = contains(favorites, song) ? favorites.filter(item => item.id !== song.id) : [...favorites, song];
+    const favorite = { ...song, id: String(song.id) };
+    favorites = contains(favorites, favorite) ? favorites.filter(item => !sameSong(item, favorite)) : [...favorites, favorite];
     save();
   }
   function message(type, extra = {}) { channel?.postMessage({ type, tabId, ...extra }); }
@@ -989,7 +1002,7 @@
     if (!items) return null;
     let active = null;
     for (const row of items.querySelectorAll('.personal-song')) {
-      const on = !!current && row.dataset.songId === current.id;
+      const on = !!current && String(row.dataset.songId) === String(current.id);
       row.classList.toggle('is-current', on);
       if (on) { row.setAttribute('aria-current', 'true'); active = row; }
       else row.removeAttribute('aria-current');
@@ -1234,7 +1247,7 @@
   }
   function playSong(song, expandPanel = true) {
     if (!validSong(song)) return;
-    if (owner === tabId && current?.id === song.id) {
+    if (owner === tabId && sameSong(current, song)) {
       if (audio.paused) requestPlayback();
       else pausePlayback();
       if (expandPanel) expand();
@@ -1264,12 +1277,12 @@
       requestPlayback();
       return true;
     }
-    const index = queue.findIndex(song => song.id === current?.id);
+    const index = queue.findIndex(song => sameSong(song, current));
     const target = (index < 0 ? (step > 0 ? -1 : 0) : index) + step;
     const wrap = playMode === 'repeat-all' || (!automatic && playMode === 'repeat-one');
     if (!wrap && (target < 0 || target >= queue.length)) return false;
     const next = queue[(target + queue.length) % queue.length];
-    if (next.id === current?.id) {
+    if (sameSong(next, current)) {
       audio.currentTime = 0;
       requestPlayback();
     } else playSong(next, false);
@@ -1310,7 +1323,7 @@
   function listMarkup(items, kind, selecting = false) {
     if (!items.length) return `<p class="empty-personal">${kind === 'favorites' ? '还没有收藏歌曲，点击歌曲旁的爱心开始收藏。' : '播放清单还是空的，点击歌曲旁的加号添加。'}</p>`;
     return items.map((song, index) => {
-      const isCurrent = kind === 'queue' && !!current && current.id === song.id;
+      const isCurrent = kind === 'queue' && sameSong(current, song);
       const selected = selecting && queueSelected.has(song.id);
       const meter = kind === 'queue'
         ? `<span class="cache-meter" data-cache-title="${escapeHtml(song.title)}" data-cache-state="${cacheStateFor(song.title)}" role="img" aria-label="${cacheStateFor(song.title) === 'cached' ? '已缓存' : cacheStateFor(song.title) === 'downloading' ? '缓存中' : '待缓存'}"><i></i></span>`
@@ -1327,7 +1340,7 @@
   }
   function renderCollections() {
     document.querySelectorAll('[data-favorite-id]').forEach(button => {
-      const selected = favorites.some(song => song.id === button.dataset.favoriteId);
+      const selected = favorites.some(song => String(song.id) === String(button.dataset.favoriteId));
       button.classList.toggle('selected', selected);
       button.setAttribute('aria-pressed', String(selected));
     });
@@ -1342,7 +1355,7 @@
     if (trackCount) trackCount.textContent = String(queue.length);
     document.querySelectorAll('[data-add-page]').forEach(button => {
       const songs = [...(button.closest('.panel')?.querySelectorAll('.song-row [data-add-id]') || [])];
-      const allAdded = songs.length > 0 && songs.every(row => queue.some(song => song.id === row.dataset.addId));
+      const allAdded = songs.length > 0 && songs.every(row => queue.some(song => String(song.id) === String(row.dataset.addId)));
       setBulkButton(button, allAdded ? '本页已加入' : '一键加入歌单', allAdded);
     });
     updatePlayer();
@@ -1496,7 +1509,7 @@
       if (row) { event.preventDefault(); toggleQueueSelection(row.dataset.songId); return; }
     }
     const remove = event.target.closest('[data-remove-id]');
-    if (remove) { event.preventDefault(); queue = queue.filter(song => song.id !== remove.dataset.removeId); save(); return; }
+    if (remove) { event.preventDefault(); queue = queue.filter(song => String(song.id) !== String(remove.dataset.removeId)); save(); return; }
     const trigger = event.target.closest('[data-play-id]');
     if (trigger) { event.preventDefault(); playSong(songFrom(trigger, 'playId', 'playTitle')); return; }
     const link = event.target.closest('a[href]');

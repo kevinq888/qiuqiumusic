@@ -6,7 +6,25 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://weimomusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.27（当前版本）
+### v1.2.28（当前版本）
+
+- 手机端启动不再出现空白页：启动阶段显示「未末音乐」品牌页；从后台恢复、渲染进程被回收或页面变空白时自动重建并重新加载。
+- 通知栏播放卡片支持左右滑动关闭：滑掉即暂停播放、退出应用并结束主进程与内置 Node 进程。
+- 播放页背景色只在切换上一首/下一首时变化，暂停、收藏、切模式等操作不再换色。
+- 修正爱心收藏：点击后歌曲立即进入「我的收藏」，再次点击或点列表里的 × 即可移除。
+- 迷你播放条只保留播放模式/上一首/播放暂停/下一首/播放清单五个控件，不再显示封面和歌名；底部用 3px 进度细线作为与导航栏的分隔。
+- 正在播放时，任何「加入歌单」都不会打断当前进度；没有歌曲或处于暂停时才自动播放新加入的第一首。
+- 顶栏重排：搜索收为一个图标（点击仍进入搜索页），logo 右侧恢复「未末音乐」文字并套用各主题配色胶囊，菜单与右侧功能图标统一尺寸、间距均匀。
+
+| 系统 | 下载 |
+| --- | --- |
+| Android（arm64-v8a） | [未末音乐-1.2.28-android-arm64-v8a.apk](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.28/-1.2.28-android-arm64-v8a.apk) |
+| iPhone / iPad（PWA） | [未末音乐-1.2.28-iphone.zip](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.28/-1.2.28-iphone.zip) |
+| macOS（Apple 芯片） | [未末音乐-1.2.28-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.28/-1.2.28-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.28-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.28/-1.2.28-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.28-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.28/-1.2.28-windows-x64.exe) |
+
+### v1.2.27
 
 - 桌面端统一各区块间距为 26px：首页顶部留白、每个大区块之间（含每日推荐与热门推荐之间）保持一致，不再出现 0 / 18 / 22px 混排。
 

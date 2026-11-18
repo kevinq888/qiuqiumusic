@@ -13,11 +13,25 @@ import java.io.IOException;
 public class NodeService extends Service {
     private static final int PORT = 43219;
     static final String EXTRA_VARIANT = "variant";
+    /** 应用退出：让 :node 进程自行结束，主进程随后一并退出。 */
+    static final String ACTION_EXIT = "com.weimo.music.node.exit";
     private Thread worker;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         BootLog.init(getFilesDir());
+        if (intent != null && ACTION_EXIT.equals(intent.getAction())) {
+            BootLog.append("service: exit requested");
+            stopSelf();
+            new Thread(() -> {
+                try {
+                    Thread.sleep(120);
+                } catch (InterruptedException ignored) {
+                }
+                android.os.Process.killProcess(android.os.Process.myPid());
+            }).start();
+            return START_NOT_STICKY;
+        }
         int variant = intent != null ? intent.getIntExtra(EXTRA_VARIANT, 0) : 0;
         BootLog.append("service: start requested variant=" + variant);
         if (worker == null) {
@@ -33,6 +47,19 @@ public class NodeService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    @Override
+    public void onDestroy() {
+        // 服务被停止意味着应用真的退出了：内置 Node 跑在本进程里，必须连同进程一起结束
+        BootLog.append("service: destroyed, exit node process");
+        new Thread(() -> {
+            try {
+                Thread.sleep(150);
+            } catch (InterruptedException ignored) {
+            }
+            android.os.Process.killProcess(android.os.Process.myPid());
+        }).start();
     }
 
     /** 在独立线程里阻塞运行内置 Node。 */

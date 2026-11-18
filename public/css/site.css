@@ -2249,3 +2249,95 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
 }
 /* 悬浮歌词只在手机端播放条上方展示，电脑端隐藏 */
 @media(min-width:681px){.np-float{display:none}}
+
+/* ============================================================
+   v1.2.28 移动端顶栏重排 + 迷你播放条精简
+   1) 顶栏：菜单 / 品牌（logo + 未末音乐，主题配色胶囊）/ 搜索图标 / 功能图标
+   2) 迷你播放条只保留五个播放控件，进度细线作为与 TabBar 的分隔线
+   ============================================================ */
+@media(max-width:680px){
+  .site-header{
+    --hdr-ink:#fff;
+    --hdr-chip:color-mix(in srgb,var(--white) 14%,transparent);
+    --hdr-border:color-mix(in srgb,var(--white) 22%,transparent);
+    height:56px;
+    background:var(--header);
+    border-bottom:1px solid color-mix(in srgb,var(--hdr-ink) 10%,transparent);
+  }
+  [data-theme="glass"] .site-header{
+    --hdr-ink:var(--ink);
+    --hdr-chip:rgba(255,255,255,.55);
+    --hdr-border:rgba(255,255,255,.72);
+  }
+  .nav-shell{gap:8px;padding-left:12px!important}
+
+  /* 左侧菜单：与右侧功能图标同尺寸的圆角按钮 */
+  .mobile-menu{
+    width:34px;height:34px;flex:none;border-radius:11px;padding:0;
+    background:var(--hdr-chip);border:1px solid var(--hdr-border);
+    color:var(--hdr-ink);
+  }
+  .mobile-menu .icon{width:19px;height:19px}
+
+  /* 品牌：logo + 「未末音乐」，底色取当前主题的 mint/forest 组合 */
+  .brand{
+    gap:7px;flex:none;padding:4px 11px 4px 4px;border-radius:999px;
+    background:var(--mint);color:var(--forest);
+    box-shadow:0 4px 14px color-mix(in srgb,var(--forest) 24%,transparent);
+  }
+  .brand img{width:26px;height:26px;border-radius:9px;box-shadow:none}
+  .brand span{display:flex;flex-direction:row;align-items:center}
+  .brand strong{font-size:13px;font-weight:800;letter-spacing:.04em;line-height:1;color:var(--forest)}
+  .brand small{display:none}
+  html:not([data-theme="glass"]) .site-header .brand,
+  html:not([data-theme="glass"]) .site-header .brand strong{color:var(--forest)}
+
+  /* 搜索：只保留一个图标，点击仍进入搜索页 */
+  .mobile-search{
+    margin-left:auto;flex:none;width:34px;height:34px;padding:0;
+    justify-content:center;border-radius:50%;
+    background:var(--hdr-chip);border:1px solid var(--hdr-border);
+    color:var(--hdr-ink);
+  }
+  .mobile-search span{display:none}
+  .mobile-search .icon{width:17px;height:17px;color:var(--hdr-ink)}
+
+  /* 右侧功能图标统一尺寸与间距 */
+  .header-actions{gap:6px}
+  .header-actions .update-button,
+  .header-actions .install-button,
+  .header-actions .desktop-download-button,
+  .header-actions .theme-picker{
+    width:32px;height:32px;min-width:32px;padding:0;border-radius:50%;
+    background:var(--hdr-chip);border:1px solid var(--hdr-border);
+    color:var(--hdr-ink);box-shadow:none;
+  }
+  .header-actions .update-button[data-enabled]{display:grid}
+  .header-actions .update-button .icon,
+  .header-actions .install-button .icon,
+  .header-actions .desktop-download-button .icon{width:17px;height:17px;color:var(--hdr-ink)}
+  .header-actions .theme-picker .theme-trigger{padding:0;gap:0;color:var(--hdr-ink)}
+  .header-actions .theme-picker .theme-trigger-mark{font-size:16px;color:var(--hdr-ink)}
+  .header-actions .theme-trigger:after{display:none}
+  #theme-mobile-label{display:none}
+  [data-theme="dark"] .header-actions .theme-picker .theme-trigger-mark{color:var(--hdr-ink)}
+
+  /* 迷你播放条：去掉封面与歌名，只留五个控件 */
+  .mini-open{display:none!important}
+  .mini-controls{flex:1 1 auto;justify-content:space-around;gap:0;padding:0 4px}
+  .mini-progress{height:3px;background:color-mix(in srgb,var(--ink) 12%,transparent)}
+  .mini-progress i{box-shadow:none}
+}
+
+@media(max-width:380px){
+  .nav-shell{gap:6px;padding-left:10px!important}
+  .brand{gap:6px;padding:3px 9px 3px 3px}
+  .brand img{width:24px;height:24px}
+  .brand strong{font-size:12px}
+  .mobile-menu,.mobile-search{width:32px;height:32px}
+  .header-actions{gap:5px}
+  .header-actions .update-button,
+  .header-actions .install-button,
+  .header-actions .desktop-download-button,
+  .header-actions .theme-picker{width:30px;height:30px;min-width:30px}
+}

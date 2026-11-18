@@ -182,8 +182,8 @@ final class PlaybackCenter {
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setShowWhen(false)
                 .setOnlyAlertOnce(true)
-                .setOngoing(playing)
-                .setDeleteIntent(null)
+                .setOngoing(false)
+                .setDeleteIntent(exitIntent())
                 .addAction(prev)
                 .addAction(toggle)
                 .addAction(next)
@@ -215,6 +215,19 @@ final class PlaybackCenter {
                 .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         return PendingIntent.getActivity(context, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+    }
+
+    /** 通知卡片被左右滑掉时触发：由接收方暂停播放并结束整个应用。 */
+    private PendingIntent exitIntent() {
+        Intent intent = new Intent(context, PlaybackReceiver.class)
+                .setAction(PlaybackReceiver.ACTION_EXIT);
+        return PendingIntent.getBroadcast(context, 991, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+    }
+
+    /** 退出前撤掉通知，避免残留的媒体卡片继续显示。 */
+    void dismiss() {
+        cancel();
     }
 
     private void cancel() {
