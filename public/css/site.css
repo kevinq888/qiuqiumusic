@@ -2442,9 +2442,10 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
   background:transparent;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;
 }
 
-/* ⑤ 切歌 / 最小化防闪：播放页背后统一铺深色，避免圆角、系统栏处漏出浅色底 */
-body.player-open{background:#0d0c11!important}
+/* ⑤ 切歌 / 最小化防闪：只有手机全屏播放页才需要深色底，
+      桌面端点播放只是底部停靠栏，绝不能把整页主题底色改黑。 */
 @media(max-width:680px){
+  body.player-open{background:#0d0c11!important}
   .player-host.is-expanded{background:#0d0c11;border-radius:0!important}
   .np-bg{background:#0d0c11}
   .np-bg span,.np-bg{backface-visibility:hidden;-webkit-backface-visibility:hidden}
