@@ -20,6 +20,27 @@
   if (kind === 'web') { button.remove(); return; }
   button.dataset.enabled = '1';
 
+  // 顶栏按钮只有图标，下载进度和「已就绪」提示放在浮层里，
+  // 让人一眼知道点了之后在做什么、什么时候可以更新。
+  const toast = document.createElement('div');
+  toast.className = 'update-toast';
+  toast.hidden = true;
+  toast.innerHTML = '<button class="update-toast-close" type="button" aria-label="关闭">×</button>'
+    + '<div class="update-toast-head"><strong class="update-toast-title">更新</strong><span class="update-toast-pct"></span></div>'
+    + '<div class="update-toast-bar"><i></i></div>'
+    + '<button class="update-toast-cta" type="button">一键更新</button>';
+  document.body.appendChild(toast);
+  const toastTitle = toast.querySelector('.update-toast-title');
+  const toastPct = toast.querySelector('.update-toast-pct');
+  const toastBar = toast.querySelector('.update-toast-bar i');
+  const toastCta = toast.querySelector('.update-toast-cta');
+  let toastDismissed = '';
+  toast.querySelector('.update-toast-close').addEventListener('click', () => {
+    toast.hidden = true;
+    toastDismissed = state + latest;
+  });
+  toastCta.addEventListener('click', () => { if (!toastCta.hidden) button.click(); });
+
   const pageVersion = document.querySelector('meta[name="app-version"]')?.content || '';
   let currentVersion = native ? safe(() => bridge.appVersion(), pageVersion) || pageVersion : pageVersion;
   let latest = '';
@@ -45,12 +66,50 @@
     return 0;
   }
 
-  function setState(next, label) {
+  function setState(next, label, detail = {}) {
     state = next;
     button.dataset.state = next;
     const text = label || '检查更新';
     button.setAttribute('aria-label', text);
     button.title = text;
+    if (detail.progress != null) {
+      const percent = Math.max(0, Math.min(100, Math.round(detail.progress)));
+      button.style.setProperty('--update-progress', String(percent));
+      button.dataset.progress = String(percent);
+    }
+    renderToast(label, detail);
+  }
+
+  // 下载中显示百分比 + 速度，下载完成把按钮和浮层都变成明确的「一键更新」
+  function renderToast(label, detail = {}) {
+    const showable = state === 'downloading' || state === 'ready' || state === 'available';
+    if (!showable) {
+      toast.hidden = true;
+      if (state === 'latest' || state === 'idle') toastDismissed = '';
+      return;
+    }
+    if (toastDismissed === state + latest) { toast.hidden = true; return; }
+    toast.hidden = false;
+    toast.dataset.state = state;
+    const percent = Math.max(0, Math.min(100, Math.round(Number(detail.progress) || 0)));
+    if (state === 'downloading') {
+      toastTitle.textContent = `正在下载新版本 v${latest}`;
+      toastPct.textContent = percent ? `${percent}%${detail.speed ? ' · ' + detail.speed : ''}` : '准备中…';
+      toastBar.style.width = `${percent}%`;
+      toastCta.hidden = true;
+    } else if (state === 'ready') {
+      toastTitle.textContent = `v${latest} 已就绪，点击更新`;
+      toastPct.textContent = '下载完成';
+      toastBar.style.width = '100%';
+      toastCta.hidden = false;
+      toastCta.textContent = kind === 'ios' ? '立即更新' : '一键更新';
+    } else {
+      toastTitle.textContent = `发现新版本 v${latest}`;
+      toastPct.textContent = '';
+      toastBar.style.width = '0%';
+      toastCta.hidden = false;
+      toastCta.textContent = kind === 'android-web' ? '下载安装包' : '立即更新';
+    }
   }
 
   // ① 当前系统 / 客户端版本：原生每次重新读取，升级安装后立刻反映新版本号。
@@ -140,7 +199,7 @@
       return;
     }
     if (info.status === 'done' && String(info.version) === String(latest)) {
-      setState('ready', `新版本 v${latest} 已就绪，点击更新`);
+      setState('ready', `新版本 v${latest} 已就绪，点击更新`, { progress: 100 });
       return;
     }
     if (typeof bridge.startUpdateDownload !== 'function') return;
@@ -159,12 +218,12 @@
     if (info.status === 'downloading' && String(info.version) === String(latest)) {
       const percent = total ? Math.floor((done / total) * 100) : 0;
       const speed = formatSpeed(Number(info.speed || 0));
-      setState('downloading', `正在后台下载新版本 v${latest} · ${percent}%${speed ? ' · ' + speed : ''}`);
+      setState('downloading', `正在后台下载新版本 v${latest} · ${percent}%${speed ? ' · ' + speed : ''}`, { progress: percent, speed });
       pollTimer = setTimeout(pollNative, 800);
       return;
     }
     if (info.status === 'done' && String(info.version) === String(latest)) {
-      setState('ready', `新版本 v${latest} 已就绪，点击更新`);
+      setState('ready', `新版本 v${latest} 已就绪，点击更新`, { progress: 100 });
       if (pendingInstall) { pendingInstall = false; install(); }
       return;
     }
@@ -246,6 +305,7 @@
       pendingInstall = true;
       button.title = `下载完成后自动安装 v${latest}`;
       button.setAttribute('aria-label', button.title);
+      if (!toast.hidden) toastTitle.textContent = `下载完成后将自动更新 v${latest}`;
       return;
     }
     if (state === 'checking') return;

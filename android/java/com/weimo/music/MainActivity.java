@@ -560,6 +560,11 @@ public class MainActivity extends Activity {
         window.setNavigationBarColor(Color.TRANSPARENT);
         // Android 8.0 以下无法把导航栏图标改成深色，透明栏会让白色按键看不见，退回深绿底
         if (Build.VERSION.SDK_INT < 26) window.setNavigationBarColor(Color.parseColor("#0b3a31"));
+        // 窗口和 WebView 的底色跟着播放页一起换：切到后台再回来时先绘制的是这层底色，
+        // 保持深色就不会闪白，也能盖住屏幕圆角/系统栏边缘漏出的浅色。
+        int background = player ? Color.parseColor("#0d0c11") : Color.parseColor("#f1f8f5");
+        window.getDecorView().setBackgroundColor(background);
+        if (web != null) web.setBackgroundColor(background);
         if (Build.VERSION.SDK_INT >= 29) {
             window.setStatusBarContrastEnforced(false);
             window.setNavigationBarContrastEnforced(false);

@@ -65,6 +65,9 @@
   let queueSelecting = false;
   const queueSelected = new Set();
   let favorites = [];
+  // 播放清单可以在「播放列表」与「我喜欢的」之间切换，切换只影响播放范围，不影响收藏内容
+  let queueMode = 'queue';
+  let favoritesReturnSong = null;
   let current = null;
   let owner = null;
   let isPlaying = false;
@@ -229,6 +232,7 @@
     const normalize = list => (Array.isArray(list) ? list.filter(validSong).map(song => ({ ...song, id: String(song.id) })) : []);
     queue = normalize(data.queue).slice(0, 1000);
     favorites = normalize(data.favorites).slice(0, 1000);
+    queueMode = data.queueMode === 'favorites' && favorites.length ? 'favorites' : 'queue';
     if (!restorePlayback) return;
     try { playback = JSON.parse(localStorage.getItem(LAST_PLAYBACK_KEY) || '{}'); } catch {}
     // Prefer the dedicated playback snapshot, but retain an older queue when
@@ -322,7 +326,7 @@
   }
   function validSong(song) { return song && /^\d+$/.test(String(song.id)) && typeof song.title === 'string'; }
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify({ version: 1, queue, favorites, current, position: savedPosition() })); } catch {}
+    try { localStorage.setItem(KEY, JSON.stringify({ version: 1, queue, favorites, current, position: savedPosition(), queueMode })); } catch {}
     persistPlayback();
     renderCollections();
   }
@@ -338,7 +342,7 @@
       const previous = JSON.parse(localStorage.getItem(LAST_PLAYBACK_KEY) || '{}');
       const savedSong = current || (validSong(previous.current) ? previous.current : null);
       const position = current ? savedPosition() : (Number.isFinite(previous.position) ? previous.position : 0);
-      localStorage.setItem(LAST_PLAYBACK_KEY, JSON.stringify({ version: 1, queue, current: savedSong, position, savedAt: Date.now() }));
+      localStorage.setItem(LAST_PLAYBACK_KEY, JSON.stringify({ version: 1, queue, current: savedSong, position, savedAt: Date.now(), queueMode }));
     } catch {}
   }
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
@@ -431,6 +435,8 @@
   }
 
   // 有真实封面时显示图片；缺失或加载失败时回退到渐变首字块（歌名首字），不再用 Logo 顶替
+  // 新封面先离屏预加载，解码完成后再替换，避免切歌瞬间出现空白/白屏。
+  const coverToken = new WeakMap();
   function setCoverImage(img, wrapper, cover) {
     if (!img || !wrapper) return;
     if (!img.dataset.coverFallback) {
@@ -443,24 +449,60 @@
     }
     const url = coverSrc(cover);
     if (!url) {
+      coverToken.set(img, (coverToken.get(img) || 0) + 1);
       img.hidden = true;
       wrapper.classList.remove('has-cover');
       return;
     }
-    wrapper.classList.add('has-cover');
-    if (img.getAttribute('src') !== url) img.src = url;
-    img.hidden = false;
+    if (img.getAttribute('src') === url) {
+      img.hidden = false;
+      wrapper.classList.add('has-cover');
+      return;
+    }
+    const token = (coverToken.get(img) || 0) + 1;
+    coverToken.set(img, token);
+    const loader = new Image();
+    loader.decoding = 'async';
+    const apply = () => {
+      if (coverToken.get(img) !== token) return;
+      img.src = url;
+      img.hidden = false;
+      wrapper.classList.add('has-cover');
+    };
+    loader.onload = () => { loader.decode ? loader.decode().then(apply, apply) : apply(); };
+    // 新图失败时保留旧封面；首次加载失败则继续显示渐变占位块
+    loader.onerror = () => {
+      if (coverToken.get(img) !== token || img.getAttribute('src')) return;
+      img.hidden = true;
+      wrapper.classList.remove('has-cover');
+    };
+    loader.src = url;
+  }
+  // 普通图片（首页黑胶、悬浮唱片）同样等新图解码后再替换，避免切换时闪一下底色
+  const imageToken = new WeakMap();
+  function swapImage(img, url) {
+    if (!img || !url || img.getAttribute('src') === url) return;
+    const token = (imageToken.get(img) || 0) + 1;
+    imageToken.set(img, token);
+    const loader = new Image();
+    loader.decoding = 'async';
+    const apply = () => {
+      if (imageToken.get(img) !== token) return;
+      img.src = url;
+    };
+    loader.onload = () => { loader.decode ? loader.decode().then(apply, apply) : apply(); };
+    loader.src = url;
   }
   // 首页大黑胶跟着当前歌曲换封面，没有在播歌曲时回到 Logo
   function syncHeroCover(cover) {
     if (!heroCoverImg) return;
     const next = coverSrc(cover) || heroLogoSrc;
-    if (!next || heroCoverImg.getAttribute('src') === next) return;
-    heroCoverImg.src = next;
+    if (!next) return;
+    swapImage(heroCoverImg, next);
   }
-  // 当前选中曲目必须仍在播放清单里（暂停也算），否则视为没有选中歌曲
+  // 当前选中曲目必须仍在播放范围里（暂停也算），否则视为没有选中歌曲
   function queuedCurrent() {
-    return current && queue.some(song => sameSong(song, current)) ? current : null;
+    return current && contains(currentList(), current) ? current : null;
   }
   // 清单里很多歌曲只存了标题/歌手，封面需要按「歌手|歌名」补查并缓存
   const coverCache = new Map();
@@ -506,9 +548,7 @@
   // 最小化后的悬浮唱片：清单里有当前选中歌曲时用它封面（暂停也显示），否则回到皮肤意境图
   function syncVinylCover(cover) {
     if (!vinylCoverImg) return;
-    const next = coverSrc(cover) || fallbackArtUrl();
-    if (!next || vinylCoverImg.getAttribute('src') === next) return;
-    vinylCoverImg.src = next;
+    swapImage(vinylCoverImg, coverSrc(cover) || fallbackArtUrl());
   }
   function applyVinylCover() {
     const song = queuedCurrent();
@@ -562,13 +602,26 @@
     const [a, b, c] = PLAYER_PALETTE[next];
     backdropSlot = backdropSlot ? 0 : 1;
     const layer = layers[backdropSlot];
+    const previous = layers[backdropSlot ? 0 : 1];
     layer.style.backgroundImage = `radial-gradient(circle at 28% 16%,rgba(255,255,255,.16),transparent 56%),linear-gradient(160deg,${a} 0%,${b} 54%,${c} 100%)`;
     npBackdrop.classList.add('is-gradient');
-    for (const item of layers) item.classList.toggle('is-active', item === layer);
+    // 新配色在上层淡入，旧配色保持不透明垫底：两层同时半透明会让整屏黑一下/闪一下
+    layer.style.zIndex = '2';
+    previous.style.zIndex = '1';
+    layer.classList.add('is-active');
+    setTimeout(() => {
+      // 期间可能又切了歌，只清理确实已经不在上层的旧图层
+      if (layers[backdropSlot] === layer) {
+        previous.classList.remove('is-active');
+        previous.style.backgroundImage = '';
+      }
+    }, 950);
   }
   // 曲目 id 统一按字符串比较，避免数字/字符串混用导致收藏、移除失效
   function sameSong(a, b) { return !!a && !!b && String(a.id) === String(b.id); }
   function contains(list, song) { return list.some(item => sameSong(item, song)); }
+  // 当前生效的播放范围：默认是播放清单，切到「我喜欢的」后就是收藏列表
+  function currentList() { return queueMode === 'favorites' ? favorites : queue; }
   function setBulkButton(button, label, completed) {
     const text = button.querySelector('.add-all-text');
     if (text) text.textContent = label;
@@ -626,7 +679,7 @@
     if (summary) {
       const cached = queue.filter(song => cacheCached.has(song.title)).length;
       summary.textContent = `已缓存 ${cached}/${queue.length}`;
-      summary.hidden = queue.length === 0;
+      summary.hidden = queueMode === 'favorites' || queue.length === 0;
     }
   }
   function scheduleCacheStatusRefresh() {
@@ -693,6 +746,8 @@
     const favorite = { ...song, id: String(song.id) };
     favorites = contains(favorites, favorite) ? favorites.filter(item => !sameSong(item, favorite)) : [...favorites, favorite];
     save();
+    // 收藏被清空时不能停留在空的「我喜欢的」播放范围
+    if (queueMode === 'favorites' && !favorites.length) setQueueMode('queue');
   }
   function message(type, extra = {}) { channel?.postMessage({ type, tabId, ...extra }); }
   function playbackPosition() {
@@ -955,7 +1010,7 @@
     if (!('mediaSession' in navigator)) return;
     const handlers = {
       play: () => {
-        if (!current) { if (queue.length) playSong(queue[0]); return; }
+        if (!current) { if (currentList().length) playSong(currentList()[0]); return; }
         if (audio.paused) requestPlayback();
       },
       pause: pausePlayback,
@@ -1034,31 +1089,33 @@
   }
   requestAnimationFrame(spinDisc);
   function updatePlayer() {
+    const list = currentList();
     host.hidden = false;
     host.classList.toggle('has-track', !!current);
     // 手机上选中歌曲后顶部品牌收成小图标，把中间位置让给灵动岛胶囊
     document.body.classList.toggle('has-current', !!current);
-    document.body.classList.toggle('has-queue', queue.length > 0);
+    document.body.classList.toggle('has-queue', list.length > 0);
     for (const id of ['player-prev', 'player-next', 'player-favorite', 'mini-prev', 'mini-next']) {
       document.getElementById(id).disabled = !current;
     }
     // 计数徽标无条件刷新；清单有歌时播放键保持可用，解决"清单有歌却显示 0 首且无法播放"
-    document.getElementById('player-play-pause').disabled = !current && !queue.length;
-    const index = current ? queue.findIndex(song => song.id === current.id) + 1 : 0;
+    document.getElementById('player-play-pause').disabled = !current && !list.length;
+    const index = current ? list.findIndex(song => sameSong(song, current)) + 1 : 0;
     // 「播放列表」胶囊只显示音符 + 当前序号/总数，宽度更紧凑
-    document.getElementById('queue-count').textContent = `${index}/${queue.length}`;
+    document.getElementById('queue-count').textContent = `${index}/${list.length}`;
     const queueIndex = document.getElementById('queue-index');
     if (queueIndex) queueIndex.textContent = String(index);
     const queueTotal = document.getElementById('queue-total');
-    if (queueTotal) queueTotal.textContent = String(queue.length);
-    queueButton.setAttribute('aria-label', queue.length
-      ? `播放清单，共 ${queue.length} 首，当前第 ${index || 1} 首`
+    if (queueTotal) queueTotal.textContent = String(list.length);
+    queueButton.setAttribute('aria-label', list.length
+      ? `${queueMode === 'favorites' ? '我喜欢的' : '播放清单'}，共 ${list.length} 首，当前第 ${index || 1} 首`
       : '播放清单，暂无曲目');
     syncQueueHighlight();
+    updateQueueTabs();
     updateCacheMeters();
     miniPlayer.hidden = host.classList.contains('is-expanded');
     if (!current) {
-      stateNode.textContent = queue.length ? '按播放键开始' : '待命中';
+      stateNode.textContent = list.length ? '按播放键开始' : '待命中';
       titleNode.textContent = '选择一首歌';
       artistNode.textContent = '未末音乐';
       miniPlayer.classList.add('is-idle');
@@ -1253,6 +1310,8 @@
       if (expandPanel) expand();
       return;
     }
+    // 从页面任意位置点播非收藏歌曲时，自动回到「播放列表」范围
+    if (queueMode === 'favorites' && !contains(favorites, song)) queueMode = 'queue';
     message('takeover');
     pausePlayback();
     owner = tabId;
@@ -1261,7 +1320,8 @@
     pendingRestorePosition = 0;
     trackLoadPending = true;
     audio.src = `/media/${encodeURIComponent(song.title)}.m4a`;
-    addToQueue(song, false);
+    // 收藏范围里的歌不写进默认播放清单，切回时原清单保持不变
+    if (queueMode !== 'favorites') addToQueue(song, false);
     persistPlayback();
     stateNode.textContent = '正在加载…';
     isPlaying = true;
@@ -1271,17 +1331,18 @@
     announce();
   }
   function shiftSong(step, automatic = false) {
-    if (owner !== tabId || !queue.length) return false;
+    const list = currentList();
+    if (owner !== tabId || !list.length) return false;
     if (automatic && playMode === 'repeat-one') {
       audio.currentTime = 0;
       requestPlayback();
       return true;
     }
-    const index = queue.findIndex(song => sameSong(song, current));
+    const index = list.findIndex(song => sameSong(song, current));
     const target = (index < 0 ? (step > 0 ? -1 : 0) : index) + step;
     const wrap = playMode === 'repeat-all' || (!automatic && playMode === 'repeat-one');
-    if (!wrap && (target < 0 || target >= queue.length)) return false;
-    const next = queue[(target + queue.length) % queue.length];
+    if (!wrap && (target < 0 || target >= list.length)) return false;
+    const next = list[(target + list.length) % list.length];
     if (sameSong(next, current)) {
       audio.currentTime = 0;
       requestPlayback();
@@ -1303,7 +1364,7 @@
     if (action === 'play' && current && !audio.paused && !playbackError && !host.classList.contains('is-buffering')) return;
     if (action === 'toggle' || action === 'play') {
       // 清单有歌但尚未加载曲目时，播放键直接开播第一首
-      if (!current && queue.length) { playSong(queue[0]); return; }
+      if (!current && currentList().length) { playSong(currentList()[0]); return; }
       action === 'play' || audio.paused ? requestPlayback() : pausePlayback();
     }
   }
@@ -1348,7 +1409,7 @@
     if (fav) fav.innerHTML = listMarkup(favorites, 'favorites');
     const playlist = document.getElementById('playlist-list');
     if (playlist) playlist.innerHTML = listMarkup(queue, 'queue');
-    document.getElementById('queue-items').innerHTML = listMarkup(queue, 'queue', queueSelecting);
+    document.getElementById('queue-items').innerHTML = listMarkup(currentList(), queueMode, queueSelecting && queueMode === 'queue');
     const favCount = document.getElementById('profile-favorites-count');
     if (favCount) favCount.textContent = String(favorites.length);
     const trackCount = document.getElementById('profile-tracks-count');
@@ -1362,6 +1423,51 @@
     updateCacheMeters();
     updateQueueSelection();
     warmQueueCovers();
+  }
+  // 清单页顶部两个页签：默认播放列表 / 我喜欢的，可一键切换播放范围
+  function updateQueueTabs() {
+    const tabQueue = document.getElementById('queue-tab-queue');
+    const tabFavorites = document.getElementById('queue-tab-favorites');
+    if (!tabQueue || !tabFavorites) return;
+    const favMode = queueMode === 'favorites';
+    tabQueue.classList.toggle('is-active', !favMode);
+    tabFavorites.classList.toggle('is-active', favMode);
+    tabQueue.setAttribute('aria-selected', String(!favMode));
+    tabFavorites.setAttribute('aria-selected', String(favMode));
+    const count = document.getElementById('queue-fav-count');
+    if (count) {
+      count.textContent = String(favorites.length);
+      count.hidden = !favorites.length;
+    }
+    const title = queuePanel?.querySelector('.queue-title h2');
+    if (title) title.textContent = favMode ? '我喜欢的' : '播放清单';
+    // 选择/清空只对默认播放清单生效，收藏范围里隐藏，避免误删收藏
+    const select = document.getElementById('queue-select');
+    const clear = document.getElementById('queue-clear');
+    if (select) select.hidden = favMode;
+    if (clear) clear.hidden = favMode;
+    queuePanel?.classList.toggle('is-favorites-mode', favMode);
+  }
+  function setQueueMode(mode) {
+    const next = mode === 'favorites' ? 'favorites' : 'queue';
+    if (next === queueMode) return;
+    if (next === 'favorites') {
+      if (!favorites.length) return;
+      favoritesReturnSong = current;
+      queueMode = 'favorites';
+      queueSelected.clear();
+      queueSelecting = false;
+      // 当前歌曲不在收藏里时，切过去就从收藏第一首开始播放
+      if (!contains(favorites, current)) playSong(favorites[0], false);
+    } else {
+      queueMode = 'queue';
+      // 切回默认清单时，当前歌不在清单里就回到切换前那首，保证上一首/下一首可用
+      if (queue.length && !contains(queue, current)) {
+        const back = favoritesReturnSong && contains(queue, favoritesReturnSong) ? favoritesReturnSong : queue[0];
+        playSong(back, false);
+      }
+    }
+    save();
   }
   // 选择模式：面板底部换成"全选 / 清除选中 / 取消"操作条
   function updateQueueSelection() {
@@ -1483,6 +1589,8 @@
     if (event.target.closest('#mobile-menu')) { setMobileMenuOpen(!document.body.classList.contains('nav-open')); return; }
     if (event.target.closest('[data-queue-toggle]')) { event.preventDefault(); event.stopPropagation(); setQueueOpen(queuePanel.hidden); return; }
     if (event.target.closest('[data-queue-close]')) { setQueueOpen(false); return; }
+    if (event.target.closest('#queue-tab-queue')) { setQueueMode('queue'); return; }
+    if (event.target.closest('#queue-tab-favorites')) { setQueueMode('favorites'); return; }
     if (event.target.closest('#queue-select')) { setQueueSelecting(!queueSelecting); return; }
     if (event.target.closest('#queue-select-cancel')) { setQueueSelecting(false); return; }
     if (event.target.closest('#queue-select-all')) {

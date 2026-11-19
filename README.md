@@ -6,7 +6,22 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://weimomusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.28（当前版本）
+### v1.2.29（当前版本）
+
+- 顶栏 6 个入口（菜单 / 品牌 / 搜索 / 更新 / 保存链接 / 主题）改为均匀分布，不再挤在右侧；毛玻璃、暗夜主题的顶栏改成半透明磨砂底色，下拉页面时正文不会透出来。
+- 更新按钮新增下载进度：下载中按钮外圈显示进度环，页面顶部浮层显示百分比与速度；下载完成后按钮变成「更新」胶囊，浮层直接提供「一键更新」。
+- 爱心收藏后显示为实心红色；播放清单顶部新增「播放列表 / 我喜欢的」页签，可一键切换到收藏列表播放，并能随时切回原来的播放列表（原清单不会被收藏覆盖）。
+- 修复切歌、切换后台时的闪屏/白屏：新封面先预加载再替换，播放页背景双层交叉淡入不再整屏发暗；安卓播放页的窗口与 WebView 底色同步变深，冷启动窗口背景改为主题浅色，去掉圆角与系统栏边缘漏出的浅色块。
+
+| 系统 | 下载 |
+| --- | --- |
+| Android（arm64-v8a） | [未末音乐-1.2.29-android-arm64-v8a.apk](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.29/-1.2.29-android-arm64-v8a.apk) |
+| iPhone / iPad（PWA） | [未末音乐-1.2.29-iphone.zip](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.29/-1.2.29-iphone.zip) |
+| macOS（Apple 芯片） | [未末音乐-1.2.29-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.29/-1.2.29-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.29-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.29/-1.2.29-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.29-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.29/-1.2.29-windows-x64.exe) |
+
+### v1.2.28
 
 - 手机端启动不再出现空白页：启动阶段显示「未末音乐」品牌页；从后台恢复、渲染进程被回收或页面变空白时自动重建并重新加载。
 - 通知栏播放卡片支持左右滑动关闭：滑掉即暂停播放、退出应用并结束主进程与内置 Node 进程。

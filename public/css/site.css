@@ -2341,3 +2341,111 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
   .header-actions .desktop-download-button,
   .header-actions .theme-picker{width:30px;height:30px;min-width:30px}
 }
+
+/* ============================================================
+   v1.2.29 顶栏均匀分布 / 主题化背景 / 更新进度 / 收藏播放 / 切歌防闪
+   ============================================================ */
+
+/* ① 顶栏 6 个入口均匀分布：把 header-actions 拆成 nav-shell 的直接子项 */
+@media(max-width:680px){
+  .nav-shell{justify-content:space-between}
+  .header-actions{display:contents}
+  .mobile-search{margin-left:0}
+  /* 毛玻璃主题顶栏改成和底部播放条一致的半透明玻璃，滚动时不再透出正文 */
+  [data-theme="glass"] .site-header{
+    background:rgba(255,255,255,.68);
+    border-bottom-color:rgba(255,255,255,.72);
+    box-shadow:0 10px 26px rgba(30,42,58,.08);
+    backdrop-filter:blur(20px) saturate(160%);
+    -webkit-backdrop-filter:blur(20px) saturate(160%);
+  }
+  [data-theme="dark"] .site-header{
+    background:rgba(13,22,19,.92);
+    backdrop-filter:blur(18px) saturate(140%);
+    -webkit-backdrop-filter:blur(18px) saturate(140%);
+  }
+}
+
+/* ② 收藏后的爱心显示为实心红色（和其他音乐播放器一致） */
+#player-favorite.selected{
+  color:#ff4d6a;
+  background:rgba(255,77,106,.16);
+}
+#player-favorite.selected .icon{fill:#ff4d6a;stroke:#ff4d6a}
+
+/* ③ 播放清单顶部页签：播放列表 / 我喜欢的 */
+.queue-tabs{display:flex;gap:6px;margin:2px 0 10px}
+.queue-tab{
+  flex:1;height:34px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  border:1px solid transparent;border-radius:11px;cursor:pointer;
+  background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--muted);
+  font-size:13px;font-weight:700;transition:background .18s,color .18s,border-color .18s;
+}
+.queue-tab.is-active{
+  background:var(--mint);color:var(--forest);
+  border-color:color-mix(in srgb,var(--forest) 14%,transparent);
+}
+.queue-tab b[hidden]{display:none}
+.queue-tab b{
+  min-width:18px;height:18px;padding:0 5px;border-radius:999px;
+  display:inline-grid;place-items:center;background:var(--forest);color:#fff;
+  font-size:11px;font-weight:800;
+}
+.queue-panel.is-favorites-mode .queue-title small em{display:none}
+
+/* ④ 更新按钮：下载进度环 + 就绪胶囊 + 进度浮层 */
+.update-button{position:relative}
+.update-label{display:none;font-size:11px;font-weight:800;line-height:1;white-space:nowrap}
+@media(max-width:680px){
+  .header-actions .update-button[data-state="downloading"]::before{
+    content:"";position:absolute;inset:-2px;border-radius:50%;pointer-events:none;
+    background:conic-gradient(var(--orange) calc(var(--update-progress,0) * 1%),rgba(255,255,255,.18) 0);
+    -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));
+    mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));
+  }
+  .header-actions .update-button[data-state="ready"]{
+    width:auto!important;min-width:0!important;padding:0 10px 0 8px!important;
+    border-radius:999px!important;display:inline-flex!important;align-items:center;gap:3px;
+    background:linear-gradient(135deg,#ffb13d,#ff6b35)!important;
+    border-color:transparent!important;color:#fff!important;
+    box-shadow:0 4px 14px rgba(255,107,53,.38);
+    animation:update-nudge 1.8s ease-in-out infinite;
+  }
+  .header-actions .update-button[data-state="ready"] .update-icon{display:none}
+  .header-actions .update-button[data-state="ready"] .update-label{display:inline;color:#fff}
+  .header-actions .update-button[data-state="ready"] .icon{color:#fff}
+}
+@keyframes update-nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}}
+
+.update-toast{
+  position:fixed;left:12px;right:12px;top:calc(64px + env(safe-area-inset-top));z-index:120;
+  display:flex;flex-direction:column;gap:8px;padding:12px 14px;
+  border-radius:16px;border:1px solid color-mix(in srgb,var(--ink) 10%,transparent);
+  background:color-mix(in srgb,var(--white) 92%,transparent);color:var(--ink);
+  box-shadow:0 16px 40px rgba(12,24,20,.18);
+  backdrop-filter:blur(18px) saturate(150%);
+  -webkit-backdrop-filter:blur(18px) saturate(150%);
+}
+.update-toast[hidden]{display:none}
+.update-toast-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-right:18px}
+.update-toast-title{font-size:13px;font-weight:800}
+.update-toast-pct{font-size:12px;font-weight:800;color:var(--orange)}
+.update-toast-bar{height:6px;border-radius:999px;overflow:hidden;background:color-mix(in srgb,var(--ink) 10%,transparent)}
+.update-toast-bar i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#ffb13d,#ff6b35);transition:width .3s ease}
+.update-toast-cta{
+  align-self:flex-start;height:32px;padding:0 16px;border:0;border-radius:999px;cursor:pointer;
+  background:linear-gradient(135deg,#ffb13d,#ff6b35);color:#fff;font-size:13px;font-weight:800;
+}
+.update-toast-cta[hidden]{display:none}
+.update-toast-close{
+  position:absolute;top:7px;right:8px;width:26px;height:26px;padding:0;border:0;border-radius:50%;
+  background:transparent;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;
+}
+
+/* ⑤ 切歌 / 最小化防闪：播放页背后统一铺深色，避免圆角、系统栏处漏出浅色底 */
+body.player-open{background:#0d0c11!important}
+@media(max-width:680px){
+  .player-host.is-expanded{background:#0d0c11;border-radius:0!important}
+  .np-bg{background:#0d0c11}
+  .np-bg span,.np-bg{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+}
