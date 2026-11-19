@@ -2449,3 +2449,11 @@ body.player-open{background:#0d0c11!important}
   .np-bg{background:#0d0c11}
   .np-bg span,.np-bg{backface-visibility:hidden;-webkit-backface-visibility:hidden}
 }
+
+/* ⑥ 桌面/网页版右侧与底部黑线：滚动条槽是透明的，会露出 Electron 窗口的深色底；
+      同时 100vw 元素会撑出 9px 横向滚动条，形成底部那条会闪的线。 */
+html{
+  background:var(--cream);
+  overflow-x:clip;
+}
+body{overflow-x:clip}

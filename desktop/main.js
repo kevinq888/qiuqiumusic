@@ -285,7 +285,7 @@ function createMainWindow() {
     icon: APP_ICON_PATH,
     show: false,
     autoHideMenuBar: true,
-    backgroundColor: '#0f1a17',
+    backgroundColor: '#f1f8f5',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
