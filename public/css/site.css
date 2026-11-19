@@ -2451,6 +2451,11 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
   .np-bg span,.np-bg{backface-visibility:hidden;-webkit-backface-visibility:hidden}
 }
 
+/* ⑦ 桌面停靠播放条已由 body 预留高度，主内容不再额外留 74px，
+      去掉页脚上方那条大片空白（红框区域）。 */
+@media(min-width:681px){
+  body.player-docked .main-content{padding-bottom:24px}
+}
 /* ⑥ 桌面/网页版右侧与底部黑线：滚动条槽是透明的，会露出 Electron 窗口的深色底；
       同时 100vw 元素会撑出 9px 横向滚动条，形成底部那条会闪的线。 */
 html{
