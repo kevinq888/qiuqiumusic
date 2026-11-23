@@ -2473,14 +2473,13 @@ body{overflow-x:clip}
    ============================================================ */
 .sound-picker{display:none}
 .sound-trigger{
-  display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border:1px solid var(--line);
-  border-radius:999px;background:var(--subtle);color:var(--ink);font-size:12px;font-weight:800;
-  white-space:nowrap;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  border:1px solid transparent;border-radius:999px;
+  font-size:11.5px;font-weight:800;white-space:nowrap;cursor:pointer;
 }
-.sound-trigger .icon{width:15px;height:15px}
-.sound-trigger[data-preset]:not([data-preset="flat"]){border-color:color-mix(in srgb,var(--green) 45%,var(--line));color:var(--forest)}
+.sound-trigger .icon{width:16px;height:16px}
 .sound-trigger[data-preset]:not([data-preset="flat"])::after{
-  content:"";width:5px;height:5px;margin-left:-1px;border-radius:50%;background:var(--green);
+  content:"";width:5px;height:5px;margin-left:-1px;border-radius:50%;background:currentColor;opacity:.72;
 }
 @media(min-width:681px){
   .sound-picker{display:block}
@@ -2496,3 +2495,57 @@ body{overflow-x:clip}
 .sound-choice .theme-check{display:none}
 .sound-choice[aria-pressed="true"]{border-color:var(--green);background:color-mix(in srgb,var(--green) 14%,var(--subtle))}
 .sound-note{margin:12px 2px 0;color:var(--muted);font-size:11px;line-height:1.5}
+
+/* ============================================================
+   v1.2.34 顶栏四个胶囊统一：同高、同宽、同间距、同底色对比
+   桌面版 / 保存链接 / 毛玻璃 / 音效 只保留图标与文字的差异
+   ============================================================ */
+.header-actions .theme-trigger .icon{width:16px;height:16px}
+@media(min-width:681px){
+  .header-actions{gap:6px}
+  .header-actions .desktop-download-button,
+  .header-actions .install-button,
+  .header-actions .sound-trigger,
+  .header-actions .theme-picker{
+    display:inline-flex;align-items:center;justify-content:center;gap:5px;
+    height:32px;min-height:32px;padding:0 8px;
+    border:1px solid rgba(255,255,255,.2);border-radius:999px;
+    background:rgba(255,255,255,.1);color:#fff;
+    box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;
+    font-size:11.5px;font-weight:800;line-height:1;white-space:nowrap;
+  }
+  .header-actions .desktop-download-button .icon,
+  .header-actions .install-button .icon,
+  .header-actions .sound-trigger .icon,
+  .header-actions .theme-trigger .icon{width:16px;height:16px}
+  /* 上面的 display 覆盖了 UA 的 [hidden]，这里把隐藏行为补回来 */
+  .header-actions .desktop-download-button[hidden]{display:none}
+  .header-actions .theme-picker{padding:0}
+  .header-actions .theme-picker .theme-trigger{
+    width:100%;height:100%;justify-content:center;gap:5px;padding:0 8px;
+    font-size:11.5px;font-weight:800;color:inherit;
+  }
+  .header-actions .theme-trigger:after{display:none}
+  /* 悬停只轻微提亮，四个按钮行为一致 */
+  .header-actions .desktop-download-button:hover,
+  .header-actions .install-button:hover,
+  .header-actions .sound-trigger:hover,
+  .header-actions .theme-picker:hover{background:rgba(255,255,255,.2)}
+  /* 毛玻璃皮肤是浅色顶栏：四个按钮统一成白色半透明底 + 深绿字 */
+  [data-theme="glass"] .header-actions .desktop-download-button,
+  [data-theme="glass"] .header-actions .install-button,
+  [data-theme="glass"] .header-actions .sound-trigger,
+  [data-theme="glass"] .header-actions .theme-picker{
+    border-color:rgba(255,255,255,.62);background:rgba(255,255,255,.32);color:var(--forest);
+  }
+  [data-theme="glass"] .header-actions .desktop-download-button:hover,
+  [data-theme="glass"] .header-actions .install-button:hover,
+  [data-theme="glass"] .header-actions .sound-trigger:hover,
+  [data-theme="glass"] .header-actions .theme-picker:hover{background:rgba(255,255,255,.6)}
+}
+@media(min-width:1101px){
+  .header-actions .desktop-download-button,
+  .header-actions .install-button,
+  .header-actions .sound-trigger,
+  .header-actions .theme-picker{width:82px}
+}

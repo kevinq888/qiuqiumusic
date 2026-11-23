@@ -6,7 +6,21 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://weimomusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.34（当前版本）
+### v1.2.35（当前版本）
+
+- 顶栏「桌面版 / 保存链接 / 毛玻璃 / 音效」四个按钮统一成同一套胶囊外形：等宽、等高、等间距，圆角、描边与底色完全一致，只保留图标和文字的区别。
+- 音效按钮不再单独用实色薄荷底和绿色描边，与其它三个按钮同底同色；选中音效时只用一个小圆点提示。
+- 「毛玻璃」入口的 ◐ 字符换成与其他按钮同粗细的线性图标，避免字形大小不一；展开箭头在电脑端收起，四个胶囊看起来更整齐。
+
+| 系统 | 下载 |
+| --- | --- |
+| Android（arm64-v8a） | [未末音乐-1.2.35-android-arm64-v8a.apk](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.35/-1.2.35-android-arm64-v8a.apk) |
+| iPhone / iPad（PWA） | [未末音乐-1.2.35-iphone.zip](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.35/-1.2.35-iphone.zip) |
+| macOS（Apple 芯片） | [未末音乐-1.2.35-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.35/-1.2.35-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.35-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.35/-1.2.35-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.35-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.35/-1.2.35-windows-x64.exe) |
+
+### v1.2.34
 
 - 桌面版悬浮播放器外圈改为磨砂质感：去掉了原来的橙色描边，换成半透明的低饱和浅色进度弧，只保留「进度看得见」的信息量，不再抢眼。
 - 进度弧整体收细并加圆弧端点，深色/浅色壁纸上都能看清，圆圈边缘平滑无毛刺。
