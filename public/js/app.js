@@ -291,9 +291,12 @@
   }
   // 切换皮肤并同步浏览器状态栏颜色（PWA 与移动端浏览体验）
   function applyTheme(theme) {
-    document.documentElement.dataset.theme = THEMES.includes(theme) ? theme : 'mint';
+    const next = THEMES.includes(theme) ? theme : 'mint';
+    document.documentElement.dataset.theme = next;
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = THEME_COLORS[theme] || THEME_COLORS.mint;
+    if (meta) meta.content = THEME_COLORS[next] || THEME_COLORS.mint;
+    // 让安卓窗口底色跟随皮肤，切后台再回来时不会先露一层浅色
+    try { window.WeiMoNative?.setPageColor(THEME_COLORS[next] || THEME_COLORS.mint); } catch {}
     syncFallbackArt();
     updateThemeControls();
   }
@@ -326,12 +329,12 @@
   }
   function updateSoundControls() {
     const preset = SOUND_PRESETS[soundPreset] || SOUND_PRESETS.flat;
-    const trigger = document.getElementById('sound-trigger');
-    if (trigger) {
+    [document.getElementById('sound-trigger'), document.getElementById('player-sound')].forEach(trigger => {
+      if (!trigger) return;
       trigger.dataset.preset = soundPreset;
       trigger.title = `音效：${preset.name}`;
       trigger.setAttribute('aria-label', `音效：${preset.name}`);
-    }
+    });
     soundSheet?.querySelectorAll('[data-sound-choice]').forEach(button => {
       button.setAttribute('aria-pressed', String(button.dataset.soundChoice === soundPreset));
     });
@@ -384,13 +387,13 @@
     soundReturnFocus = document.activeElement;
     soundSheet.hidden = false;
     document.body.classList.add('theme-sheet-open');
-    document.getElementById('sound-trigger')?.setAttribute('aria-expanded', 'true');
+    ['sound-trigger', 'player-sound'].forEach(id => document.getElementById(id)?.setAttribute('aria-expanded', 'true'));
     soundSheet.querySelector('[aria-pressed="true"]')?.focus();
   }
   function closeSoundSheet() {
     soundSheet.hidden = true;
     document.body.classList.remove('theme-sheet-open');
-    document.getElementById('sound-trigger')?.setAttribute('aria-expanded', 'false');
+    ['sound-trigger', 'player-sound'].forEach(id => document.getElementById(id)?.setAttribute('aria-expanded', 'false'));
     soundReturnFocus?.focus();
     soundReturnFocus = null;
   }
@@ -1294,7 +1297,8 @@
   window.addEventListener('resize', () => setTimeout(readSafeInsets, 80));
   // 首页与播放页都保持透明系统栏，仅切换状态栏图标深浅
   function syncSystemBars(player) {
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', player ? '#14121a' : '#f1f8f5');
+    const theme = document.documentElement.dataset.theme || 'mint';
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', player ? '#14121a' : (THEME_COLORS[theme] || '#f1f8f5'));
     try { window.WeiMoNative?.setPlayerMode(!!player); } catch {}
     setTimeout(readSafeInsets, 120);
   }

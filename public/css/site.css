@@ -1025,7 +1025,12 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
     background:transparent;color:#f4f1ec;padding:0;
   }
   .np-top .np-icon .icon{width:22px;height:22px}
-  .np-top .np-icon:last-child{background:rgba(255,255,255,.12)}
+  /* v1.2.36 音效入口移到顶栏：与收起/「词」统一为透明圆形，只有非原声时加一个小圆点 */
+  .np-top #player-sound{position:relative}
+  .np-top #player-sound[data-preset]:not([data-preset="flat"])::after{
+    content:"";position:absolute;right:7px;bottom:7px;width:5px;height:5px;border-radius:50%;
+    background:currentColor;opacity:.8;
+  }
   .np-top-title{font-size:12px;font-weight:700;letter-spacing:.18em;color:rgba(255,255,255,.6)}
   .np-top .np-lyrics-btn{font-size:13px;font-weight:800;letter-spacing:0;color:rgba(255,255,255,.62)}
   .np-top .np-lyrics-btn[aria-pressed="true"]{background:rgba(255,255,255,.16);color:#fff}
@@ -1585,7 +1590,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   backdrop-filter:blur(32px) saturate(160%);
   -webkit-backdrop-filter:blur(32px) saturate(160%);
 }
-[data-theme="glass"] .site-header{background:rgba(255,255,255,.38);border-bottom-color:rgba(255,255,255,.55);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%)}
+[data-theme="glass"] .site-header{background:#fafbfa;border-bottom-color:rgba(20,60,50,.07);box-shadow:0 1px 0 rgba(20,60,50,.05);backdrop-filter:none;-webkit-backdrop-filter:none}
 [data-theme="glass"] .brand,[data-theme="glass"] .brand strong{color:var(--ink)}
 [data-theme="glass"] .brand small{color:rgba(18,58,49,.5)}
 [data-theme="glass"] .main-nav a{color:rgba(18,58,49,.66)}
@@ -1670,7 +1675,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   --subtle:rgba(255,255,255,.24);--footer:#0d3a31;--shadow:0 26px 70px rgba(20,60,50,.12);
   --dock-1:#0a2622;--dock-2:#15433c;--dock-ink:#eaf7f2;--dock-dim:rgba(234,247,242,.62);
   --dock-accent:#57e0bd;--dock-line:rgba(255,255,255,.14);--dock-glow:rgba(8,48,40,.3);
-  --header:rgba(255,255,255,.38);--subnav:rgba(255,255,255,.34);
+  --header:#fafbfa;--subnav:rgba(255,255,255,.34);
 }
 /* 页面底色加一层极淡的双色雾，避免整片死白/死灰 */
 html:not([data-theme="glass"]) body{
@@ -2354,18 +2359,21 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
   .nav-shell{justify-content:space-between}
   .header-actions{display:contents}
   .mobile-search{margin-left:0}
-  /* 毛玻璃主题顶栏改成和底部播放条一致的半透明玻璃，滚动时不再透出正文 */
+  /* v1.2.36 顶栏整块固定：实色不透明，正文滚到下面也不会透出来糊在一起 */
+  .site-header{position:sticky;top:0;z-index:30}
   [data-theme="glass"] .site-header{
-    background:rgba(255,255,255,.68);
-    border-bottom-color:rgba(255,255,255,.72);
-    box-shadow:0 10px 26px rgba(30,42,58,.08);
-    backdrop-filter:blur(20px) saturate(160%);
-    -webkit-backdrop-filter:blur(20px) saturate(160%);
+    background:#fafbfa;
+    border-bottom-color:rgba(20,60,50,.07);
+    box-shadow:0 1px 0 rgba(20,60,50,.05),0 8px 20px rgba(30,42,58,.05);
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
   }
   [data-theme="dark"] .site-header{
-    background:rgba(13,22,19,.92);
-    backdrop-filter:blur(18px) saturate(140%);
-    -webkit-backdrop-filter:blur(18px) saturate(140%);
+    background:#0d1613;
+    border-bottom-color:rgba(255,255,255,.06);
+    box-shadow:0 1px 0 rgba(0,0,0,.35);
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
   }
 }
 

@@ -7,7 +7,9 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,6 +20,7 @@ import android.system.Os;
 import android.system.OsConstants;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.PixelCopy;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.ValueCallback;
@@ -27,6 +30,8 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -50,9 +55,18 @@ public class MainActivity extends Activity {
     private static final int PORT = 43219;
     private static final String BACKEND_ASSET = "backend";
     private static final int MAX_ATTEMPTS = 150;
+    private static final String PREFS = "weimo";
+    private static final String PREF_COLOR = "pageColor";
 
     private final Handler ui = new Handler(Looper.getMainLooper());
     private WebView web;
+    private FrameLayout root;
+    private ImageView mask;
+    private Bitmap lastFrame;
+    private boolean capturing;
+    private long maskSeq;
+    private String pageColor = "#f1f8f5";
+    private boolean playerMode;
     private TextView fallback;
     private PlaybackCenter playback;
     private boolean booted;
@@ -122,6 +136,7 @@ public class MainActivity extends Activity {
             if (fallback != null) fallback.setText(text);
             return;
         }
+        hideMaskNow();
         web.loadDataWithBaseURL(null,
                 "<html><body style='margin:0;height:100vh;display:flex;align-items:center;"
                         + "justify-content:center;background:#f1f8f5;color:#173c36;"
@@ -134,6 +149,12 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        // 先用上一帧盖住 WebView，等它真正重绘后再揭开，彻底消除恢复瞬间的白底
+        if (web != null && lastFrame != null && mask != null) {
+            showMask();
+            web.invalidate();
+            scheduleReveal();
+        }
         if (!resumedOnce) {
             resumedOnce = true;
             return;
@@ -152,6 +173,108 @@ public class MainActivity extends Activity {
         }, 350);
     }
 
+    /** 窗口失焦（切到别的 App、下拉通知栏）时先抓一帧，比 onPause 更早、画面一定还在。 */
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (!hasFocus) captureFrame();
+    }
+
+    @Override
+    protected void onPause() {
+        captureFrame();
+        super.onPause();
+    }
+
+    /** 抓取当前窗口画面作为上一帧；遮罩可见时不抓，避免把遮罩自己截进去。 */
+    private void captureFrame() {
+        WebView view = web;
+        if (view == null || !pageReady || isFinishing() || isDestroyed() || capturing) return;
+        if (mask != null && mask.getVisibility() == View.VISIBLE) return;
+        View decor = getWindow().getDecorView();
+        int width = decor.getWidth();
+        int height = decor.getHeight();
+        if (width <= 0 || height <= 0) return;
+        try {
+            final Bitmap shot = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            capturing = true;
+            PixelCopy.request(getWindow(), shot, result -> {
+                capturing = false;
+                if (result == PixelCopy.SUCCESS) {
+                    if (lastFrame != null && lastFrame != shot) lastFrame.recycle();
+                    lastFrame = shot;
+                } else {
+                    shot.recycle();
+                }
+            }, ui);
+        } catch (Throwable error) {
+            capturing = false;
+            BootLog.append("java: capture frame failed: " + error);
+        }
+    }
+
+    private void showMask() {
+        if (mask == null || lastFrame == null) return;
+        mask.setImageBitmap(lastFrame);
+        mask.setAlpha(1f);
+        mask.setVisibility(View.VISIBLE);
+    }
+
+    /** 等 WebView 提交了新画面再揭开；页面还没就绪时保持遮罩，由 onPageChecked 接手。 */
+    private void scheduleReveal() {
+        final long seq = ++maskSeq;
+        ui.postDelayed(() -> {
+            if (seq != maskSeq || web == null) return;
+            try {
+                web.postVisualStateCallback(seq, new WebView.VisualStateCallback() {
+                    @Override
+                    public void onComplete(long requestId) {
+                        ui.post(() -> {
+                            if (seq == maskSeq) revealPage();
+                        });
+                    }
+                });
+            } catch (Throwable ignored) {
+            }
+        }, 360);
+        ui.postDelayed(() -> {
+            if (seq == maskSeq) revealPage();
+        }, 900);
+    }
+
+    /** 只有页面确认有内容时才揭开遮罩，避免露出白底或重新加载中的空页。 */
+    private void revealPage() {
+        if (!pageReady) return;
+        final ImageView cover = mask;
+        if (cover == null || cover.getVisibility() != View.VISIBLE) return;
+        cover.animate().alpha(0f).setDuration(140).withEndAction(() -> {
+            if (cover == mask) {
+                cover.setVisibility(View.GONE);
+                cover.setImageDrawable(null);
+                cover.setAlpha(1f);
+            }
+        }).start();
+    }
+
+    /** 立刻收起遮罩（启动页/日志页这类主动展示的界面）。 */
+    private void hideMaskNow() {
+        maskSeq++;
+        if (mask == null) return;
+        mask.animate().cancel();
+        mask.setAlpha(1f);
+        mask.setVisibility(View.GONE);
+    }
+
+    /** 丢弃上一帧：先从 ImageView 摘掉引用再回收，避免绘制到已回收的 Bitmap。 */
+    private void discardFrame() {
+        hideMaskNow();
+        if (mask != null) mask.setImageDrawable(null);
+        if (lastFrame != null) {
+            lastFrame.recycle();
+            lastFrame = null;
+        }
+    }
+
     /** WebView 渲染进程被系统回收：重建并立刻显示品牌启动页，避免白屏。 */
     void onRenderGone() {
         if (isFinishing() || isDestroyed()) return;
@@ -159,6 +282,8 @@ public class MainActivity extends Activity {
         pageReady = false;
         ready = false;
         web = null;
+        // 渲染进程已死，旧帧不再代表真实画面，避免遮罩把界面冻住
+        discardFrame();
         if (playback != null) {
             playback.release();
             playback = null;
@@ -186,6 +311,9 @@ public class MainActivity extends Activity {
         current = this;
         BootLog.init(getFilesDir());
         BootLog.append("run: activity created");
+        // 进程重建时先恢复上次的页面底色，窗口在网页加载前就不会闪浅色
+        SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+        pageColor = prefs.getString(PREF_COLOR, "#f1f8f5");
 
         String previous = BootLog.takePending();
         int fails = BootLog.failures();
@@ -227,7 +355,18 @@ public class MainActivity extends Activity {
             settings.setAllowContentAccess(false);
             settings.setLoadWithOverviewMode(true);
             settings.setUseWideViewPort(true);
-            view.setBackgroundColor(Color.parseColor("#f1f8f5"));
+            // 根因修复：默认策略会在 WebView 不可见时放弃渲染进程优先级，退到后台就被系统回收，
+            // 切回来只能重建 WebView → 白一下再恢复。这里让渲染进程常驻重要级。
+            if (Build.VERSION.SDK_INT >= 26) {
+                try {
+                    view.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false);
+                    BootLog.append("run: renderer priority important");
+                } catch (Throwable error) {
+                    BootLog.append("java: renderer policy failed: " + error);
+                }
+            }
+            int background = Color.parseColor(pageColor);
+            view.setBackgroundColor(background);
             view.setWebViewClient(new BootClient(this));
             view.setWebChromeClient(new WebChromeClient());
             view.addJavascriptInterface(new NativeBridge(this), "WeiMoNative");
@@ -236,8 +375,28 @@ public class MainActivity extends Activity {
                 view.setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null);
                 BootLog.append("run: webview software mode");
             }
-            setContentView(view, new ViewGroup.LayoutParams(
+            FrameLayout container = new FrameLayout(this);
+            container.setBackgroundColor(background);
+            container.addView(view, new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            // 上一帧遮罩：切回前台时盖住 WebView 尚未重绘的空白底
+            ImageView cover = new ImageView(this);
+            cover.setScaleType(ImageView.ScaleType.FIT_XY);
+            cover.setBackgroundColor(background);
+            cover.setClickable(false);
+            cover.setFocusable(false);
+            if (lastFrame != null) {
+                cover.setImageBitmap(lastFrame);
+                cover.setVisibility(View.VISIBLE);
+            } else {
+                cover.setVisibility(View.GONE);
+            }
+            container.addView(cover, new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            setContentView(container, new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            root = container;
+            mask = cover;
             web = view;
             playback = new PlaybackCenter(this, this::runRemoteCommand);
             BootLog.append("run: webview ready");
@@ -249,6 +408,8 @@ public class MainActivity extends Activity {
 
     /** 兜底界面：完全不依赖 WebView，至少能看到日志并重试。 */
     private void buildTextUi() {
+        root = null;
+        mask = null;
         TextView text = new TextView(this);
         text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f);
         text.setTextColor(0xFF111111);
@@ -405,6 +566,8 @@ public class MainActivity extends Activity {
                 BootLog.finish();
                 BootLog.setFailures(0);
             }
+            // 页面确认有内容后，再等一帧把上一帧遮罩淡出
+            ui.postDelayed(this::revealPage, 60);
             return;
         }
         if (pageReady) {
@@ -497,6 +660,9 @@ public class MainActivity extends Activity {
         public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
             // 渲染进程被系统回收时不要崩溃退出：重建 WebView 并重新加载
             try {
+                if (view.getParent() instanceof ViewGroup) {
+                    ((ViewGroup) view.getParent()).removeView(view);
+                }
                 view.destroy();
             } catch (Throwable ignored) {
             }
@@ -525,6 +691,24 @@ public class MainActivity extends Activity {
     /** 给网页调用：全屏播放器打开时系统栏切成深色白字，关闭时回到浅色深字。 */
     void setPlayerModeFromScript(boolean playing) {
         ui.post(new PlayerModeTask(this, playing));
+    }
+
+    /** 给网页调用：跟随当前皮肤同步窗口底色，避免暗色皮肤切回前台时露浅色。 */
+    void setPageColorFromScript(String color) {
+        if (color == null || !color.matches("#[0-9a-fA-F]{6}")) return;
+        final String value = color.toLowerCase(java.util.Locale.ROOT);
+        ui.post(() -> {
+            if (value.equals(pageColor)) return;
+            pageColor = value;
+            try {
+                getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString(PREF_COLOR, value).apply();
+            } catch (Throwable ignored) {
+            }
+            if (root != null) root.setBackgroundColor(Color.parseColor(pageColor));
+            if (mask != null) mask.setBackgroundColor(Color.parseColor(pageColor));
+            if (!playerMode) applyBarTheme(false);
+            BootLog.append("run: page color " + value);
+        });
     }
 
     /** 给网页调用：同步当前曲目，锁屏与通知栏据此显示封面、进度和控制按钮。 */
@@ -560,6 +744,7 @@ public class MainActivity extends Activity {
 
     private void applyBarTheme(boolean player) {
         if (Build.VERSION.SDK_INT < 21) return;
+        playerMode = player;
         android.view.Window window = getWindow();
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         // 首页与播放页都铺到系统栏后面：顶栏/底部 TabBar 自己延伸到状态栏与导航栏区域，
@@ -570,8 +755,10 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT < 26) window.setNavigationBarColor(Color.parseColor("#0b3a31"));
         // 窗口和 WebView 的底色跟着播放页一起换：切到后台再回来时先绘制的是这层底色，
         // 保持深色就不会闪白，也能盖住屏幕圆角/系统栏边缘漏出的浅色。
-        int background = player ? Color.parseColor("#0d0c11") : Color.parseColor("#f1f8f5");
+        int background = player ? Color.parseColor("#0d0c11") : Color.parseColor(pageColor);
         window.getDecorView().setBackgroundColor(background);
+        if (root != null) root.setBackgroundColor(background);
+        if (mask != null) mask.setBackgroundColor(background);
         if (web != null) web.setBackgroundColor(background);
         if (Build.VERSION.SDK_INT >= 29) {
             window.setStatusBarContrastEnforced(false);
@@ -656,6 +843,7 @@ public class MainActivity extends Activity {
             return;
         }
         String safe = log.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+        hideMaskNow();
         web.loadDataWithBaseURL(null,
                 "<html><head><meta name='viewport' content='width=device-width'></head>"
                         + "<body style='margin:0;padding:16px;background:#111;color:#eee;"
@@ -886,12 +1074,20 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    public void onConfigurationChanged(android.content.res.Configuration config) {
+        super.onConfigurationChanged(config);
+        // 尺寸变了，旧帧不能再用（FIT_XY 会拉伸），直接丢掉
+        discardFrame();
+    }
+
+    @Override
     protected void onDestroy() {
         if (current == this) current = null;
         if (playback != null) {
             playback.release();
             playback = null;
         }
+        discardFrame();
         if (web != null) {
             web.loadUrl("about:blank");
             web.destroy();

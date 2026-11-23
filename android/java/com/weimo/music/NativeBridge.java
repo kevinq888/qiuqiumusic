@@ -15,6 +15,12 @@ final class NativeBridge {
         host.setPlayerModeFromScript(playing);
     }
 
+    /** 当前皮肤的背景色（#RRGGBB），让窗口底色与网页一致，切后台回来不露浅色。 */
+    @JavascriptInterface
+    public void setPageColor(String color) {
+        host.setPageColorFromScript(color);
+    }
+
     @JavascriptInterface
     public void setNowPlaying(String json) {
         host.setNowPlayingFromScript(json);
