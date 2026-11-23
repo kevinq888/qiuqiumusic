@@ -7,6 +7,20 @@
   const PLAY_MODE_KEY = 'qiuqiumusic.playmode';
   const PLAY_MODES = ['sequence', 'repeat-all', 'repeat-one'];
   const PLAY_MODE_NAMES = { sequence: '顺序播放', 'repeat-all': '列表循环', 'repeat-one': '单曲循环' };
+  // 音效用 Web Audio 的 5 段均衡实现，不引入任何音频文件，安装包体积不变
+  const SOUND_KEY = 'qiuqiumusic.sound';
+  const SOUND_BANDS = [[100, 'lowshelf'], [350, 'peaking'], [1000, 'peaking'], [3200, 'peaking'], [9000, 'highshelf']];
+  const SOUND_PRESETS = {
+    flat: { name: '原声', gains: [0, 0, 0, 0, 0] },
+    pop: { name: '流行', gains: [1.5, -1, 1, 2, 1.5] },
+    rock: { name: '摇滚', gains: [5, -2, 1, 3, 4] },
+    jazz: { name: '爵士', gains: [3, 1, -1, 2, 2] },
+    classical: { name: '古典', gains: [3.5, 0, 0, 1, 3] },
+    vocal: { name: '人声', gains: [-2, 2, 4, 3, -1] },
+    bass: { name: '低音增强', gains: [6, -1, 0, 0, 1] },
+    treble: { name: '高音增强', gains: [0, 0, 1, 4, 6] },
+    electronic: { name: '电子', gains: [5, 2, -1, 3, 5] },
+  };
   const THEME_COLORS = { mint: '#f1f8f5', sky: '#f2f8fc', lilac: '#f8f5fb', sunset: '#fdf6ef', sakura: '#fdf3f6', dark: '#0f1a17', glass: '#e9eaed' };
   const tabId = Math.random().toString(36).slice(2);
   const channel = 'BroadcastChannel' in window ? new BroadcastChannel('qiuqiumusic.playback.v1') : null;
@@ -27,6 +41,7 @@
   const loading = document.getElementById('route-loading');
   const installDialog = document.getElementById('install-dialog');
   const themeSheet = document.getElementById('theme-sheet');
+  const soundSheet = document.getElementById('sound-sheet');
   const shortcutsDialog = document.getElementById('playback-shortcuts');
   const shortcutStatus = document.getElementById('shortcut-status');
   let shortcutTimer;
@@ -92,6 +107,11 @@
   let navigationId = 0;
   let loadingStartedAt = 0;
   let playMode = (() => { try { const value = localStorage.getItem(PLAY_MODE_KEY); return PLAY_MODES.includes(value) ? value : 'sequence'; } catch { return 'sequence'; } })();
+  let soundPreset = (() => { try { const value = localStorage.getItem(SOUND_KEY); return value in SOUND_PRESETS ? value : 'flat'; } catch { return 'flat'; } })();
+  let soundCtx = null;
+  let soundSource = null;
+  let soundFilters = [];
+  let soundReturnFocus = null;
   let themeReturnFocus = null;
   let cacheCached = new Set();
   let cacheDownloading = new Set();
@@ -303,6 +323,76 @@
     document.getElementById('theme-mobile-trigger')?.setAttribute('aria-expanded', 'false');
     themeReturnFocus?.focus();
     themeReturnFocus = null;
+  }
+  function updateSoundControls() {
+    const preset = SOUND_PRESETS[soundPreset] || SOUND_PRESETS.flat;
+    const trigger = document.getElementById('sound-trigger');
+    if (trigger) {
+      trigger.dataset.preset = soundPreset;
+      trigger.title = `音效：${preset.name}`;
+      trigger.setAttribute('aria-label', `音效：${preset.name}`);
+    }
+    soundSheet?.querySelectorAll('[data-sound-choice]').forEach(button => {
+      button.setAttribute('aria-pressed', String(button.dataset.soundChoice === soundPreset));
+    });
+  }
+  // 播放元素第一次接入 Web Audio 之后，声音才会经过均衡器；后续只调整各段增益
+  function ensureSoundGraph() {
+    if (soundCtx) {
+      if (soundCtx.state === 'suspended') soundCtx.resume().catch(() => {});
+      return soundCtx;
+    }
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    try {
+      soundCtx = new Ctx();
+      soundSource = soundCtx.createMediaElementSource(audio);
+      let node = soundSource;
+      soundFilters = SOUND_BANDS.map(([frequency, type]) => {
+        const filter = soundCtx.createBiquadFilter();
+        filter.type = type;
+        filter.frequency.value = frequency;
+        if (type === 'peaking') filter.Q.value = 0.9;
+        node.connect(filter);
+        node = filter;
+        return filter;
+      });
+      node.connect(soundCtx.destination);
+    } catch {
+      soundCtx = null;
+      soundSource = null;
+      soundFilters = [];
+      return null;
+    }
+    applySoundGains();
+    if (soundCtx.state === 'suspended') soundCtx.resume().catch(() => {});
+    return soundCtx;
+  }
+  function applySoundGains() {
+    const gains = (SOUND_PRESETS[soundPreset] || SOUND_PRESETS.flat).gains;
+    soundFilters.forEach((filter, index) => { filter.gain.value = gains[index] || 0; });
+  }
+  function setSoundPreset(id) {
+    if (!(id in SOUND_PRESETS)) return;
+    soundPreset = id;
+    try { localStorage.setItem(SOUND_KEY, id); } catch {}
+    updateSoundControls();
+    if (id === 'flat') { applySoundGains(); return; }
+    if (ensureSoundGraph()) applySoundGains();
+  }
+  function openSoundSheet() {
+    soundReturnFocus = document.activeElement;
+    soundSheet.hidden = false;
+    document.body.classList.add('theme-sheet-open');
+    document.getElementById('sound-trigger')?.setAttribute('aria-expanded', 'true');
+    soundSheet.querySelector('[aria-pressed="true"]')?.focus();
+  }
+  function closeSoundSheet() {
+    soundSheet.hidden = true;
+    document.body.classList.remove('theme-sheet-open');
+    document.getElementById('sound-trigger')?.setAttribute('aria-expanded', 'false');
+    soundReturnFocus?.focus();
+    soundReturnFocus = null;
   }
   function updateModeButton() {
     const buttons = [document.getElementById('player-mode'), document.getElementById('mini-mode')].filter(Boolean);
@@ -628,26 +718,34 @@
     else button.textContent = label;
     button.classList.toggle('completed', completed);
   }
-  // 正在播放（非暂停）时加入歌单不打断当前播放；没有歌曲或已暂停时才自动播放
-  function shouldStartAfterAdd() {
-    return !current || !isPlaying || audio.paused;
-  }
+  // 正在播放时加入歌单只排到队尾，绝不打断当前播放；只有当前没有任何歌曲时才自动开播
   function addToQueue(song, autoPlay = true) {
     if (!validSong(song)) return;
-    if (!contains(queue, song)) {
-      queue.push(song);
-      save();
-      scheduleCacheStatusRefresh();
+    const idle = !current;
+    const at = queue.findIndex(item => sameSong(item, song));
+    if (at >= 0) {
+      // 重复加入的歌曲：清掉旧位置，按最新一次加入排到队尾；正在播放的这首保持不动
+      if (sameSong(queue[at], current)) return;
+      queue.splice(at, 1);
     }
-    if (autoPlay && shouldStartAfterAdd()) playSong(song);
+    queue.push(song);
+    save();
+    scheduleCacheStatusRefresh();
+    if (autoPlay && idle) playSong(song);
   }
   function addPageToQueue(button) {
     const rows = button.closest('.panel')?.querySelectorAll('.song-row [data-add-id]') || [];
     let added = 0;
     let firstAdded = null;
+    const idle = !current;
     for (const row of rows) {
       const song = songFrom(row, 'addId', 'songTitle');
-      if (!validSong(song) || contains(queue, song)) continue;
+      if (!validSong(song)) continue;
+      const at = queue.findIndex(item => sameSong(item, song));
+      if (at >= 0) {
+        if (sameSong(queue[at], current)) continue;
+        queue.splice(at, 1);
+      }
       queue.push(song);
       if (!firstAdded) firstAdded = song;
       added++;
@@ -656,7 +754,7 @@
       save();
       scheduleCacheStatusRefresh();
       // 正在播放（非暂停）时只入列表，不切换当前播放
-      if (shouldStartAfterAdd()) playSong(firstAdded);
+      if (idle) playSong(firstAdded);
     }
     setBulkButton(button, added ? `已加入 ${added} 首` : '本页已加入', true);
   }
@@ -1605,6 +1703,10 @@
     if (event.target.closest('#player-follow')) { toggleFollow(event.target.closest('#player-follow')); return; }
     const themeChoice = event.target.closest('[data-theme-choice]');
     if (themeChoice) { setTheme(themeChoice.dataset.themeChoice); closeThemeSheet(); return; }
+    if (event.target.closest('#sound-trigger') || event.target.closest('#player-sound')) { openSoundSheet(); return; }
+    if (event.target.closest('[data-sound-close]')) { closeSoundSheet(); return; }
+    const soundChoice = event.target.closest('[data-sound-choice]');
+    if (soundChoice) { setSoundPreset(soundChoice.dataset.soundChoice); return; }
     if (event.target.closest('#nav-scroll-next')) { document.querySelector('.main-nav')?.scrollBy({ left: 180, behavior: 'smooth' }); return; }
     const addPage = event.target.closest('[data-add-page]');
     if (addPage) { event.preventDefault(); addPageToQueue(addPage); return; }
@@ -1628,6 +1730,7 @@
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && !installDialog.hidden) closeInstallDialog();
     if (event.key === 'Escape' && !themeSheet.hidden) closeThemeSheet();
+    if (event.key === 'Escape' && !soundSheet.hidden) closeSoundSheet();
   });
   function resetShortcut() {
     clearTimeout(shortcutTimer);
@@ -1639,7 +1742,7 @@
     // Use key rather than code so an active non-Latin layout is left alone.
     if (event.defaultPrevented || event.repeat || event.isComposing || event.keyCode === 229 ||
         event.ctrlKey || event.metaKey || event.altKey || event.shiftKey ||
-        !document.hasFocus() || document.hidden || !installDialog.hidden || !themeSheet.hidden ||
+        !document.hasFocus() || document.hidden || !installDialog.hidden || !themeSheet.hidden || !soundSheet.hidden ||
         document.querySelector('dialog[open]') ||
         event.target.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="slider"]')) {
       resetShortcut(); return;
@@ -1928,6 +2031,16 @@
   hydrateCovers();
   applyTheme(document.documentElement.dataset.theme || 'mint');
   updateModeButton();
+  updateSoundControls();
+  // 选择过音效的用户才把播放元素接入 Web Audio：默认「原声」保持原生播放，
+  // 不影响 iOS/安卓的后台播放与锁屏控制；首次交互时建立链路以符合自动播放策略。
+  if (soundPreset !== 'flat') {
+    document.addEventListener('pointerdown', () => { ensureSoundGraph(); }, { once: true, capture: true });
+    document.addEventListener('keydown', () => { ensureSoundGraph(); }, { once: true, capture: true });
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && soundCtx && soundCtx.state === 'suspended') soundCtx.resume().catch(() => {});
+  });
   updateInstallButton();
   updateNavScrollHint();
   message('hello');

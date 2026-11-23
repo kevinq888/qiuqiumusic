@@ -58,6 +58,7 @@ public class MainActivity extends Activity {
     private boolean booted;
     private boolean ready;
     private boolean pageReady;
+    private int blankChecks;
     private boolean resumedOnce;
     private int activePort = PORT;
     private int reloads;
@@ -129,7 +130,7 @@ public class MainActivity extends Activity {
                 "text/html", "utf-8", null);
     }
 
-    /** 从后台回到前台：如果还停在启动页/空白页，直接重新探测服务并加载首页。 */
+    /** 从后台回到前台：页面已经加载过就直接复用，不再做空白校验/重载，避免恢复瞬间闪白。 */
     @Override
     protected void onResume() {
         super.onResume();
@@ -141,17 +142,13 @@ public class MainActivity extends Activity {
         ui.postDelayed(() -> {
             if (web == null || isFinishing()) return;
             String url = web.getUrl();
-            if (url == null || !url.startsWith("http://127.0.0.1:")) {
-                // 暂停后重开仍停在启动页：重新走一遍服务探测，绝不把空白页留给用户
-                BootLog.append("run: resume on blank page, restart boot");
-                pageReady = false;
-                ready = false;
-                if (!booted) boot();
-                else probe(0);
-                return;
-            }
-            // 页面还在，但系统恢复后可能是空白的，主动校验一次
-            onPageRendered(url);
+            if (url != null && url.startsWith("http://127.0.0.1:")) return;
+            // 暂停后重开仍停在启动页：重新走一遍服务探测，绝不把空白页留给用户
+            BootLog.append("run: resume on blank page, restart boot");
+            pageReady = false;
+            ready = false;
+            if (!booted) boot();
+            else probe(0);
         }, 350);
     }
 
@@ -397,6 +394,7 @@ public class MainActivity extends Activity {
 
     private void onPageChecked(boolean ok) {
         if (ok) {
+            blankChecks = 0;
             if (!pageReady) {
                 pageReady = true;
                 resumedOnce = true;
@@ -410,13 +408,23 @@ public class MainActivity extends Activity {
             return;
         }
         if (pageReady) {
-            // 回到前台或系统恢复后页面变成空白：直接重载，不允许停在白屏
+            // 页面已经可用时偶发一次空白（切后台恢复、渲染进程刚唤醒）先复查一次，
+            // 确认真的空白才重载，避免把正常页面重载成白屏。
+            if (blankChecks < 1) {
+                blankChecks++;
+                ui.postDelayed(() -> {
+                    if (web != null && pageReady) onPageRendered(web.getUrl());
+                }, 900);
+                return;
+            }
+            blankChecks = 0;
             BootLog.append("run: page blank after restore, reload");
             pageReady = false;
             reloads = 0;
             loadPage();
             return;
         }
+        blankChecks = 0;
         if (reloads >= 3) {
             BootLog.append("run: page stays blank");
             showLogPage("页面加载失败", BootLog.read());

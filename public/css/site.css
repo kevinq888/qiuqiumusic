@@ -168,7 +168,10 @@ body.player-docked{padding-bottom:var(--player-dock-height,112px)}
 body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 ::selection{background:var(--mint);color:var(--forest)}
 ::-webkit-scrollbar{width:9px;height:9px}
-::-webkit-scrollbar-track{background:transparent}
+/* 滚动条槽必须自己铺主题色：透明槽会露出浏览器/Electron 窗口的深色底，
+   在右侧形成一条去不掉的黑边。 */
+::-webkit-scrollbar-track{background:var(--cream)}
+::-webkit-scrollbar-corner{background:var(--cream)}
 ::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--forest) 26%,transparent);border-radius:999px;border:2px solid transparent;background-clip:content-box}
 ::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--forest) 45%,transparent);background-clip:content-box;border:2px solid transparent}
 :focus-visible{outline:2px solid var(--forest);outline-offset:2px;border-radius:6px}
@@ -379,7 +382,7 @@ body{min-height:100dvh;display:flex;flex-direction:column}
 .nav-scroll-next[hidden]{display:none}
 .theme-mobile-trigger{display:none}
 .theme-sheet[hidden]{display:none}
-.theme-sheet{position:fixed;inset:0;z-index:90;display:grid;align-items:end}
+.theme-sheet{position:fixed;inset:0;z-index:90;display:grid;grid-template-columns:minmax(0,1fr);align-items:end}
 .theme-sheet-backdrop{position:absolute;inset:0;border:0;background:rgba(8,24,23,.57);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
 .theme-sheet-card{position:relative;width:100%;max-height:min(84dvh,640px);overflow:auto;padding:22px 20px calc(24px + var(--safe-bottom, env(safe-area-inset-bottom)));border:1px solid var(--line);border-radius:26px 26px 0 0;background:var(--white);color:var(--ink);box-shadow:0 -18px 45px rgba(0,0,0,.16)}
 .theme-sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:20px}
@@ -2464,3 +2467,32 @@ html{
   overflow-x:clip;
 }
 body{overflow-x:clip}
+
+/* ============================================================
+   v1.2.33 音效切换：桌面顶栏按钮 + 播放器入口 + 九种预设
+   ============================================================ */
+.sound-picker{display:none}
+.sound-trigger{
+  display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border:1px solid var(--line);
+  border-radius:999px;background:var(--subtle);color:var(--ink);font-size:12px;font-weight:800;
+  white-space:nowrap;cursor:pointer;
+}
+.sound-trigger .icon{width:15px;height:15px}
+.sound-trigger[data-preset]:not([data-preset="flat"]){border-color:color-mix(in srgb,var(--green) 45%,var(--line));color:var(--forest)}
+.sound-trigger[data-preset]:not([data-preset="flat"])::after{
+  content:"";width:5px;height:5px;margin-left:-1px;border-radius:50%;background:var(--green);
+}
+@media(min-width:681px){
+  .sound-picker{display:block}
+  .header-actions{gap:7px}
+  .header-actions .desktop-download-button,
+  .header-actions .desktop-update-button,
+  .header-actions .install-button{height:32px;min-height:32px;padding:0 10px;font-size:11.5px;gap:5px}
+  .header-actions .theme-picker{padding:2px 4px}
+  .header-actions .theme-trigger{font-size:11.5px;padding:2px 3px}
+}
+.sound-choices{grid-template-columns:repeat(3,minmax(0,1fr))}
+.sound-choice{min-height:46px;justify-content:center;gap:0;text-align:center;font-size:12px}
+.sound-choice .theme-check{display:none}
+.sound-choice[aria-pressed="true"]{border-color:var(--green);background:color-mix(in srgb,var(--green) 14%,var(--subtle))}
+.sound-note{margin:12px 2px 0;color:var(--muted);font-size:11px;line-height:1.5}
