@@ -6,7 +6,21 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://weimomusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.33（当前版本）
+### v1.2.34（当前版本）
+
+- 桌面版悬浮播放器外圈改为磨砂质感：去掉了原来的橙色描边，换成半透明的低饱和浅色进度弧，只保留「进度看得见」的信息量，不再抢眼。
+- 进度弧整体收细并加圆弧端点，深色/浅色壁纸上都能看清，圆圈边缘平滑无毛刺。
+- 播放时中间封面匀速旋转（16 秒一圈，线性），暂停即停、继续播放在原角度接着转。
+
+| 系统 | 下载 |
+| --- | --- |
+| Android（arm64-v8a） | [未末音乐-1.2.34-android-arm64-v8a.apk](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.34/-1.2.34-android-arm64-v8a.apk) |
+| iPhone / iPad（PWA） | [未末音乐-1.2.34-iphone.zip](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.34/-1.2.34-iphone.zip) |
+| macOS（Apple 芯片） | [未末音乐-1.2.34-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.34/-1.2.34-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.34-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.34/-1.2.34-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.34-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.34/-1.2.34-windows-x64.exe) |
+
+### v1.2.33
 
 - 新增音效控制：桌面/网页顶栏和播放页新增「音效」入口，提供原声、流行、摇滚、爵士、古典、人声、低音增强、高音增强、电子九种预设，切换即时生效并记住选择（使用浏览器内置音频处理，不增加安装包体积）。
 - 播放清单改为严格排队：正在播放时新加入的歌曲只排到队尾，当前歌曲播完再顺延，绝不打断；只有歌单为空时加入的第一首才立即播放。

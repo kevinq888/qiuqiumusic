@@ -7,9 +7,10 @@ const trackText = document.querySelector('.track-text');
 const controls = [...document.querySelectorAll('[data-command]')];
 const playControl = document.querySelector('.play-control');
 const progressRing = document.querySelector('.ring-progress');
+const ringEdge = document.querySelector('.ring-edge');
 const coverImg = document.getElementById('record-cover-img');
 const coverLogo = document.querySelector('.record-logo');
-const ringLength = 2 * Math.PI * 42;
+const ringLength = 2 * Math.PI * 43;
 let pointerStart = null;
 let dragMoved = false;
 let suppressClick = false;
@@ -19,6 +20,8 @@ let currentCover = '';
 let ignoresMouse = true;
 progressRing.style.strokeDasharray = `${ringLength} ${ringLength}`;
 progressRing.style.strokeDashoffset = String(ringLength);
+ringEdge.style.strokeDasharray = `${ringLength} ${ringLength}`;
+ringEdge.style.strokeDashoffset = String(ringLength);
 controls.forEach(button => { button.disabled = true; });
 
 function fitTrackTitle() {
@@ -140,4 +143,6 @@ window.qiuqiuDesktop.onPlaybackState(state => {
   // No track underneath: only elapsed audio is painted, including no cap at 0%.
   progressRing.style.opacity = progress > 0 ? '1' : '0';
   progressRing.style.strokeDashoffset = String(ringLength * (1 - progress));
+  ringEdge.style.opacity = progress > 0 ? '1' : '0';
+  ringEdge.style.strokeDashoffset = String(ringLength * (1 - progress));
 });
