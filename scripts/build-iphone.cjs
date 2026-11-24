@@ -25,23 +25,23 @@ const page = `<!doctype html>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="未末音乐">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#f1f8f5">
+<meta name="theme-color" content="#fdf7f6">
 <style>
   :root { color-scheme: light; }
   * { box-sizing: border-box; }
   body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 32px 20px;
-    background: linear-gradient(160deg, #eaf7f0, #f7fcfa 55%, #e8f4f7); color: #17342a;
+    background: linear-gradient(160deg, #fdf0f1, #fdf7f6 55%, #fde8ea); color: #3a2026;
     font: 16px/1.7 -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif; }
   main { width: 100%; max-width: 480px; padding: 32px 26px 28px; border-radius: 26px; background: rgba(255,255,255,.82);
-    box-shadow: 0 18px 48px rgba(28,84,64,.14); backdrop-filter: blur(14px); text-align: center; }
-  img.icon { width: 96px; height: 96px; border-radius: 24px; box-shadow: 0 8px 20px rgba(28,84,64,.18); }
+    box-shadow: 0 18px 48px rgba(204,34,54,.12); backdrop-filter: blur(14px); text-align: center; }
+  img.icon { width: 96px; height: 96px; border-radius: 24px; box-shadow: 0 8px 20px rgba(204,34,54,.18); }
   h1 { margin: 18px 0 4px; font-size: 24px; }
-  p.sub { margin: 0 0 22px; color: #4f7365; font-size: 14px; }
-  ol { margin: 0 0 24px; padding-left: 1.2em; text-align: left; color: #26493c; }
+  p.sub { margin: 0 0 22px; color: #8a6a71; font-size: 14px; }
+  ol { margin: 0 0 24px; padding-left: 1.2em; text-align: left; color: #4a3036; }
   li { margin: 8px 0; }
-  a.button { display: block; padding: 14px 18px; border-radius: 999px; background: #2f8f68; color: #fff;
+  a.button { display: block; padding: 14px 18px; border-radius: 999px; background: #cf4459; color: #fff;
     font-weight: 600; text-decoration: none; }
-  p.tip { margin: 18px 0 0; color: #6b8b7f; font-size: 12px; }
+  p.tip { margin: 18px 0 0; color: #a98a90; font-size: 12px; }
 </style>
 </head>
 <body>
@@ -91,8 +91,8 @@ function build() {
       start_url: site,
       scope: site,
       display: 'standalone',
-      background_color: '#f1f8f5',
-      theme_color: '#f1f8f5',
+      background_color: '#fdf7f6',
+      theme_color: '#fdf7f6',
       icons: [
         { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
         { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },

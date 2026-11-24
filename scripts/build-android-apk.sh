@@ -7,8 +7,20 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="$ROOT/android"
 SDK="${ANDROID_SDK_ROOT:-/tmp/abuild/sdk}"
 NDK="${ANDROID_NDK_HOME:-$SDK/ndk/26.1.10909125}"
-# macOS 版 JDK 的 bin 目录在 Contents/Home 下
-JAVA_HOME="${JAVA_HOME:-/tmp/abuild/jdk-21.0.13+9/Contents/Home}"
+# macOS 版 JDK 的 bin 目录在 Contents/Home 下；JAVA_HOME 失效时自动在常见位置查找
+if [ -z "${JAVA_HOME:-}" ] || [ ! -x "$JAVA_HOME/bin/javac" ]; then
+  JAVA_HOME=""
+  for candidate in /tmp/abuild/jdk-hw/*/Contents/Home /tmp/abuild/jdk-*/Contents/Home \
+    /Library/Java/JavaVirtualMachines/*/Contents/Home /opt/homebrew/opt/openjdk*/libexec/openjdk.jdk/Contents/Home; do
+    if [ -x "$candidate/bin/javac" ]; then JAVA_HOME="$candidate"; break; fi
+  done
+fi
+if [ -z "$JAVA_HOME" ]; then
+  echo "未找到 JDK（需要 17+），请设置 JAVA_HOME 后重试" >&2
+  exit 1
+fi
+export JAVA_HOME
+export PATH="$JAVA_HOME/bin:$PATH"
 LIBROOT="${LIBROOT:-/tmp/njm/package/android/libnode}"
 BUILD="$SRC/build"
 # 版本号与桌面端保持一致；输出按版本/平台分层：dist/<版本>/android/
