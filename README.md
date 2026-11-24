@@ -58,7 +58,3 @@ npm start
 免费实例闲置后可能休眠，首次访问需等待服务启动；实例重启或重新部署后，临时文件缓存可能需要重新抓取。若需跨重启保留缓存，可使用带持久化磁盘的服务计划。
 
 站点从上游公开页面生成榜单和搜索结果。首次访问或六小时缓存过期后会重新获取，因此部署环境需要能访问上游站点。缓存写入 `data/cache/`；播放音频也依赖上游 CDN 可用。
-
-## 仓库
-
-GitHub：[kevinq888/weimomusic](https://github.com/kevinq888/weimomusic) · Codeup：[kevinq/qiuqiumusic](https://codeup.aliyun.com/6305f229e8ec152a05d73b41/kevinq/qiuqiumusic)。

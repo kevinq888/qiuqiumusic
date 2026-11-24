@@ -50,6 +50,8 @@ NDK_SYSROOT="$NDK/toolchains/llvm/prebuilt/darwin-x86_64/sysroot"
 # 工具链被清理过（缺 unistd.h 等系统头）时不再尝试编译，直接复用上一版 APK 里的原生库。
 # JNI 源码没有改动时这样产出的安装包与重新编译等价。
 PREV_APK="$(ls -t "$ROOT"/dist/*/android/*"${ABI}"*.apk 2>/dev/null | grep -v "/$VERSION_NAME/" | head -1 || true)"
+# 历史安装包已按版本清理时，退回到任意一个同架构 APK 取原生库，保证仍能出包。
+[ -n "$PREV_APK" ] || PREV_APK="$(ls -t "$ROOT"/dist/*/android/*"${ABI}"*.apk 2>/dev/null | head -1 || true)"
 if [ -f "$NDK_SYSROOT/usr/include/unistd.h" ] && [ -f "$LIBROOT/include/node/v8.h" ]; then
   # 部分精简版 NDK 缺少 clang 内置头文件（stdarg.h 等），回退到系统 clang 的同名目录
   RESOURCE_FLAG=()
