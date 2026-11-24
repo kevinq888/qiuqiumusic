@@ -6,21 +6,20 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://weimomusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.38（当前版本）
+### v1.2.39（当前版本）
 
-- 打开皮肤或音效面板时，顶栏不再被遮罩盖住，头部始终完整可见。
-- 全新品牌图标：红底白色音符，图形更简洁，贴合浅绯主题与网易云音乐那种红白配色；网页、安卓、桌面和 iPhone 图标同步更新，尺寸保持不变。
-- 安装包名字统一为 `weimomusic-<版本>-<平台>`，发布时自动清理旧版本，只保留当前版本。
-- 浅绯、薄荷绿、晴空蓝、晨雾紫、日落橙、樱花粉、暗夜黑、毛玻璃八套皮肤的头部与吸顶表现逐一验证通过。
-- 延续 v1.2.37 的全部修复：无闪动进度线、音效 7 段均衡、真实渐变红心、隐藏右侧滚动条、手机头部实色吸顶、去除毛玻璃毛刺、安卓防白屏。
+- 修复手机端“点更新后仍反复提示有新版本”的循环：iPhone PWA 以线上部署版本为准，刷新一次后不再重复提示；安卓原生拉起安装器后按“安装中”处理；安卓浏览器下载安装包后同一版本不再反复催促。
+- 安卓安装包内置 `package.json`，内置服务离线时也能正确判断当前版本，避免版本判断失真。
+- 线上站点短暂落后于 GitHub 发布时不再误报更新，等部署完成后再提示。
+- 延续 v1.2.38 的全部改进：皮肤/音效弹层不再遮挡顶栏、红白品牌图标、浅绯配色与安装包命名规范。
 
 | 系统 | 下载 |
 | --- | --- |
-| Android（arm64-v8a） | [weimomusic-1.2.38-android-arm64-v8a.apk](https://github.com/kevinq888/weimomusic/releases/download/v1.2.38/weimomusic-1.2.38-android-arm64-v8a.apk) |
-| iPhone / iPad（PWA） | [weimomusic-1.2.38-iphone.zip](https://github.com/kevinq888/weimomusic/releases/download/v1.2.38/weimomusic-1.2.38-iphone.zip) |
-| macOS（Apple 芯片） | [weimomusic-1.2.38-mac-arm64.dmg](https://github.com/kevinq888/weimomusic/releases/download/v1.2.38/weimomusic-1.2.38-mac-arm64.dmg) |
-| macOS（Intel） | [weimomusic-1.2.38-mac-x64.dmg](https://github.com/kevinq888/weimomusic/releases/download/v1.2.38/weimomusic-1.2.38-mac-x64.dmg) |
-| Windows（64 位） | [weimomusic-1.2.38-windows-x64.exe](https://github.com/kevinq888/weimomusic/releases/download/v1.2.38/weimomusic-1.2.38-windows-x64.exe) |
+| Android（arm64-v8a） | [weimomusic-1.2.39-android-arm64-v8a.apk](https://github.com/kevinq888/weimomusic/releases/download/v1.2.39/weimomusic-1.2.39-android-arm64-v8a.apk) |
+| iPhone / iPad（PWA） | [weimomusic-1.2.39-iphone.zip](https://github.com/kevinq888/weimomusic/releases/download/v1.2.39/weimomusic-1.2.39-iphone.zip) |
+| macOS（Apple 芯片） | [weimomusic-1.2.39-mac-arm64.dmg](https://github.com/kevinq888/weimomusic/releases/download/v1.2.39/weimomusic-1.2.39-mac-arm64.dmg) |
+| macOS（Intel） | [weimomusic-1.2.39-mac-x64.dmg](https://github.com/kevinq888/weimomusic/releases/download/v1.2.39/weimomusic-1.2.39-mac-x64.dmg) |
+| Windows（64 位） | [weimomusic-1.2.39-windows-x64.exe](https://github.com/kevinq888/weimomusic/releases/download/v1.2.39/weimomusic-1.2.39-windows-x64.exe) |
 
 ## 本地运行
 

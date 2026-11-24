@@ -1,28 +1,28 @@
 {
-  "tag_name": "v1.2.38",
+  "tag_name": "v1.2.39",
   "draft": false,
   "prerelease": false,
   "assets": [
     {
-      "name": "1.2.38-mac-arm64.zip",
+      "name": "1.2.39-mac-arm64.zip",
       "state": "uploaded",
-      "size": 110732110,
-      "digest": "sha256:513e29a1eb6eef122681a55fed41ba27a70cc169edc22970947065407a890e93",
-      "browser_download_url": "https://github.com/kevinq888/weimomusic/releases/download/v1.2.38/1.2.38-mac-arm64.zip"
+      "size": 110726948,
+      "digest": "sha256:7394b46327f6bd6d085688b68cd928110e85283be46a4f2833b66fded1b84343",
+      "browser_download_url": "https://github.com/kevinq888/weimomusic/releases/download/v1.2.39/1.2.39-mac-arm64.zip"
     },
     {
-      "name": "1.2.38-mac-x64.zip",
+      "name": "1.2.39-mac-x64.zip",
       "state": "uploaded",
-      "size": 116936769,
-      "digest": "sha256:de8bc47836b72b7a79ab464306cc893afab1d362b46e1350f08525c82145af3b",
-      "browser_download_url": "https://github.com/kevinq888/weimomusic/releases/download/v1.2.38/1.2.38-mac-x64.zip"
+      "size": 116944046,
+      "digest": "sha256:d689f94ae464df0aa2b04cf4a8a9b6c32521d97c75447e66fc862a402c523b79",
+      "browser_download_url": "https://github.com/kevinq888/weimomusic/releases/download/v1.2.39/1.2.39-mac-x64.zip"
     },
     {
-      "name": "1.2.38-windows-x64.zip",
+      "name": "1.2.39-windows-x64.zip",
       "state": "uploaded",
-      "size": 102341728,
-      "digest": "sha256:58a2c65e061e3ac88569995ad14e85c77566954357909a8fffdf7a1db8f36bf9",
-      "browser_download_url": "https://github.com/kevinq888/weimomusic/releases/download/v1.2.38/1.2.38-windows-x64.zip"
+      "size": 102343163,
+      "digest": "sha256:94d0818d665fff1a7caf8732a4585a56d8437cc2da74070860ab09f2ea606981",
+      "browser_download_url": "https://github.com/kevinq888/weimomusic/releases/download/v1.2.39/1.2.39-windows-x64.zip"
     }
   ]
 }

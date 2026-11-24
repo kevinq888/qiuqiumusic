@@ -10,6 +10,9 @@
   const RELEASES = 'https://github.com/kevinq888/weimomusic/releases/download';
   const GITHUB_API = 'https://api.github.com/repos/kevinq888/weimomusic/releases/latest';
   const INTERVAL = 10000;
+  const DOWNLOAD_KEY = 'weimo-apk-download';   // 手机浏览器已下载的安装包版本
+  const REFRESH_KEY = 'weimo-pwa-refresh';     // iPhone 已为哪个版本刷新过页面
+  const INSTALL_KEY = 'weimo-install-pending'; // 安卓已调起安装器、等待重启生效的版本
   const ua = navigator.userAgent || '';
   const iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const android = /Android/i.test(ua);
@@ -50,9 +53,32 @@
   let pendingInstall = false;
   let pollTimer = 0;
   let githubBlockedUntil = 0;
+  const INSTALL_HOLD_MS = 3 * 60 * 1000;
 
   function safe(fn, fallback = '') {
     try { const value = fn(); return value === undefined || value === null ? fallback : value; } catch { return fallback; }
+  }
+
+  function stored(key) {
+    try { return localStorage.getItem(key) || ''; } catch { return ''; }
+  }
+
+  function store(key, value) {
+    try { localStorage.setItem(key, String(value)); } catch { /* 隐私模式忽略 */ }
+  }
+
+  function forget(key) {
+    try { localStorage.removeItem(key); } catch { /* 隐私模式忽略 */ }
+  }
+
+  // 已调起安装器但进程还没重启的版本。系统替换安装包后应用会重启，版本号随即更新；
+  // 在重启前（或安装被取消）的这段时间里按已安装处理，避免每 10 秒又弹一次“有新版本”。
+  function pendingInstalled() {
+    const raw = stored(INSTALL_KEY);
+    if (!raw) return '';
+    const [ver, at] = raw.split('|');
+    if (!ver || !at || Date.now() - Number(at) > INSTALL_HOLD_MS) { forget(INSTALL_KEY); return ''; }
+    return ver;
   }
 
   function compare(a, b) {
@@ -64,6 +90,17 @@
       if (x !== y) return x > y ? 1 : -1;
     }
     return 0;
+  }
+
+  // 安装器已拉起、等待重启生效时，用「正在安装」而不是「已是最新」提示，避免版本号看起来没变。
+  function upToDateLabel() {
+    const pending = pendingInstalled();
+    if (pending && compare(pending, currentVersion) > 0) return `正在安装新版本 v${pending}…`;
+    if (kind === 'android-web') {
+      const downloaded = stored(DOWNLOAD_KEY);
+      if (downloaded && compare(downloaded, currentVersion) > 0) return `v${downloaded} 安装包已下载，安装后请使用 App`;
+    }
+    return `已是最新版本 v${currentVersion}`;
   }
 
   function setState(next, label, detail = {}) {
@@ -116,6 +153,17 @@
   function readCurrentVersion() {
     if (native) currentVersion = safe(() => bridge.appVersion(), currentVersion) || currentVersion;
     else currentVersion = document.querySelector('meta[name="app-version"]')?.content || currentVersion;
+    // 刚调起安装器时旧进程还在运行，系统版本号要等重启后才变，这段时间按已安装版本算。
+    const pending = pendingInstalled();
+    if (pending) {
+      if (compare(pending, currentVersion) > 0) return pending;
+      forget(INSTALL_KEY);
+    }
+    // 手机浏览器下载安装包后由系统安装，页面读不到安装后的版本，记下已下载版本，避免“更新完又提示有更新”。
+    if (kind === 'android-web') {
+      const downloaded = stored(DOWNLOAD_KEY);
+      if (downloaded && compare(downloaded, currentVersion) > 0) return downloaded;
+    }
     return currentVersion;
   }
 
@@ -135,16 +183,26 @@
     }
   }
 
-  // ② 检查应用更新：优先问线上站点（渲染冷启动可能慢，给足 15 秒），站点不可达时兜底查 GitHub Release。
+  // ② 检查应用更新：原生 App 先问线上站点，线上不可达时兜底内置服务；两者都失败再查 GitHub Release。
   async function loadRelease() {
-    const local = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
-    const urls = local ? [`${REMOTE}/api/app-release`] : ['/api/app-release', `${REMOTE}/api/app-release`];
+    const local = location.hostname === '127.0.0.1' || location.hostname === 'localhost' || location.hostname === '::1';
+    const remoteUrl = `${REMOTE}/api/app-release`;
+    const urls = local
+      ? [remoteUrl, '/api/app-release']                                  // 内置 App：Render 部署版优先，内置服务兜底
+      : location.origin === REMOTE
+        ? ['/api/app-release']
+        : ['/api/app-release', remoteUrl];
+    let best = null;
     for (const url of urls) {
       try {
         const data = await fetchWithTimeout(url, 15000);
-        if (data && data.latest) return data;
+        if (!data || !data.latest) continue;
+        if (!best || compare(data.latest, best.latest) > 0) best = data;
+        // 已经问到一个比当前更新的版本，就不必再等另一个站点（避免 Render 冷启动拖慢检查）。
+        if (compare(data.latest, readCurrentVersion()) > 0) break;
       } catch { /* 换下一个地址 */ }
     }
+    if (best) return best;
     if (Date.now() < githubBlockedUntil) throw Error('offline');
     try {
       const json = await fetchWithTimeout(GITHUB_API, 8000);
@@ -199,6 +257,8 @@
       return;
     }
     if (info.status === 'done' && String(info.version) === String(latest)) {
+      // 残留的“已下载”状态：如果这个版本已经装上了，就按最新处理，不再反复弹更新提示。
+      if (compare(latest, readCurrentVersion()) <= 0) { setState('latest', upToDateLabel()); return; }
       setState('ready', `新版本 v${latest} 已就绪，点击更新`, { progress: 100 });
       return;
     }
@@ -223,6 +283,7 @@
       return;
     }
     if (info.status === 'done' && String(info.version) === String(latest)) {
+      if (compare(latest, readCurrentVersion()) <= 0) { setState('latest', upToDateLabel()); return; }
       setState('ready', `新版本 v${latest} 已就绪，点击更新`, { progress: 100 });
       if (pendingInstall) { pendingInstall = false; install(); }
       return;
@@ -249,10 +310,17 @@
       setState('ready', '打开安装器失败，点击再试一次');
       return;
     }
-    setState('ready', '正在打开安装程序…');
+    // 安装器已拉起：旧进程要等系统替换安装包并重启后才会报告新版本，
+    // 这段时间按已安装处理，避免每 10 秒又弹一次“有新版本”。
+    store(INSTALL_KEY, `${latest}|${Date.now()}`);
+    pendingInstall = false;
+    clearTimeout(pollTimer);
+    setState('latest', `正在安装新版本 v${latest}…`);
   }
 
   async function refreshPwa() {
+    // 记下这次刷新针对的版本：如果刷新后页面仍是旧版本（线上部署没跟上），就不再反复提示刷新。
+    store(REFRESH_KEY, String(latest));
     setState('ready', '正在更新新版本…');
     try {
       const registrations = navigator.serviceWorker ? await navigator.serviceWorker.getRegistrations() : [];
@@ -280,15 +348,31 @@
       return;
     }
     checking = false;
-    latest = String(data.latest || '');
+    // iPhone 的「更新」只是清缓存重新拉取页面，版本必须以线上部署为准。
+    // 用 GitHub 上的发布版本判断，会在部署尚未完成时出现“刷新→还是旧版→再提示”的死循环。
+    const deployed = String(data.current || '');
+    const iosTarget = kind === 'ios' && deployed && compare(deployed, '0.0.0') > 0;
+    latest = String(iosTarget ? deployed : data.latest || '');
     pkg = latest ? pkgOf(data) : null;
     if (!latest) { setState('error', '检查更新失败，点击重试'); return; }
+    // 线上没返回部署版本时无从判断 PWA 是否需要刷新，直接按最新处理，绝不进入刷新循环。
+    if (kind === 'ios' && !iosTarget) { setState('latest', upToDateLabel()); return; }
     if (compare(latest, readCurrentVersion()) <= 0) {
       clearTimeout(pollTimer);
-      setState('latest', `已是最新版本 v${currentVersion}`);
+      // 页面已经追上线上版本，清掉上次的刷新标记，下个版本还能正常提示。
+      if (stored(REFRESH_KEY) && compare(stored(REFRESH_KEY), currentVersion) <= 0) forget(REFRESH_KEY);
+      setState('latest', upToDateLabel());
       return;
     }
-    if (kind === 'ios') { setState('ready', `发现新版本 v${latest}，点击更新`); return; }
+    if (kind === 'ios') {
+      // 已经为这个版本刷新过页面却还是旧版本：说明线上部署尚未生效，就此停住，不再刷新。
+      if (stored(REFRESH_KEY) === String(latest)) {
+        setState('latest', `线上部署尚未更新，请稍后再试`);
+        return;
+      }
+      setState('ready', `发现新版本 v${latest}，点击更新`);
+      return;
+    }
     if (kind === 'android-web') { setState('available', `发现新版本 v${latest}，点击下载`); return; }
     ensureDownload();
   }
@@ -299,7 +383,13 @@
       else install();
       return;
     }
-    if (state === 'available' && kind === 'android-web' && pkg) { window.location.href = pkg.url; return; }
+    if (state === 'available' && kind === 'android-web' && pkg) {
+      // 浏览器页面无法读取安装后的版本，记下来避免装完还反复提示同一个版本。
+      store(DOWNLOAD_KEY, String(latest));
+      setState('latest', `v${latest} 安装包已开始下载`);
+      window.location.href = pkg.url;
+      return;
+    }
     if (state === 'downloading') {
       // 还没下完就点：记下意图，下载结束后自动拉起安装，不再需要第二次点击。
       pendingInstall = true;
@@ -317,10 +407,10 @@
   setInterval(() => { if (!document.hidden) check(); }, INTERVAL);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
 
-  // 上次没下完的包，进入页面立即接着下。
+  // 上次没下完的包，进入页面立即接着下（只续传比已安装版本新的包）。
   if (kind === 'android-native') {
     const info = nativeStatus();
-    if (info.status === 'downloading' && info.version) {
+    if (info.status === 'downloading' && info.version && compare(info.version, readCurrentVersion()) > 0) {
       latest = String(info.version);
       setState('downloading', `正在继续下载 v${latest}…`);
       pollNative();

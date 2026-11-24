@@ -43,6 +43,8 @@ ASSETS="$SRC/assets/backend"
 rm -rf "$SRC/assets"
 mkdir -p "$ASSETS/data"
 cp "$ROOT/server.js" "$ROOT/README.md" "$ASSETS/"
+# package.json 决定内置服务报告的版本与「是否有新版本」，必须随包分发
+cp "$ROOT/package.json" "$ASSETS/"
 cp "$SRC/mobile-boot.js" "$ASSETS/"
 cp -R "$ROOT/src" "$ASSETS/"
 cp -R "$ROOT/public" "$ASSETS/"
