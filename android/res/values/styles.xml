@@ -3,8 +3,8 @@
     <!-- 冷启动窗口背景跟随 App 主色，避免启动瞬间闪白屏；
          播放页打开时 MainActivity 会把 DecorView 背景改成深色，防止切后台回来闪白。 -->
     <style name="WeiMoTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">#F1F8F5</item>
-        <item name="android:colorBackground">#F1F8F5</item>
+        <item name="android:windowBackground">#FDF7F6</item>
+        <item name="android:colorBackground">#FDF7F6</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>

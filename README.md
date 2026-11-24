@@ -6,7 +6,27 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://weimomusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.36（当前版本）
+### v1.2.37（当前版本）
+
+- 去掉导航时顶部那条会反复闪动的进度线；页面首屏直接以内联底色铺底（浅绯 / 暗夜 / 毛玻璃各自对应），切换页面和 App 时不再先白一下。
+- 音效重做为 7 段均衡 + 限幅器，各预设提升到 5–8dB，手机外放也能明显听出「低音增强 / 高音增强 / 人声」的差别；网页版、桌面版、安卓版共用同一套。
+- 默认皮肤改为「浅绯」：整体配色、背景、图标与 logo 参考网易云音乐那种浅红调；播放页背景也统一到绯红—酒红—珊瑚色系，不再出现墨绿/深蓝。
+- 手机全屏播放页的「音效」按钮固定在右上角（收起 / 正在播放 / 词 / 音效 / 清单），底排不再出现音效入口，播放区域恢复原布局。
+- 收藏后只有红心本身变浅红，按钮底色与其它控件保持原样；隐藏右侧系统滚动条。
+- 手机版顶栏改为实色吸顶并带下投影，与页面背景清晰分层，滚动时不再与卡片糊在一起。
+- 毛玻璃皮肤移除所有大面积 backdrop-filter，卡片边缘不再出现锯齿/毛刺，同时明显降低滚动与点击的掉帧。
+- 桌面客户端卡片的圆角与阴影重绘收敛，边缘恢复干净。
+- 安卓端切后台再回来继续沿用上一帧画面，避免渲染进程重建时的白屏。
+
+| 系统 | 下载 |
+| --- | --- |
+| Android（arm64-v8a） | [未末音乐-1.2.37-android-arm64-v8a.apk](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.37/-1.2.37-android-arm64-v8a.apk) |
+| iPhone / iPad（PWA） | [未末音乐-1.2.37-iphone.zip](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.37/-1.2.37-iphone.zip) |
+| macOS（Apple 芯片） | [未末音乐-1.2.37-mac-arm64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.37/-1.2.37-mac-arm64.dmg) |
+| macOS（Intel） | [未末音乐-1.2.37-mac-x64.dmg](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.37/-1.2.37-mac-x64.dmg) |
+| Windows（64 位） | [未末音乐-1.2.37-windows-x64.exe](https://github.com/kevinq888/qiuqiumusic/releases/download/v1.2.37/-1.2.37-windows-x64.exe) |
+
+### v1.2.36
 
 - 播放页「音效」入口移到右上角，替换原来的播放清单图标，与收起、「词」两个按钮同尺寸、同间距；播放清单仍可从底排的清单按钮打开。
 - 毛玻璃与暗夜皮肤的顶栏改为实色不透明：除播放页外，头部整块吸顶，正文滚动到头部下方时不会透出来，也不再出现头部与背景糊在一起的间隙。

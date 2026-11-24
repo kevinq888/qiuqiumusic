@@ -2,26 +2,28 @@
   const KEY = 'qiuqiumusic.guest.v1';
   const LAST_PLAYBACK_KEY = 'qiuqiumusic.lastPlayback.v1';
   const THEME_KEY = 'qiuqiumusic.theme';
-  const THEMES = ['mint', 'sky', 'lilac', 'sunset', 'sakura', 'dark', 'glass'];
-  const THEME_NAMES = { mint: '薄荷绿', sky: '晴空蓝', lilac: '晨雾紫', sunset: '日落橙', sakura: '樱花粉', dark: '暗夜黑', glass: '毛玻璃' };
+  const THEMES = ['rose', 'mint', 'sky', 'lilac', 'sunset', 'sakura', 'dark', 'glass'];
+  const THEME_NAMES = { rose: '浅绯', mint: '薄荷绿', sky: '晴空蓝', lilac: '晨雾紫', sunset: '日落橙', sakura: '樱花粉', dark: '暗夜黑', glass: '毛玻璃' };
   const PLAY_MODE_KEY = 'qiuqiumusic.playmode';
   const PLAY_MODES = ['sequence', 'repeat-all', 'repeat-one'];
   const PLAY_MODE_NAMES = { sequence: '顺序播放', 'repeat-all': '列表循环', 'repeat-one': '单曲循环' };
-  // 音效用 Web Audio 的 5 段均衡实现，不引入任何音频文件，安装包体积不变
+  // 音效用 Web Audio 的 7 段均衡实现，不引入任何音频文件，安装包体积不变
   const SOUND_KEY = 'qiuqiumusic.sound';
-  const SOUND_BANDS = [[100, 'lowshelf'], [350, 'peaking'], [1000, 'peaking'], [3200, 'peaking'], [9000, 'highshelf']];
+  const SOUND_BANDS = [[60, 'lowshelf'], [160, 'peaking'], [400, 'peaking'], [1000, 'peaking'], [2500, 'peaking'], [6000, 'peaking'], [12000, 'highshelf']];
+  // 7 段均衡 + 限幅器：每套预设的差别要做到一耳朵听得出来（±8dB 级别），
+  // 旧版只有 ±2~6dB，手机外放几乎听不出变化，所以用户会觉得“切了没反应”。
   const SOUND_PRESETS = {
-    flat: { name: '原声', gains: [0, 0, 0, 0, 0] },
-    pop: { name: '流行', gains: [1.5, -1, 1, 2, 1.5] },
-    rock: { name: '摇滚', gains: [5, -2, 1, 3, 4] },
-    jazz: { name: '爵士', gains: [3, 1, -1, 2, 2] },
-    classical: { name: '古典', gains: [3.5, 0, 0, 1, 3] },
-    vocal: { name: '人声', gains: [-2, 2, 4, 3, -1] },
-    bass: { name: '低音增强', gains: [6, -1, 0, 0, 1] },
-    treble: { name: '高音增强', gains: [0, 0, 1, 4, 6] },
-    electronic: { name: '电子', gains: [5, 2, -1, 3, 5] },
+    flat: { name: '原声', gains: [0, 0, 0, 0, 0, 0, 0] },
+    pop: { name: '流行', gains: [2.5, 0.5, -1.5, 1, 2.5, 3, 2] },
+    rock: { name: '摇滚', gains: [6, 4, -2, -1, 2.5, 5, 4.5] },
+    jazz: { name: '爵士', gains: [4, 2.5, 1, -1, 1.5, 2.5, 2] },
+    classical: { name: '古典', gains: [3.5, 1.5, 0, 0.5, 1.5, 3, 3.5] },
+    vocal: { name: '人声', gains: [-4, -1, 2.5, 4, 3.5, 1, -3] },
+    bass: { name: '低音增强', gains: [8, 5, 1, -2, -1, 0, 0] },
+    treble: { name: '高音增强', gains: [0, -2, -1, 1, 4.5, 6.5, 7] },
+    electronic: { name: '电子', gains: [7, 3, -2, -1, 3, 6, 5] },
   };
-  const THEME_COLORS = { mint: '#f1f8f5', sky: '#f2f8fc', lilac: '#f8f5fb', sunset: '#fdf6ef', sakura: '#fdf3f6', dark: '#0f1a17', glass: '#e9eaed' };
+  const THEME_COLORS = { rose: '#fdf7f6', mint: '#f1f8f5', sky: '#f2f8fc', lilac: '#f8f5fb', sunset: '#fdf6ef', sakura: '#fdf3f6', dark: '#0f1a17', glass: '#e9eaed' };
   const tabId = Math.random().toString(36).slice(2);
   const channel = 'BroadcastChannel' in window ? new BroadcastChannel('qiuqiumusic.playback.v1') : null;
   const host = document.getElementById('site-player');
@@ -123,7 +125,9 @@
   function showLoading(label) {
     loading.querySelector('.route-loading-text').textContent = label;
     loading.classList.remove('is-error');
-    loading.hidden = false;
+    // 正常跳转不再显示顶部那条扫动的进度线：它在弱网时会反复闪，像界面抽动。
+    // 只有真正出错时才由下方 catch 分支显式把它放出来（橙色实线提示）。
+    loading.hidden = true;
     loadingStartedAt = performance.now();
   }
   async function hideLoading(id) {
@@ -278,10 +282,10 @@
     persistPlayback();
   }
   // 无封面时按皮肤显示精选意境图，而不是品牌 Logo
-  const FALLBACK_ART = { mint: 'mint', sky: 'sky', lilac: 'lilac', sunset: 'sunset', sakura: 'sakura', dark: 'dark', glass: 'glass' };
+  const FALLBACK_ART = { rose: 'sakura', mint: 'mint', sky: 'sky', lilac: 'lilac', sunset: 'sunset', sakura: 'sakura', dark: 'dark', glass: 'glass' };
   function fallbackArtUrl() {
-    const theme = document.documentElement.dataset.theme || 'mint';
-    return `/projects/source_code/picture/fallback/${FALLBACK_ART[theme] || 'mint'}.jpg`;
+    const theme = document.documentElement.dataset.theme || 'rose';
+    return `/projects/source_code/picture/fallback/${FALLBACK_ART[theme] || 'sakura'}.jpg`;
   }
   function syncFallbackArt() {
     const url = fallbackArtUrl();
@@ -291,17 +295,17 @@
   }
   // 切换皮肤并同步浏览器状态栏颜色（PWA 与移动端浏览体验）
   function applyTheme(theme) {
-    const next = THEMES.includes(theme) ? theme : 'mint';
+    const next = THEMES.includes(theme) ? theme : 'rose';
     document.documentElement.dataset.theme = next;
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = THEME_COLORS[next] || THEME_COLORS.mint;
+    if (meta) meta.content = THEME_COLORS[next] || THEME_COLORS.rose;
     // 让安卓窗口底色跟随皮肤，切后台再回来时不会先露一层浅色
-    try { window.WeiMoNative?.setPageColor(THEME_COLORS[next] || THEME_COLORS.mint); } catch {}
+    try { window.WeiMoNative?.setPageColor(THEME_COLORS[next] || THEME_COLORS.rose); } catch {}
     syncFallbackArt();
     updateThemeControls();
   }
   function updateThemeControls() {
-    const theme = document.documentElement.dataset.theme || 'mint';
+    const theme = document.documentElement.dataset.theme || 'rose';
     const label = document.getElementById('theme-mobile-label');
     if (label) label.textContent = THEME_NAMES[theme];
     const sideLabel = document.getElementById('side-theme-name');
@@ -355,12 +359,20 @@
         const filter = soundCtx.createBiquadFilter();
         filter.type = type;
         filter.frequency.value = frequency;
-        if (type === 'peaking') filter.Q.value = 0.9;
+        if (type === 'peaking') filter.Q.value = 0.8;
         node.connect(filter);
         node = filter;
         return filter;
       });
-      node.connect(soundCtx.destination);
+      // 限幅器兜住大幅提升后的峰值，避免破音
+      const limiter = soundCtx.createDynamicsCompressor();
+      limiter.threshold.value = -6;
+      limiter.knee.value = 8;
+      limiter.ratio.value = 6;
+      limiter.attack.value = 0.004;
+      limiter.release.value = 0.18;
+      node.connect(limiter);
+      limiter.connect(soundCtx.destination);
     } catch {
       soundCtx = null;
       soundSource = null;
@@ -373,7 +385,13 @@
   }
   function applySoundGains() {
     const gains = (SOUND_PRESETS[soundPreset] || SOUND_PRESETS.flat).gains;
-    soundFilters.forEach((filter, index) => { filter.gain.value = gains[index] || 0; });
+    const now = soundCtx ? soundCtx.currentTime : 0;
+    soundFilters.forEach((filter, index) => {
+      const value = gains[index] || 0;
+      // 短坡度过渡，避免切换瞬间出现“咔”的爆音
+      if (soundCtx && filter.gain.setTargetAtTime) filter.gain.setTargetAtTime(value, now, 0.03);
+      else filter.gain.value = value;
+    });
   }
   function setSoundPreset(id) {
     if (!(id in SOUND_PRESETS)) return;
@@ -474,10 +492,13 @@
     wrapper.classList.remove('has-cover');
     img.remove();
   }, true);
+  // 播放页底色沿用封面的暖色氛围：不再用全色环哈希（会出现整屏墨绿/深蓝），
+  // 只在绯红—珊瑚—浅橙这一段里变化，和「浅绯」皮肤保持一致。
+  const AMBIENT_HUES = [348, 354, 0, 6, 12, 18, 340, 332];
   function coverHue(value) {
     let hash = 0;
     for (const char of String(value || '')) hash = (hash * 31 + char.charCodeAt(0)) % 360;
-    return hash;
+    return AMBIENT_HUES[hash % AMBIENT_HUES.length];
   }
   // 外部图床有防盗链，统一走站内 /cover/ 代理；已是站内地址则原样使用
   function coverSrc(cover) {
@@ -656,17 +677,18 @@
     });
   }
   // 全屏播放页背景：每首歌一套现代渐变配色，切歌时整屏淡入换色
+  // 全部落在绯红—酒红—珊瑚这一段暖色里，和「浅绯」皮肤统一，不再出现整屏墨绿/深蓝
   const PLAYER_PALETTE = [
-    ['#0d3b34', '#1a5b4c', '#08241f'],
-    ['#141f3d', '#2a4472', '#0d1626'],
-    ['#241a3f', '#47316f', '#170f2b'],
-    ['#3a1f1a', '#63382a', '#231210'],
-    ['#121b18', '#21453a', '#0a1310'],
-    ['#3a1628', '#5f2442', '#250d19'],
-    ['#141d2e', '#243c66', '#0c1320'],
-    ['#0f2a22', '#1f4e3d', '#081a15'],
-    ['#3b2412', '#6d4020', '#26160c'],
-    ['#171b22', '#2e3745', '#0d1014'],
+    ['#2a0f16', '#521d29', '#17080d'],
+    ['#2f1216', '#5d2a24', '#1a0a0b'],
+    ['#33101f', '#5f2340', '#1b0912'],
+    ['#2b1410', '#5a3126', '#180b08'],
+    ['#301018', '#5c2431', '#1a080d'],
+    ['#2a1220', '#562944', '#160a12'],
+    ['#341218', '#612a2a', '#1c0a0b'],
+    ['#2c1013', '#55231f', '#170808'],
+    ['#331418', '#602e2a', '#1b0b0a'],
+    ['#251016', '#4a2029', '#14080c'],
   ];
   let backdropSlot = 0;
   let backdropIndex = -1;
@@ -1297,8 +1319,8 @@
   window.addEventListener('resize', () => setTimeout(readSafeInsets, 80));
   // 首页与播放页都保持透明系统栏，仅切换状态栏图标深浅
   function syncSystemBars(player) {
-    const theme = document.documentElement.dataset.theme || 'mint';
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', player ? '#14121a' : (THEME_COLORS[theme] || '#f1f8f5'));
+    const theme = document.documentElement.dataset.theme || 'rose';
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', player ? '#14121a' : (THEME_COLORS[theme] || '#fdf7f6'));
     try { window.WeiMoNative?.setPlayerMode(!!player); } catch {}
     setTimeout(readSafeInsets, 120);
   }
@@ -1660,6 +1682,7 @@
         loadingShown = true;
         showLoading('页面暂时无法打开，请稍后重试');
         loading.classList.add('is-error');
+        loading.hidden = false;
         await new Promise(resolve => setTimeout(resolve, 1200));
       }
     } finally {
@@ -1783,7 +1806,7 @@
   window.addEventListener('storage', event => {
     if (event.key === KEY) { readSaved(); renderCollections(); }
     if (event.key === THEME_KEY) {
-      applyTheme(event.newValue || 'mint');
+      applyTheme(event.newValue || 'rose');
     }
     if (event.key === PLAY_MODE_KEY) setPlayMode(event.newValue || 'sequence', false);
   });
@@ -2033,7 +2056,7 @@
   readSaved(true);
   renderCollections();
   hydrateCovers();
-  applyTheme(document.documentElement.dataset.theme || 'mint');
+  applyTheme(document.documentElement.dataset.theme || 'rose');
   updateModeButton();
   updateSoundControls();
   // 选择过音效的用户才把播放元素接入 Web Audio：默认「原声」保持原生播放，
@@ -2042,6 +2065,8 @@
     document.addEventListener('pointerdown', () => { ensureSoundGraph(); }, { once: true, capture: true });
     document.addEventListener('keydown', () => { ensureSoundGraph(); }, { once: true, capture: true });
   }
+  // 每次开始播放都确认链路还在（后台被系统挂起后 resume，或裁切过音频元素）
+  audio.addEventListener('play', () => { if (soundPreset !== 'flat') ensureSoundGraph(); });
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && soundCtx && soundCtx.state === 'suspended') soundCtx.resume().catch(() => {});
   });

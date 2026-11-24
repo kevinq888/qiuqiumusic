@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
     private Bitmap lastFrame;
     private boolean capturing;
     private long maskSeq;
-    private String pageColor = "#f1f8f5";
+    private String pageColor = "#fdf7f6";
     private boolean playerMode;
     private TextView fallback;
     private PlaybackCenter playback;
@@ -139,7 +139,7 @@ public class MainActivity extends Activity {
         hideMaskNow();
         web.loadDataWithBaseURL(null,
                 "<html><body style='margin:0;height:100vh;display:flex;align-items:center;"
-                        + "justify-content:center;background:#f1f8f5;color:#173c36;"
+                        + "justify-content:center;background:#fdf7f6;color:#3a2026;"
                         + "font-family:sans-serif;font-size:15px;text-align:center;padding:24px'>"
                         + text + "</body></html>",
                 "text/html", "utf-8", null);
@@ -282,8 +282,8 @@ public class MainActivity extends Activity {
         pageReady = false;
         ready = false;
         web = null;
-        // 渲染进程已死，旧帧不再代表真实画面，避免遮罩把界面冻住
-        discardFrame();
+        // 旧帧留在 ImageView 上：重建期间继续显示上一帧，等新页面真正就绪再淡出，
+        // 这样即使渲染进程被系统强杀，用户也看不到中间的白底/启动页闪烁。
         if (playback != null) {
             playback.release();
             playback = null;
@@ -313,7 +313,7 @@ public class MainActivity extends Activity {
         BootLog.append("run: activity created");
         // 进程重建时先恢复上次的页面底色，窗口在网页加载前就不会闪浅色
         SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
-        pageColor = prefs.getString(PREF_COLOR, "#f1f8f5");
+        pageColor = prefs.getString(PREF_COLOR, "#fdf7f6");
 
         String previous = BootLog.takePending();
         int fails = BootLog.failures();
@@ -823,15 +823,15 @@ public class MainActivity extends Activity {
         web.loadDataWithBaseURL(null,
                 "<html><head><meta name='viewport' content='width=device-width,initial-scale=1'></head>"
                         + "<body style='margin:0;height:100vh;display:flex;align-items:center;justify-content:center;"
-                        + "background:radial-gradient(120% 90% at 18% 8%,#e9f7f1 0%,#f1f8f5 58%,#e7f4ee 100%);"
+                        + "background:radial-gradient(120% 90% at 18% 8%,#fdeef0 0%,#fdf7f6 58%,#fbe7ea 100%);"
                         + "font-family:-apple-system,'PingFang SC','Noto Sans SC',sans-serif'>"
                         + "<div style='display:flex;flex-direction:column;align-items:center;gap:14px'>"
                         + "<div style='width:74px;height:74px;border-radius:22px;display:flex;align-items:center;"
-                        + "justify-content:center;background:linear-gradient(145deg,#33bda5,#167c75);"
-                        + "box-shadow:0 16px 34px rgba(22,124,117,.28)'>"
+                        + "justify-content:center;background:linear-gradient(145deg,#ef8798,#c33a4f);"
+                        + "box-shadow:0 16px 34px rgba(195,58,79,.28)'>"
                         + "<svg width='38' height='38' viewBox='0 0 24 24' fill='#fff'><path d='M9 18V6l10-2v12a3 3 0 1 1-2-2.83V8.4L11 10v8a3 3 0 1 1-2-2.83z'/></svg>"
-                        + "</div><div style='font-size:17px;font-weight:700;letter-spacing:.14em;color:#173c36'>未末音乐</div>"
-                        + "<div style='font-size:12px;letter-spacing:.06em;color:#8aa39c'>好音乐，马上就来</div></div>"
+                        + "</div><div style='font-size:17px;font-weight:700;letter-spacing:.14em;color:#3a2026'>未末音乐</div>"
+                        + "<div style='font-size:12px;letter-spacing:.06em;color:#a98a90'>好音乐，马上就来</div></div>"
                         + "</body></html>",
                 "text/html", "utf-8", null);
     }
