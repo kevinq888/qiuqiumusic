@@ -89,7 +89,7 @@ async function stopTestApp() {
     const hash = crypto.createHash('sha256');
     for await (const chunk of require('node:fs').createReadStream(archive)) hash.update(chunk);
     const target = process.platform === 'darwin' ? `mac-${process.arch}` : 'windows-x64';
-    const asset = { name: `${version}-${target}.zip`, size: metadata.size, state: 'uploaded', digest: 'sha256:' + hash.digest('hex'), browser_download_url: `https://github.com/kevinq888/qiuqiumusic/releases/download/v${version}/${version}-${target}.zip` };
+    const asset = { name: `${version}-${target}.zip`, size: metadata.size, state: 'uploaded', digest: 'sha256:' + hash.digest('hex'), browser_download_url: `https://github.com/kevinq888/weimomusic/releases/download/v${version}/${version}-${target}.zip` };
     const modulePath = path.resolve(__dirname, '../update/electron.cjs');
     const packagedUpdater = process.env.QIUQIU_USE_PACKAGED_UPDATER === '1';
     const saved = await evaluate(`(async()=>{

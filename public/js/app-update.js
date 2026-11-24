@@ -7,8 +7,8 @@
   const bridge = window.WeiMoNative;
   const native = !!(bridge && typeof bridge.appVersion === 'function');
   const REMOTE = 'https://weimomusic.onrender.com';
-  const RELEASES = 'https://github.com/kevinq888/qiuqiumusic/releases/download';
-  const GITHUB_API = 'https://api.github.com/repos/kevinq888/qiuqiumusic/releases/latest';
+  const RELEASES = 'https://github.com/kevinq888/weimomusic/releases/download';
+  const GITHUB_API = 'https://api.github.com/repos/kevinq888/weimomusic/releases/latest';
   const INTERVAL = 10000;
   const ua = navigator.userAgent || '';
   const iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);

@@ -1,5 +1,5 @@
 (() => {
-  const releases = 'https://github.com/kevinq888/qiuqiumusic/releases/latest';
+  const releases = 'https://github.com/kevinq888/weimomusic/releases/latest';
   let platform = '';
   let architecture = '';
   let refreshId = 0;

@@ -9,7 +9,7 @@ const runtime = { version: '1.1.0', platform: 'darwin', arch: 'arm64', packaged:
 const bytes = Buffer.from('test installer payload');
 function release(version = '1.2.0') {
   const name = `${version}-mac-arm64.zip`;
-  return { tag_name: `v${version}`, assets: [{ name, state: 'uploaded', size: bytes.length, digest: 'sha256:' + crypto.createHash('sha256').update(bytes).digest('hex'), browser_download_url: `https://github.com/kevinq888/qiuqiumusic/releases/download/v${version}/${name}` }] };
+  return { tag_name: `v${version}`, assets: [{ name, state: 'uploaded', size: bytes.length, digest: 'sha256:' + crypto.createHash('sha256').update(bytes).digest('hex'), browser_download_url: `https://github.com/kevinq888/weimomusic/releases/download/v${version}/${name}` }] };
 }
 test('matching platform and numeric version comparison', () => {
   assert.equal(targetFor('darwin', 'arm64'), 'mac-arm64');

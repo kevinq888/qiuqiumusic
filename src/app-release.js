@@ -1,6 +1,6 @@
 // 全平台发布清单：手机端「检查更新」据此拿到当前最新版本与对应安装包地址。
 // 版本以本服务的 package.json 为准（部署与打包同源），GitHub Release 只用来补全精确的资产地址与大小。
-const REPO = 'https://github.com/kevinq888/qiuqiumusic';
+const REPO = 'https://github.com/kevinq888/weimomusic';
 const PLATFORMS = {
   android: { label: 'Android', match: /-android-arm64-v8a\.apk$/, file: version => `-${version}-android-arm64-v8a.apk` },
   iphone: { label: 'iPhone', match: /-iphone\.zip$/, file: version => `-${version}-iphone.zip` },
@@ -50,7 +50,7 @@ let nextCheck = 0;
 let pending;
 
 async function githubRelease() {
-  const response = await fetch(`https://api.github.com/repos/kevinq888/qiuqiumusic/releases/latest`, {
+  const response = await fetch(`https://api.github.com/repos/kevinq888/weimomusic/releases/latest`, {
     headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'weimomusic-app-update' },
     signal: AbortSignal.timeout(4000),
   });

@@ -6,9 +6,9 @@ const crypto = require('node:crypto');
 const { Readable, Transform } = require('node:stream');
 const { pipeline } = require('node:stream/promises');
 
-const RELEASE_API = 'https://api.github.com/repos/kevinq888/qiuqiumusic/releases/latest';
-const RELEASE_MANIFEST = 'https://raw.githubusercontent.com/kevinq888/qiuqiumusic/main/desktop/release.json';
-const RELEASE_BASE = 'https://github.com/kevinq888/qiuqiumusic/releases/download/';
+const RELEASE_API = 'https://api.github.com/repos/kevinq888/weimomusic/releases/latest';
+const RELEASE_MANIFEST = 'https://raw.githubusercontent.com/kevinq888/weimomusic/main/desktop/release.json';
+const RELEASE_BASE = 'https://github.com/kevinq888/weimomusic/releases/download/';
 const MAX_BYTES = 1024 * 1024 * 1024;
 function versionParts(version) {
   if (!/^\d{1,6}\.\d{1,6}\.\d{1,6}$/.test(version)) throw Error('版本格式不正确');

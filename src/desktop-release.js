@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const REPO = 'https://github.com/kevinq888/qiuqiumusic';
+const REPO = 'https://github.com/kevinq888/weimomusic';
 // 新版本安装包使用 mac-* 命名；旧版本发布过的 macos-* 继续兼容。
 const TARGETS = ['mac-arm64', 'mac-x64', 'windows-x64'];
 const ALIASES = { 'macos-arm64': 'mac-arm64', 'macos-x64': 'mac-x64' };
@@ -37,7 +37,7 @@ async function latestRelease() {
   if (Date.now() < nextCheck) return cached;
   if (!pending) pending = (async () => {
     try {
-      const response = await fetch('https://api.github.com/repos/kevinq888/qiuqiumusic/releases/latest', {
+      const response = await fetch('https://api.github.com/repos/kevinq888/weimomusic/releases/latest', {
         headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'qiuqiumusic-desktop-download' }, signal: AbortSignal.timeout(3500),
       });
       if (!response.ok) throw Error(`GitHub ${response.status}`);
