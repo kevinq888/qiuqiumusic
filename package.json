@@ -12,6 +12,7 @@
     "build:windows": "node desktop/scripts/build-desktop.cjs win",
     "build:android": "bash scripts/build-android-apk.sh",
     "build:iphone": "node scripts/build-iphone.cjs",
-    "build:all": "node scripts/build-all.cjs"
+    "build:all": "node scripts/build-all.cjs",
+    "release": "node scripts/release.cjs"
   }
 }

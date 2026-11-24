@@ -167,7 +167,7 @@
   }
 
   function fallbackPackage(version) {
-    const name = `未末音乐-${version}-android-arm64-v8a.apk`;
+    const name = `weimomusic-${version}-android-arm64-v8a.apk`;
     return { version, name, size: 0, url: `${RELEASES}/v${version}/${encodeURIComponent(name)}` };
   }
 

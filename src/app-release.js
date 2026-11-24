@@ -2,11 +2,11 @@
 // 版本以本服务的 package.json 为准（部署与打包同源），GitHub Release 只用来补全精确的资产地址与大小。
 const REPO = 'https://github.com/kevinq888/weimomusic';
 const PLATFORMS = {
-  android: { label: 'Android', match: /-android-arm64-v8a\.apk$/, file: version => `-${version}-android-arm64-v8a.apk` },
-  iphone: { label: 'iPhone', match: /-iphone\.zip$/, file: version => `-${version}-iphone.zip` },
-  'mac-arm64': { label: 'macOS Apple 芯片', match: /-mac-arm64\.dmg$/, file: version => `-${version}-mac-arm64.dmg` },
-  'mac-x64': { label: 'macOS Intel', match: /-mac-x64\.dmg$/, file: version => `-${version}-mac-x64.dmg` },
-  'windows-x64': { label: 'Windows', match: /-windows-x64\.exe$/, file: version => `-${version}-windows-x64.exe` },
+  android: { label: 'Android', match: /-android-arm64-v8a\.apk$/, file: version => `weimomusic-${version}-android-arm64-v8a.apk` },
+  iphone: { label: 'iPhone', match: /-iphone\.zip$/, file: version => `weimomusic-${version}-iphone.zip` },
+  'mac-arm64': { label: 'macOS Apple 芯片', match: /-mac-arm64\.dmg$/, file: version => `weimomusic-${version}-mac-arm64.dmg` },
+  'mac-x64': { label: 'macOS Intel', match: /-mac-x64\.dmg$/, file: version => `weimomusic-${version}-mac-x64.dmg` },
+  'windows-x64': { label: 'Windows', match: /-windows-x64\.exe$/, file: version => `weimomusic-${version}-windows-x64.exe` },
 };
 
 function currentVersion() {
@@ -25,7 +25,7 @@ function compareVersions(a, b) {
 }
 
 // 资产地址是固定规则：仓库 + Release 标签 + 文件名。Release 没查到也能直接拼出来。
-// 注意：GitHub 会把上传资产名里的中文替换成 "-"，所以兜底名以 "-" 开头。
+// 注意：GitHub 会去掉上传资产名里的中文（未末音乐），所以统一用 weimomusic 前缀。
 function assetUrl(version, file) {
   return `${REPO}/releases/download/v${version}/${encodeURIComponent(file)}`;
 }

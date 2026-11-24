@@ -20,13 +20,11 @@
 
 | 系统 | 下载 |
 | --- | --- |
-| Android（arm64-v8a） | [未末音乐-1.2.37-android-arm64-v8a.apk](https://github.com/kevinq888/weimomusic/releases/download/v1.2.37/-1.2.37-android-arm64-v8a.apk) |
-| iPhone / iPad（PWA） | [未末音乐-1.2.37-iphone.zip](https://github.com/kevinq888/weimomusic/releases/download/v1.2.37/-1.2.37-iphone.zip) |
-| macOS（Apple 芯片） | [未末音乐-1.2.37-mac-arm64.dmg](https://github.com/kevinq888/weimomusic/releases/download/v1.2.37/-1.2.37-mac-arm64.dmg) |
-| macOS（Intel） | [未末音乐-1.2.37-mac-x64.dmg](https://github.com/kevinq888/weimomusic/releases/download/v1.2.37/-1.2.37-mac-x64.dmg) |
-| Windows（64 位） | [未末音乐-1.2.37-windows-x64.exe](https://github.com/kevinq888/weimomusic/releases/download/v1.2.37/-1.2.37-windows-x64.exe) |
-
-历史版本说明见 [Releases](https://github.com/kevinq888/weimomusic/releases)。
+| Android（arm64-v8a） | [weimomusic-1.2.37-android-arm64-v8a.apk](https://github.com/kevinq888/weimomusic/releases/download/v1.2.37/weimomusic-1.2.37-android-arm64-v8a.apk) |
+| iPhone / iPad（PWA） | [weimomusic-1.2.37-iphone.zip](https://github.com/kevinq888/weimomusic/releases/download/v1.2.37/weimomusic-1.2.37-iphone.zip) |
+| macOS（Apple 芯片） | [weimomusic-1.2.37-mac-arm64.dmg](https://github.com/kevinq888/weimomusic/releases/download/v1.2.37/weimomusic-1.2.37-mac-arm64.dmg) |
+| macOS（Intel） | [weimomusic-1.2.37-mac-x64.dmg](https://github.com/kevinq888/weimomusic/releases/download/v1.2.37/weimomusic-1.2.37-mac-x64.dmg) |
+| Windows（64 位） | [weimomusic-1.2.37-windows-x64.exe](https://github.com/kevinq888/weimomusic/releases/download/v1.2.37/weimomusic-1.2.37-windows-x64.exe) |
 
 ## 本地运行
 
