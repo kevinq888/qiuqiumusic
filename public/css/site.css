@@ -2645,6 +2645,8 @@ body.player-open .player-host.is-expanded .player-panel-head #player-favorite.se
    电脑端与网页版不会命中 .is-app，样式完全不变。
    ============================================================ */
 .app-search{display:none}
+/* 播放页顶栏的「当前歌词」只在手机 App 里出现，桌面端与网页版继续用「正在播放 / 词」 */
+.np-top-lyric{display:none}
 @media(max-width:680px){
   html.is-app .brand span{display:none}
   html.is-app .brand-logo{width:32px;height:32px;border-radius:9px;box-shadow:0 4px 10px rgba(204,34,54,.16)}
@@ -2663,16 +2665,31 @@ body.player-open .player-host.is-expanded .player-panel-head #player-favorite.se
   html.is-app .install-button{display:none!important}
   html.is-app .nav-shell{gap:8px}
   html.is-app .header-actions{gap:6px;flex:none}
-  /* 顶栏 72% 磨砂，和首屏内容拉开层次 */
+  /* 顶栏 70% 磨砂 + 固定在顶部，滚动时始终悬浮 */
   html.is-app .site-header{
-    background:color-mix(in srgb,var(--white) 72%,transparent)!important;
+    position:sticky!important;top:0!important;z-index:40!important;
+    background:color-mix(in srgb,var(--white) 70%,transparent)!important;
     border-bottom:1px solid color-mix(in srgb,var(--ink) 8%,transparent)!important;
     box-shadow:0 10px 26px rgba(20,60,50,.08)!important;
     backdrop-filter:blur(26px) saturate(170%)!important;
     -webkit-backdrop-filter:blur(26px) saturate(170%)!important;
   }
   /* 首屏整体下移，给顶栏足够的呼吸区 */
-  html.is-app .main-content{padding-top:44px!important}
+  html.is-app .main-content{padding-top:54px!important}
+  /* 播放页顶栏：居中显示当前歌词，点按进入完整歌词 */
+  html.is-app .np-top-title,
+  html.is-app #player-lyrics-toggle{display:none!important}
+  html.is-app #player-lyric-top{
+    display:block;flex:1;min-width:0;height:36px;padding:0 8px;
+    border:0;background:transparent;border-radius:999px;
+    font-size:13px;font-weight:700;line-height:36px;letter-spacing:.01em;
+    color:rgba(255,255,255,.88);text-align:center;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    transition:color .2s;
+  }
+  html.is-app #player-lyric-top[aria-pressed="true"]{color:#fff}
+  /* 歌词已挪到顶栏，底部不再重复显示单行歌词 */
+  html.is-app .player-center .player-lyric{display:none!important}
   /* 迷你播放条与标签栏：所有皮肤统一 74% 磨砂 */
   html.is-app .mini-player{
     background:color-mix(in srgb,var(--white) 74%,transparent)!important;

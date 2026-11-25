@@ -50,6 +50,7 @@
   const lyricsPanel = document.getElementById('np-lyrics');
   const lyricsTrack = document.getElementById('np-lyrics-track');
   const lyricsToggle = document.getElementById('player-lyrics-toggle');
+  const topLyricNode = document.getElementById('player-lyric-top');
   const npFloat = document.getElementById('np-float');
   const floatBefore = npFloat?.querySelector('[data-float-before]');
   const floatCurrent = npFloat?.querySelector('[data-float-current]');
@@ -832,6 +833,8 @@
       lyricNode.hidden = true;
       lyricNode.textContent = '';
     }
+    // 播放页顶栏的歌词与底部歌词同源：没有歌曲时回到品牌名
+    if (topLyricNode) topLyricNode.textContent = current ? '暂无歌词' : '未末音乐';
     renderLyricsTrack();
     if (npFloat) {
       npFloat.hidden = true;
@@ -895,6 +898,7 @@
       lyricsToggle.setAttribute('aria-pressed', String(lyricsMode));
       lyricsToggle.setAttribute('aria-label', lyricsMode ? '收起歌词' : '显示歌词');
     }
+    if (topLyricNode) topLyricNode.setAttribute('aria-pressed', String(lyricsMode));
     if (lyricsMode) {
       lyricsActiveLine = -1;
       syncLyric(Number.isFinite(audio.currentTime) ? audio.currentTime : 0);
@@ -924,6 +928,7 @@
       const node = lyricTextTarget();
       if (!node) return;
       node.textContent = line ? line.text : '';
+      if (topLyricNode) topLyricNode.textContent = line ? line.text : '暂无歌词';
       const wasHidden = lyricNode.hidden;
       lyricNode.hidden = !line;
       if (!line) {
@@ -1830,6 +1835,7 @@
     else playFirstSong();
   });
   lyricsToggle?.addEventListener('click', () => setLyricsMode(!lyricsMode));
+  topLyricNode?.addEventListener('click', () => setLyricsMode(!lyricsMode));
   artNode?.addEventListener('click', event => {
     if (event.target.closest('.np-lyrics-track')) return;
     setLyricsMode(!lyricsMode);
