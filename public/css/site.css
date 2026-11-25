@@ -1029,12 +1029,6 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
     background:transparent;color:#f4f1ec;padding:0;
   }
   .np-top .np-icon .icon{width:22px;height:22px}
-  /* v1.2.36 音效入口移到顶栏：与收起/「词」统一为透明圆形，只有非原声时加一个小圆点 */
-  .np-top #player-sound{position:relative}
-  .np-top #player-sound[data-preset]:not([data-preset="flat"])::after{
-    content:"";position:absolute;right:7px;bottom:7px;width:5px;height:5px;border-radius:50%;
-    background:currentColor;opacity:.8;
-  }
   .np-top-title{font-size:12px;font-weight:700;letter-spacing:.18em;color:rgba(255,255,255,.6)}
   .np-top .np-lyrics-btn{font-size:13px;font-weight:800;letter-spacing:0;color:rgba(255,255,255,.62)}
   .np-top .np-lyrics-btn[aria-pressed="true"]{background:rgba(255,255,255,.16);color:#fff}
@@ -2512,20 +2506,9 @@ html{
 body{overflow-x:clip}
 
 /* ============================================================
-   v1.2.33 音效切换：桌面顶栏按钮 + 播放器入口 + 九种预设
+   顶栏按钮尺寸（桌面端）
    ============================================================ */
-.sound-picker{display:none}
-.sound-trigger{
-  display:inline-flex;align-items:center;justify-content:center;gap:5px;
-  border:1px solid transparent;border-radius:999px;
-  font-size:11.5px;font-weight:800;white-space:nowrap;cursor:pointer;
-}
-.sound-trigger .icon{width:16px;height:16px}
-.sound-trigger[data-preset]:not([data-preset="flat"])::after{
-  content:"";width:5px;height:5px;margin-left:-1px;border-radius:50%;background:currentColor;opacity:.72;
-}
 @media(min-width:681px){
-  .sound-picker{display:block}
   .header-actions{gap:7px}
   .header-actions .desktop-download-button,
   .header-actions .desktop-update-button,
@@ -2533,22 +2516,16 @@ body{overflow-x:clip}
   .header-actions .theme-picker{padding:2px 4px}
   .header-actions .theme-trigger{font-size:11.5px;padding:2px 3px}
 }
-.sound-choices{grid-template-columns:repeat(3,minmax(0,1fr))}
-.sound-choice{min-height:46px;justify-content:center;gap:0;text-align:center;font-size:12px}
-.sound-choice .theme-check{display:none}
-.sound-choice[aria-pressed="true"]{border-color:var(--green);background:color-mix(in srgb,var(--green) 14%,var(--subtle))}
-.sound-note{margin:12px 2px 0;color:var(--muted);font-size:11px;line-height:1.5}
 
 /* ============================================================
-   v1.2.34 顶栏四个胶囊统一：同高、同宽、同间距、同底色对比
-   桌面版 / 保存链接 / 毛玻璃 / 音效 只保留图标与文字的差异
+   v1.2.34 顶栏胶囊统一：同高、同间距、同底色对比
+   桌面版 / 保存链接 / 毛玻璃 只保留图标与文字的差异
    ============================================================ */
 .header-actions .theme-trigger .icon{width:16px;height:16px}
 @media(min-width:681px){
   .header-actions{gap:6px}
   .header-actions .desktop-download-button,
   .header-actions .install-button,
-  .header-actions .sound-trigger,
   .header-actions .theme-picker{
     display:inline-flex;align-items:center;justify-content:center;gap:5px;
     height:32px;min-height:32px;padding:0 8px;
@@ -2559,7 +2536,6 @@ body{overflow-x:clip}
   }
   .header-actions .desktop-download-button .icon,
   .header-actions .install-button .icon,
-  .header-actions .sound-trigger .icon,
   .header-actions .theme-trigger .icon{width:16px;height:16px}
   /* 上面的 display 覆盖了 UA 的 [hidden]，这里把隐藏行为补回来 */
   .header-actions .desktop-download-button[hidden]{display:none}
@@ -2569,27 +2545,23 @@ body{overflow-x:clip}
     font-size:11.5px;font-weight:800;color:inherit;
   }
   .header-actions .theme-trigger:after{display:none}
-  /* 悬停只轻微提亮，四个按钮行为一致 */
+  /* 悬停只轻微提亮，按钮行为一致 */
   .header-actions .desktop-download-button:hover,
   .header-actions .install-button:hover,
-  .header-actions .sound-trigger:hover,
   .header-actions .theme-picker:hover{background:rgba(255,255,255,.2)}
-  /* 毛玻璃皮肤是浅色顶栏：四个按钮统一成白色半透明底 + 深绿字 */
+  /* 毛玻璃皮肤是浅色顶栏：按钮统一成白色半透明底 + 深绿字 */
   [data-theme="glass"] .header-actions .desktop-download-button,
   [data-theme="glass"] .header-actions .install-button,
-  [data-theme="glass"] .header-actions .sound-trigger,
   [data-theme="glass"] .header-actions .theme-picker{
     border-color:rgba(255,255,255,.62);background:rgba(255,255,255,.32);color:var(--forest);
   }
   [data-theme="glass"] .header-actions .desktop-download-button:hover,
   [data-theme="glass"] .header-actions .install-button:hover,
-  [data-theme="glass"] .header-actions .sound-trigger:hover,
   [data-theme="glass"] .header-actions .theme-picker:hover{background:rgba(255,255,255,.6)}
 }
 @media(min-width:1101px){
   .header-actions .desktop-download-button,
   .header-actions .install-button,
-  .header-actions .sound-trigger,
   .header-actions .theme-picker{width:82px}
 }
 
@@ -2646,3 +2618,61 @@ body{overflow-x:clip}
 
 /* 浅绯皮肤使用暖红 logo，其余皮肤保持原来的绿标 */
 
+
+/* ============================================================
+   v1.2.40 手机端视觉修正：顶栏按钮、内容下移、磨砂底栏、红心
+   ============================================================ */
+@media(max-width:680px){
+  /* 顶栏右侧按钮统一成和底栏一致的浅色圆形按钮，不再赤裸透明 */
+  .header-actions .theme-picker{padding:0;width:34px;height:34px;background:transparent;border:0}
+  .header-actions .desktop-download-wrap{display:grid;place-items:center}
+  .header-actions .desktop-download-button,
+  .header-actions .theme-trigger,
+  .header-actions .update-button{
+    width:34px;height:34px;padding:0;display:inline-grid;place-items:center;flex:none;
+    border-radius:50%;font-size:0;
+    background:color-mix(in srgb,var(--header-ink) 7%,transparent);
+    border:1px solid color-mix(in srgb,var(--header-ink) 12%,transparent);
+  }
+  .header-actions .desktop-download-button .icon,
+  .header-actions .theme-trigger .icon,
+  .header-actions .update-button .icon{width:17px;height:17px;margin:0}
+  .header-actions .theme-trigger span,
+  .header-actions .theme-trigger:after{display:none}
+  /* 所有非播放页内容整体下移，首屏模块和顶栏之间留出清晰层次 */
+  .main-content{padding-top:26px!important}
+  /* 磨砂皮肤：迷你播放条与底部标签栏恢复 v1.2.36 的毛玻璃配比，
+     只给这两条窄栏开模糊，避免整页毛玻璃带来的掉帧 */
+  [data-theme="glass"] .mini-player{
+    background:rgba(255,255,255,.55)!important;
+    border-top:1px solid rgba(255,255,255,.72)!important;
+    box-shadow:0 -10px 26px rgba(20,60,50,.08)!important;
+    backdrop-filter:blur(26px) saturate(170%)!important;
+    -webkit-backdrop-filter:blur(26px) saturate(170%)!important;
+  }
+  [data-theme="glass"] .mobile-tabbar{
+    background:rgba(255,255,255,.46)!important;
+    border-top:1px solid rgba(255,255,255,.62)!important;
+    backdrop-filter:blur(26px) saturate(180%)!important;
+    -webkit-backdrop-filter:blur(26px) saturate(180%)!important;
+  }
+}
+/* 桌面端顶栏按钮跟随皮肤取色：浅色顶栏用深字，深色顶栏用浅字，不再白字白底 */
+@media(min-width:681px){
+  .header-actions .desktop-download-button,
+  .header-actions .install-button,
+  .header-actions .theme-picker{
+    color:var(--header-ink);
+    background:color-mix(in srgb,var(--header-ink) 6%,transparent);
+    border-color:color-mix(in srgb,var(--header-ink) 12%,transparent);
+  }
+  .header-actions .desktop-download-button:hover,
+  .header-actions .install-button:hover,
+  .header-actions .theme-picker:hover{background:color-mix(in srgb,var(--header-ink) 11%,transparent)}
+  .header-actions .desktop-download-button .icon,
+  .header-actions .install-button .icon{color:var(--header-ink)}
+}
+/* 收藏红心：网易云同款正红，不再发粉 */
+#player-favorite.selected{color:#e2283f}
+#player-favorite.selected .icon{fill:#e2283f;stroke:#e2283f}
+body.player-open .player-host.is-expanded .player-panel-head #player-favorite.selected{color:#e2283f!important}

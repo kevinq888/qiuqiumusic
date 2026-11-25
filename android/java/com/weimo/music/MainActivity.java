@@ -73,6 +73,7 @@ public class MainActivity extends Activity {
     private boolean ready;
     private boolean pageReady;
     private int blankChecks;
+    private boolean healthChecking;
     private boolean resumedOnce;
     private int activePort = PORT;
     private int reloads;
@@ -145,15 +146,16 @@ public class MainActivity extends Activity {
                 "text/html", "utf-8", null);
     }
 
-    /** 从后台回到前台：页面已经加载过就直接复用，不再做空白校验/重载，避免恢复瞬间闪白。 */
+    /** 从后台回到前台：先用上一帧/底色盖住 WebView，确认页面真的有内容再揭开。 */
     @Override
     protected void onResume() {
         super.onResume();
-        // 先用上一帧盖住 WebView，等它真正重绘后再揭开，彻底消除恢复瞬间的白底
-        if (web != null && lastFrame != null && mask != null) {
+        String resumeUrl = web == null ? null : web.getUrl();
+        boolean onRealPage = resumeUrl != null && resumeUrl.startsWith("http://127.0.0.1:");
+        if (web != null && mask != null && (pageReady || onRealPage)) {
             showMask();
             web.invalidate();
-            scheduleReveal();
+            verifyPage();
         }
         if (!resumedOnce) {
             resumedOnce = true;
@@ -171,6 +173,13 @@ public class MainActivity extends Activity {
             if (!booted) boot();
             else probe(0);
         }, 350);
+    }
+
+    /** 按下 Home/切换应用时最早的回调，比 onPause 更早拿到完整画面。 */
+    @Override
+    protected void onUserLeaveHint() {
+        captureFrame();
+        super.onUserLeaveHint();
     }
 
     /** 窗口失焦（切到别的 App、下拉通知栏）时先抓一帧，比 onPause 更早、画面一定还在。 */
@@ -214,10 +223,51 @@ public class MainActivity extends Activity {
     }
 
     private void showMask() {
-        if (mask == null || lastFrame == null) return;
-        mask.setImageBitmap(lastFrame);
+        if (mask == null) return;
+        if (lastFrame != null) mask.setImageBitmap(lastFrame);
+        else mask.setImageDrawable(null);
         mask.setAlpha(1f);
         mask.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * 回到前台后的页面健康检查：页面被系统冻结、渲染进程挂掉或内容为空时，
+     * 保持遮罩并重载，只有确认 main 有真实内容才揭开，彻底避免白屏。
+     */
+    private void verifyPage() {
+        final WebView view = web;
+        if (view == null) return;
+        if (!pageReady) {
+            scheduleReveal();
+            return;
+        }
+        final long seq = ++maskSeq;
+        healthChecking = true;
+        view.evaluateJavascript(
+                "(function(){try{var m=document.querySelector('main.main-content');"
+                        + "var ok=document.readyState!=='loading'&&m&&m.textContent.trim().length>2;"
+                        + "return ok&&document.documentElement.dataset.playerReady==='true'}catch(e){return false}})()",
+                value -> ui.post(() -> {
+                    if (seq != maskSeq || view != web) return;
+                    healthChecking = false;
+                    if ("true".equals(value) && pageReady) {
+                        scheduleReveal();
+                        return;
+                    }
+                    BootLog.append("run: resume check failed, reload");
+                    pageReady = false;
+                    reloads = 0;
+                    loadPage();
+                }));
+        // 渲染进程没响应时 evaluate 不会回调，超时后直接重载，绝不把遮罩永久卡住
+        ui.postDelayed(() -> {
+            if (seq != maskSeq || view != web || !healthChecking) return;
+            healthChecking = false;
+            BootLog.append("run: resume check timeout, reload");
+            pageReady = false;
+            reloads = 0;
+            loadPage();
+        }, 1600);
     }
 
     /** 等 WebView 提交了新画面再揭开；页面还没就绪时保持遮罩，由 onPageChecked 接手。 */
@@ -236,10 +286,11 @@ public class MainActivity extends Activity {
                 });
             } catch (Throwable ignored) {
             }
-        }, 360);
+        }, 260);
+        // 兜底只揭“已确认就绪”的页面；页面未就绪时继续盖住，等 onPageChecked 再揭
         ui.postDelayed(() -> {
-            if (seq == maskSeq) revealPage();
-        }, 900);
+            if (seq == maskSeq && pageReady) revealPage();
+        }, 1400);
     }
 
     /** 只有页面确认有内容时才揭开遮罩，避免露出白底或重新加载中的空页。 */
@@ -273,6 +324,18 @@ public class MainActivity extends Activity {
             lastFrame.recycle();
             lastFrame = null;
         }
+    }
+
+    /** 渲染进程无响应：先保遮罩并重载，仍无响应会由 onRenderProcessGone 触发重建。 */
+    private void onRenderUnresponsive() {
+        ui.post(() -> {
+            if (web == null || isFinishing() || isDestroyed()) return;
+            BootLog.append("run: renderer unresponsive, reload");
+            showMask();
+            pageReady = false;
+            reloads = 0;
+            loadPage();
+        });
     }
 
     /** WebView 渲染进程被系统回收：重建并立刻显示品牌启动页，避免白屏。 */
@@ -314,6 +377,11 @@ public class MainActivity extends Activity {
         // 进程重建时先恢复上次的页面底色，窗口在网页加载前就不会闪浅色
         SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
         pageColor = prefs.getString(PREF_COLOR, "#fdf7f6");
+        // 窗口底色跟随上次的皮肤：进程重建到网页首帧之间不会露出系统白
+        try {
+            getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.parseColor(pageColor)));
+        } catch (Throwable ignored) {
+        }
 
         String previous = BootLog.takePending();
         int fails = BootLog.failures();
@@ -363,6 +431,23 @@ public class MainActivity extends Activity {
                     BootLog.append("run: renderer priority important");
                 } catch (Throwable error) {
                     BootLog.append("java: renderer policy failed: " + error);
+                }
+            }
+            // 渲染进程卡死时主动重载，而不是让用户对着白屏等
+            if (Build.VERSION.SDK_INT >= 29) {
+                try {
+                    view.setWebViewRenderProcessClient(new android.webkit.WebViewRenderProcessClient() {
+                        @Override
+                        public void onRenderProcessResponsive(WebView v, android.webkit.WebViewRenderProcess process) {
+                        }
+
+                        @Override
+                        public void onRenderProcessUnresponsive(WebView v, android.webkit.WebViewRenderProcess process) {
+                            onRenderUnresponsive();
+                        }
+                    });
+                } catch (Throwable error) {
+                    BootLog.append("java: renderer client failed: " + error);
                 }
             }
             int background = Color.parseColor(pageColor);
@@ -556,6 +641,7 @@ public class MainActivity extends Activity {
     private void onPageChecked(boolean ok) {
         if (ok) {
             blankChecks = 0;
+            healthChecking = false;
             if (!pageReady) {
                 pageReady = true;
                 resumedOnce = true;
@@ -827,9 +913,11 @@ public class MainActivity extends Activity {
                         + "font-family:-apple-system,'PingFang SC','Noto Sans SC',sans-serif'>"
                         + "<div style='display:flex;flex-direction:column;align-items:center;gap:14px'>"
                         + "<div style='width:74px;height:74px;border-radius:22px;display:flex;align-items:center;"
-                        + "justify-content:center;background:linear-gradient(145deg,#ef8798,#c33a4f);"
-                        + "box-shadow:0 16px 34px rgba(195,58,79,.28)'>"
-                        + "<svg width='38' height='38' viewBox='0 0 24 24' fill='#fff'><path d='M9 18V6l10-2v12a3 3 0 1 1-2-2.83V8.4L11 10v8a3 3 0 1 1-2-2.83z'/></svg>"
+                        + "justify-content:center;background:linear-gradient(150deg,#ffb2a4,#ff7c74 38%,#e0162e);"
+                        + "box-shadow:0 16px 34px rgba(224,22,46,.26)'>"
+                        + "<svg width='42' height='42' viewBox='0 0 96 96' fill='none'>"
+                        + "<path d='M69 33c1-10-9-16-17.5-8-1 11 .8 22 1.5 32.5.5 6-2 11-7 14.5-9 6-18.5-1-17.5-9.5 1-8 10-11.5 17-8.5 4 1.8 7 5 7.5 9'"
+                        + " stroke='#fff' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'/></svg>"
                         + "</div><div style='font-size:17px;font-weight:700;letter-spacing:.14em;color:#3a2026'>未末音乐</div>"
                         + "<div style='font-size:12px;letter-spacing:.06em;color:#a98a90'>好音乐，马上就来</div></div>"
                         + "</body></html>",
