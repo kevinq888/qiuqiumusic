@@ -419,7 +419,7 @@ public class MainActivity extends Activity {
             settings.setDomStorageEnabled(true);
             settings.setDatabaseEnabled(true);
             settings.setMediaPlaybackRequiresUserGesture(false);
-            settings.setAllowFileAccess(false);
+            settings.setAllowFileAccess(true);
             settings.setAllowContentAccess(false);
             settings.setLoadWithOverviewMode(true);
             settings.setUseWideViewPort(true);
@@ -906,19 +906,15 @@ public class MainActivity extends Activity {
             return;
         }
         // 启动阶段显示品牌页而不是纯色空白页：任何时候用户看到的都是“未末音乐”
-        web.loadDataWithBaseURL(null,
+        web.loadDataWithBaseURL("file:///android_asset/backend/",
                 "<html><head><meta name='viewport' content='width=device-width,initial-scale=1'></head>"
                         + "<body style='margin:0;height:100vh;display:flex;align-items:center;justify-content:center;"
                         + "background:radial-gradient(120% 90% at 18% 8%,#fdeef0 0%,#fdf7f6 58%,#fbe7ea 100%);"
                         + "font-family:-apple-system,'PingFang SC','Noto Sans SC',sans-serif'>"
                         + "<div style='display:flex;flex-direction:column;align-items:center;gap:14px'>"
-                        + "<div style='width:74px;height:74px;border-radius:22px;display:flex;align-items:center;"
-                        + "justify-content:center;background:linear-gradient(150deg,#ffb2a4,#ff7c74 38%,#e0162e);"
-                        + "box-shadow:0 16px 34px rgba(224,22,46,.26)'>"
-                        + "<svg width='42' height='42' viewBox='0 0 96 96' fill='none'>"
-                        + "<path d='M69 33c1-10-9-16-17.5-8-1 11 .8 22 1.5 32.5.5 6-2 11-7 14.5-9 6-18.5-1-17.5-9.5 1-8 10-11.5 17-8.5 4 1.8 7 5 7.5 9'"
-                        + " stroke='#fff' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'/></svg>"
-                        + "</div><div style='font-size:17px;font-weight:700;letter-spacing:.14em;color:#3a2026'>未末音乐</div>"
+                        + "<img src='public/picture/logo.png' width='74' height='74' alt='' "
+                        + "style='display:block;width:74px;height:74px;border-radius:20px;box-shadow:0 16px 34px rgba(224,22,46,.24)'>"
+                        + "<div style='font-size:17px;font-weight:700;letter-spacing:.14em;color:#3a2026'>未末音乐</div>"
                         + "<div style='font-size:12px;letter-spacing:.06em;color:#a98a90'>好音乐，马上就来</div></div>"
                         + "</body></html>",
                 "text/html", "utf-8", null);

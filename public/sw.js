@@ -1,14 +1,14 @@
 // 未末音乐 Service Worker：静态资源缓存优先，页面网络优先；音频 Cache API 缓存（一周过期），
 // 第二次播放直接读本地缓存，不再发起网络请求。
-const CACHE = 'weimomusic.v112';
+const CACHE = 'weimomusic.v113';
 const ASSETS = [
   '/',
-  '/projects/source_code/css/site.css?v=20261125-ux28',
-  '/projects/source_code/js/app.js?v=20261125-ux28',
-  '/projects/source_code/js/app-update.js?v=20261125-ux28',
-  '/projects/source_code/js/desktop-download.js?v=20261125-ux28',
-  '/projects/source_code/js/desktop-update.js?v=20261125-ux28',
-  '/projects/source_code/picture/logo.svg',
+  '/projects/source_code/css/site.css?v=20261125-ux29',
+  '/projects/source_code/js/app.js?v=20261125-ux29',
+  '/projects/source_code/js/app-update.js?v=20261125-ux29',
+  '/projects/source_code/js/desktop-download.js?v=20261125-ux29',
+  '/projects/source_code/js/desktop-update.js?v=20261125-ux29',
+  '/projects/source_code/picture/logo.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/manifest.webmanifest',

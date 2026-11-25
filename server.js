@@ -43,7 +43,7 @@ function serveStatic(req, res, urlPath) {
   if (urlPath.startsWith(prefix)) {
     rel = urlPath.slice(prefix.length);
   } else if (urlPath === '/favicon.ico') {
-    rel = 'picture/logo.svg';
+    rel = 'picture/logo.png';
   } else if (urlPath === '/manifest.webmanifest') {
     rel = 'manifest.webmanifest';
   } else if (urlPath === '/sw.js') {

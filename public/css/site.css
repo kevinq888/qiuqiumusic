@@ -898,7 +898,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   .mobile-tabbar a.active{color:var(--forest);font-weight:800}
   .mobile-tabbar a.active .icon{stroke-width:2.2}
   [data-theme="dark"] .mobile-tabbar{background:rgba(18,32,28,.92)}
-  [data-theme="glass"] .mobile-tabbar{background:rgba(247,250,255,.92);border-top-color:rgba(255,255,255,.7)}
+  [data-theme="glass"] .mobile-tabbar{background:rgba(255,255,255,.74);border-top-color:rgba(255,255,255,.82)}
   /* 全屏播放页：隐藏底部 TabBar，让播放页真正铺满整屏 */
   body.player-open .mobile-tabbar{display:none}
   .main-content{padding-top:14px;padding-bottom:152px}
@@ -919,7 +919,7 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   .mini-player[hidden]{display:none}
   @keyframes dock-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
   [data-theme="dark"] .mini-player{background:rgba(18,32,28,.94);box-shadow:0 -10px 26px rgba(0,0,0,.28)}
-  [data-theme="glass"] .mini-player{background:rgba(255,255,255,.55);box-shadow:0 -10px 26px rgba(20,60,50,.08)}
+  [data-theme="glass"] .mini-player{background:rgba(255,255,255,.74);box-shadow:0 -10px 26px rgba(20,60,50,.08)}
   .mini-open{display:flex;align-items:center;gap:8px;flex:1 1 40%;max-width:44%;min-width:0;border:0;background:transparent;padding:0;color:var(--ink);text-align:left}
   /* 播放条右侧五个控件与播放页一致：播放模式 / 上一首 / 播放暂停 / 下一首 / 播放清单，均匀铺开 */
   .mini-controls{display:flex;align-items:center;justify-content:space-between;flex:1 1 60%;min-width:0;padding-left:2px}
@@ -1560,35 +1560,34 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
 [data-theme="glass"] .install-card,
 [data-theme="glass"] .theme-sheet-card,
 [data-theme="glass"] .side-card{
-  background:linear-gradient(150deg,rgba(255,255,255,.3),rgba(255,255,255,.06));
-  border:1px solid rgba(255,255,255,.62);
+  background:linear-gradient(150deg,rgba(255,255,255,.78),rgba(255,255,255,.7));
+  border:1px solid rgba(255,255,255,.82);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.95),
-    inset 0 -1px 0 rgba(255,255,255,.22),
     0 22px 58px rgba(20,60,50,.1);
-  backdrop-filter:blur(26px) saturate(185%) brightness(1.03);
-  -webkit-backdrop-filter:blur(26px) saturate(185%) brightness(1.03);
+  backdrop-filter:blur(30px) saturate(180%);
+  -webkit-backdrop-filter:blur(30px) saturate(180%);
 }
 [data-theme="glass"] .hero{
-  background:linear-gradient(135deg,rgba(255,255,255,.26),rgba(255,255,255,.05));
-  border-color:rgba(255,255,255,.7);
+  background:linear-gradient(135deg,rgba(255,255,255,.78),rgba(255,255,255,.68));
+  border-color:rgba(255,255,255,.85);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 28px 70px rgba(20,60,50,.13);
-  backdrop-filter:blur(32px) saturate(185%) brightness(1.03);
-  -webkit-backdrop-filter:blur(32px) saturate(185%) brightness(1.03);
+  backdrop-filter:blur(32px) saturate(180%);
+  -webkit-backdrop-filter:blur(32px) saturate(180%);
 }
 [data-theme="glass"] .song-card-art,
 [data-theme="glass"] .song-cover,
 [data-theme="glass"] .collection-cover{border:1px solid rgba(255,255,255,.62);box-shadow:0 14px 30px rgba(20,60,50,.16)}
-[data-theme="glass"] .side-download{background:linear-gradient(140deg,rgba(26,84,68,.6),rgba(12,46,39,.5));border-color:rgba(255,255,255,.3);color:#fff;backdrop-filter:blur(26px) saturate(160%);-webkit-backdrop-filter:blur(26px) saturate(160%)}
+[data-theme="glass"] .side-download{background:linear-gradient(140deg,rgba(26,84,68,.72),rgba(12,46,39,.68));border-color:rgba(255,255,255,.32);color:#fff;backdrop-filter:blur(30px) saturate(160%);-webkit-backdrop-filter:blur(30px) saturate(160%)}
 /* 播放面板保持深色磨砂，与浅色页面形成对比 */
 [data-theme="glass"] .queue-panel,
 [data-theme="glass"] .player-panel{
-  background:rgba(14,34,30,.6);
-  border-color:rgba(255,255,255,.2);
+  background:rgba(14,34,30,.72);
+  border-color:rgba(255,255,255,.22);
   backdrop-filter:blur(32px) saturate(160%);
   -webkit-backdrop-filter:blur(32px) saturate(160%);
 }
-[data-theme="glass"] .site-header{background:#fafbfa;border-bottom-color:rgba(20,60,50,.07);box-shadow:0 1px 0 rgba(20,60,50,.05);backdrop-filter:none;-webkit-backdrop-filter:none}
+[data-theme="glass"] .site-header{background:rgba(255,255,255,.72);border-bottom:1px solid rgba(255,255,255,.55);box-shadow:0 8px 24px rgba(20,60,50,.06);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%)}
 [data-theme="glass"] .brand,[data-theme="glass"] .brand strong{color:var(--ink)}
 [data-theme="glass"] .brand small{color:rgba(18,58,49,.5)}
 [data-theme="glass"] .main-nav a{color:rgba(18,58,49,.66)}
@@ -1607,12 +1606,12 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
 /* 顶栏搜索框在浅色玻璃上保留深色药丸，白字才看得清 */
 [data-theme="glass"] .nav-search{background:rgba(16,52,44,.72);border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.62)}
 /* 分类条也换成薄玻璃，避免深绿实心色块压住整页的透光感 */
-[data-theme="glass"] .subnav{background:rgba(255,255,255,.34);color:var(--ink);border-bottom:1px solid rgba(255,255,255,.5);backdrop-filter:blur(20px) saturate(170%);-webkit-backdrop-filter:blur(20px) saturate(170%)}
+[data-theme="glass"] .subnav{background:rgba(255,255,255,.7);color:var(--ink);border-bottom:1px solid rgba(255,255,255,.65);box-shadow:0 6px 18px rgba(20,60,50,.05);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%)}
 [data-theme="glass"] .subnav a{color:rgba(18,58,49,.6)}
 [data-theme="glass"] .subnav a.active{color:#0f3a31;background:rgba(255,255,255,.62)}
 @media(max-width:680px){
-  [data-theme="glass"] .mobile-tabbar{background:rgba(255,255,255,.46);border-top-color:rgba(255,255,255,.62);backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%)}
-  [data-theme="glass"] .mini-player{background:rgba(255,255,255,.55);box-shadow:0 -10px 26px rgba(20,60,50,.08);backdrop-filter:blur(26px) saturate(170%);-webkit-backdrop-filter:blur(26px) saturate(170%)}
+  [data-theme="glass"] .mobile-tabbar{background:rgba(255,255,255,.74);border-top-color:rgba(255,255,255,.82);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%)}
+  [data-theme="glass"] .mini-player{background:rgba(255,255,255,.74);box-shadow:0 -10px 26px rgba(20,60,50,.08);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%)}
 }
 
 /* ==================== 2026 视觉精修：皮肤调色 / 播放栏协同 / 播放清单 / 局部加载 ==================== */
@@ -2565,52 +2564,6 @@ body{overflow-x:clip}
   .header-actions .theme-picker{width:82px}
 }
 
-/* ==================== v1.2.37：去掉大面积磨砂，修掉边缘毛刺与滚动掉帧 ====================
-   毛玻璃皮肤过去给所有卡片、hero、侧栏、底栏都加了 14–34px 的 backdrop-filter，
-   滚动和点击时整页持续重新采样桌面壁纸，既掉帧，也让圆角边缘出现锯齿/毛刺。
-   这里统一退回高不透明度底色：观感更干净，边缘变利落，滚动也不再重绘。 */
-[data-theme="glass"] .hero,
-[data-theme="glass"] .panel,
-[data-theme="glass"] .collection-card,
-[data-theme="glass"] .artist-card,
-[data-theme="glass"] .keyword-grid a,
-[data-theme="glass"] .search-form,
-[data-theme="glass"] .install-card,
-[data-theme="glass"] .theme-sheet-card,
-[data-theme="glass"] .side-card,
-[data-theme="glass"] .side-download,
-[data-theme="glass"] .entry,
-[data-theme="glass"] .subnav,
-[data-theme="glass"] .mobile-tabbar,
-[data-theme="glass"] .mini-player,
-[data-theme="glass"] .theme-picker,
-[data-theme="glass"] .player-panel,
-[data-theme="glass"] .queue-panel,
-[data-theme="glass"] .player-host.is-expanded,
-[data-theme="glass"] .player-timeline{
-  backdrop-filter:none!important;
-  -webkit-backdrop-filter:none!important;
-}
-[data-theme="glass"] .panel,
-[data-theme="glass"] .collection-card,
-[data-theme="glass"] .artist-card,
-[data-theme="glass"] .keyword-grid a,
-[data-theme="glass"] .search-form,
-[data-theme="glass"] .install-card,
-[data-theme="glass"] .theme-sheet-card,
-[data-theme="glass"] .entry{
-  background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(255,255,255,.86));
-}
-[data-theme="glass"] .hero{
-  background:linear-gradient(130deg,rgba(230,242,238,.95),rgba(255,255,255,.8));
-}
-[data-theme="glass"] .side-download{
-  background:linear-gradient(140deg,#13624f,#0b3a32);
-  border-color:rgba(255,255,255,.22);
-}
-[data-theme="glass"] .subnav{background:rgba(255,255,255,.88)}
-[data-theme="glass"] .side-card{background:rgba(255,255,255,.9)}
-
 /* 触控/点击反馈收敛：只做颜色与极小的位移，避免大面积 filter/transform 触发重排 */
 .card,.panel,.entry,.side-download,.collection-card,.artist-card,.song-row{
   transition:background-color .16s ease,border-color .16s ease,box-shadow .16s ease;
@@ -2641,20 +2594,20 @@ body{overflow-x:clip}
   .header-actions .theme-trigger:after{display:none}
   /* 所有非播放页内容整体下移，首屏模块和顶栏之间留出清晰层次 */
   .main-content{padding-top:26px!important}
-  /* 磨砂皮肤：迷你播放条与底部标签栏恢复 v1.2.36 的毛玻璃配比，
-     只给这两条窄栏开模糊，避免整页毛玻璃带来的掉帧 */
+  /* 磨砂皮肤：迷你播放条与底部标签栏是 74% 白的毛玻璃，
+     既能透出一点背景色，又不会让下面的封面和文字穿透干扰阅读 */
   [data-theme="glass"] .mini-player{
-    background:rgba(255,255,255,.55)!important;
-    border-top:1px solid rgba(255,255,255,.72)!important;
+    background:rgba(255,255,255,.74)!important;
+    border-top:1px solid rgba(255,255,255,.82)!important;
     box-shadow:0 -10px 26px rgba(20,60,50,.08)!important;
-    backdrop-filter:blur(26px) saturate(170%)!important;
-    -webkit-backdrop-filter:blur(26px) saturate(170%)!important;
+    backdrop-filter:blur(30px) saturate(180%)!important;
+    -webkit-backdrop-filter:blur(30px) saturate(180%)!important;
   }
   [data-theme="glass"] .mobile-tabbar{
-    background:rgba(255,255,255,.46)!important;
-    border-top:1px solid rgba(255,255,255,.62)!important;
-    backdrop-filter:blur(26px) saturate(180%)!important;
-    -webkit-backdrop-filter:blur(26px) saturate(180%)!important;
+    background:rgba(255,255,255,.74)!important;
+    border-top:1px solid rgba(255,255,255,.82)!important;
+    backdrop-filter:blur(30px) saturate(180%)!important;
+    -webkit-backdrop-filter:blur(30px) saturate(180%)!important;
   }
 }
 /* 桌面端顶栏按钮跟随皮肤取色：浅色顶栏用深字，深色顶栏用浅字，不再白字白底 */
@@ -2676,3 +2629,12 @@ body{overflow-x:clip}
 #player-favorite.selected{color:#e2283f}
 #player-favorite.selected .icon{fill:#e2283f;stroke:#e2283f}
 body.player-open .player-host.is-expanded .player-panel-head #player-favorite.selected{color:#e2283f!important}
+/* 毛玻璃皮肤：顶栏同样使用 72% 白的磨砂玻璃（覆盖上面的纯色与关闭模糊） */
+[data-theme="glass"] .site-header,
+[data-theme="glass"] .site-header.site-header{
+  background:rgba(255,255,255,.72)!important;
+  border-bottom:1px solid rgba(255,255,255,.55)!important;
+  box-shadow:0 8px 24px rgba(20,60,50,.06)!important;
+  backdrop-filter:blur(30px) saturate(180%)!important;
+  -webkit-backdrop-filter:blur(30px) saturate(180%)!important;
+}
