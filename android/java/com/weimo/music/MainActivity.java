@@ -351,7 +351,7 @@ public class MainActivity extends Activity {
             playback.release();
             playback = null;
         }
-        buildUi(false);
+        buildUi();
         showSplash();
         startNodeService();
         probe(0);
@@ -397,7 +397,7 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= 33) {
             requestPermissions(new String[] { "android.permission.POST_NOTIFICATIONS" }, 1);
         }
-        buildUi(previous != null);
+        buildUi();
 
         if (fails >= 2) return;
         // 上次没走到“页面就绪”不代表这次一定失败：仍然正常启动，失败时再展示日志。
@@ -406,7 +406,7 @@ public class MainActivity extends Activity {
     }
 
     /** WebView 不可用时（部分 ROM 会禁用或缺少 WebView）退回纯文本，至少能看到日志。 */
-    private void buildUi(boolean safeMode) {
+    private void buildUi() {
         int fails = BootLog.failures();
         if (fails >= 2) {
             buildTextUi();
@@ -455,11 +455,9 @@ public class MainActivity extends Activity {
             view.setWebViewClient(new BootClient(this));
             view.setWebChromeClient(new WebChromeClient());
             view.addJavascriptInterface(new NativeBridge(this), "WeiMoNative");
-            if (safeMode) {
-                // 上次启动没完成，先退到软件渲染，排除 GPU/hwui 侧的问题。
-                view.setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null);
-                BootLog.append("run: webview software mode");
-            }
+            // 不再切软件渲染：软件图层会让 backdrop-filter 完全失效，
+            // 毛玻璃底栏在真机上就会退化成“全透明”。这是透明问题反复出现的根因。
+            // 窗口已开启 hardwareAccelerated，保持默认的硬件渲染即可。
             FrameLayout container = new FrameLayout(this);
             container.setBackgroundColor(background);
             container.addView(view, new ViewGroup.LayoutParams(
