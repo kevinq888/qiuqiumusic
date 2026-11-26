@@ -2665,14 +2665,14 @@ body.player-open .player-host.is-expanded .player-panel-head #player-favorite.se
   html.is-app .install-button{display:none!important}
   html.is-app .nav-shell{gap:8px}
   html.is-app .header-actions{gap:6px;flex:none}
-  /* 顶栏 70% 磨砂 + 固定在顶部，滚动时始终悬浮 */
+  /* 顶栏与底部播放条/标签栏使用同一块磨砂底：82% 白，不依赖 color-mix，老 WebView 也不会失效 */
   html.is-app .site-header{
     position:sticky!important;top:0!important;z-index:40!important;
-    background:color-mix(in srgb,var(--white) 70%,transparent)!important;
-    border-bottom:1px solid color-mix(in srgb,var(--ink) 8%,transparent)!important;
+    background:rgba(255,255,255,.82)!important;
+    border-bottom:1px solid rgba(255,255,255,.65)!important;
     box-shadow:0 10px 26px rgba(20,60,50,.08)!important;
-    backdrop-filter:blur(26px) saturate(170%)!important;
-    -webkit-backdrop-filter:blur(26px) saturate(170%)!important;
+    backdrop-filter:blur(30px) saturate(170%)!important;
+    -webkit-backdrop-filter:blur(30px) saturate(170%)!important;
   }
   /* 首屏整体下移，给顶栏足够的呼吸区 */
   html.is-app .main-content{padding-top:54px!important}
@@ -2690,22 +2690,34 @@ body.player-open .player-host.is-expanded .player-panel-head #player-favorite.se
   html.is-app #player-lyric-top[aria-pressed="true"]{color:#fff}
   /* 歌词已挪到顶栏，底部不再重复显示单行歌词 */
   html.is-app .player-center .player-lyric{display:none!important}
-  /* 迷你播放条与标签栏：所有皮肤统一 74% 磨砂 */
+  /* 迷你播放条与标签栏：与顶栏完全一致的磨砂底 */
   html.is-app .mini-player{
-    background:color-mix(in srgb,var(--white) 74%,transparent)!important;
-    border-top:1px solid color-mix(in srgb,#fff 55%,transparent)!important;
-    backdrop-filter:blur(26px) saturate(170%)!important;
-    -webkit-backdrop-filter:blur(26px) saturate(170%)!important;
+    background:rgba(255,255,255,.82)!important;
+    border-top:1px solid rgba(255,255,255,.65)!important;
+    backdrop-filter:blur(30px) saturate(170%)!important;
+    -webkit-backdrop-filter:blur(30px) saturate(170%)!important;
   }
   html.is-app .mobile-tabbar{
-    background:color-mix(in srgb,var(--white) 74%,transparent)!important;
-    border-top:1px solid color-mix(in srgb,#fff 55%,transparent)!important;
-    backdrop-filter:blur(26px) saturate(170%)!important;
-    -webkit-backdrop-filter:blur(26px) saturate(170%)!important;
+    background:rgba(255,255,255,.82)!important;
+    border-top:1px solid rgba(255,255,255,.65)!important;
+    backdrop-filter:blur(30px) saturate(170%)!important;
+    -webkit-backdrop-filter:blur(30px) saturate(170%)!important;
   }
-  [data-theme="dark"].is-app .site-header{border-bottom-color:rgba(255,255,255,.08)!important;box-shadow:0 10px 26px rgba(0,0,0,.3)!important}
+  [data-theme="dark"].is-app .site-header{background:rgba(21,34,29,.86)!important;border-bottom-color:rgba(255,255,255,.1)!important;box-shadow:0 10px 26px rgba(0,0,0,.3)!important}
   [data-theme="dark"].is-app .mini-player,
-  [data-theme="dark"].is-app .mobile-tabbar{border-top-color:rgba(255,255,255,.12)!important}
+  [data-theme="dark"].is-app .mobile-tabbar{background:rgba(21,34,29,.86)!important;border-top-color:rgba(255,255,255,.1)!important}
+  [data-theme="glass"].is-app .site-header,
+  [data-theme="glass"].is-app .mini-player,
+  [data-theme="glass"].is-app .mobile-tabbar{background:rgba(255,255,255,.82)!important}
+  /* 不支持背景模糊的老 WebView：退回接近实色，绝不透明成一片 */
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+    html.is-app .site-header{background:rgba(255,255,255,.96)!important}
+    html.is-app .mini-player,
+    html.is-app .mobile-tabbar{background:rgba(255,255,255,.96)!important}
+    [data-theme="dark"].is-app .site-header,
+    [data-theme="dark"].is-app .mini-player,
+    [data-theme="dark"].is-app .mobile-tabbar{background:rgba(21,34,29,.97)!important}
+  }
   [data-theme="dark"].is-app .app-search{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.14)}
   [data-theme="dark"].is-app .app-search input{color:var(--ink)}
   [data-theme="dark"].is-app .app-search input::placeholder{color:#7f968c}

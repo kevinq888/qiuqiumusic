@@ -10,6 +10,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,6 +24,7 @@ import android.util.TypedValue;
 import android.view.PixelCopy;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Gravity;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -62,6 +64,9 @@ public class MainActivity extends Activity {
     private WebView web;
     private FrameLayout root;
     private ImageView mask;
+    private android.widget.LinearLayout brandCover;
+    private int resumeProbes;
+    private int watchSeq;
     private Bitmap lastFrame;
     private boolean capturing;
     private long maskSeq;
@@ -152,7 +157,10 @@ public class MainActivity extends Activity {
         super.onResume();
         String resumeUrl = web == null ? null : web.getUrl();
         boolean onRealPage = resumeUrl != null && resumeUrl.startsWith("http://127.0.0.1:");
-        if (web != null && mask != null && (pageReady || onRealPage)) {
+        resumeProbes = 0;
+        if (web != null && mask != null && (pageReady || onRealPage || lastFrame != null)) {
+            // 不管有没有抓到上一帧都先盖住：没有帧时显示品牌占位页，
+            // 绝不让用户看到 WebView 的空白底（白屏的真正来源）。
             showMask();
             web.invalidate();
             verifyPage();
@@ -200,6 +208,7 @@ public class MainActivity extends Activity {
         WebView view = web;
         if (view == null || !pageReady || isFinishing() || isDestroyed() || capturing) return;
         if (mask != null && mask.getVisibility() == View.VISIBLE) return;
+        if (brandCover != null && brandCover.getVisibility() == View.VISIBLE) return;
         View decor = getWindow().getDecorView();
         int width = decor.getWidth();
         int height = decor.getHeight();
@@ -224,10 +233,20 @@ public class MainActivity extends Activity {
 
     private void showMask() {
         if (mask == null) return;
-        if (lastFrame != null) mask.setImageBitmap(lastFrame);
-        else mask.setImageDrawable(null);
+        if (lastFrame != null) {
+            mask.setImageBitmap(lastFrame);
+            mask.setVisibility(View.VISIBLE);
+            if (brandCover != null) brandCover.setVisibility(View.GONE);
+        } else {
+            // 没抓到上一帧时不要露出空白底色：改成品牌占位页，用户看到的是“正在恢复”
+            mask.setImageDrawable(null);
+            mask.setVisibility(View.GONE);
+            if (brandCover != null) {
+                brandCover.setAlpha(1f);
+                brandCover.setVisibility(View.VISIBLE);
+            }
+        }
         mask.setAlpha(1f);
-        mask.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -238,14 +257,25 @@ public class MainActivity extends Activity {
         final WebView view = web;
         if (view == null) return;
         if (!pageReady) {
-            scheduleReveal();
+            // 刚从后台回来、页面还没确认就绪：先给页面一点时间完成恢复，
+            // 连续几次仍不可用就重载，而不是把品牌遮罩一直挂着。
+            if (resumeProbes < 2) {
+                resumeProbes++;
+                ui.postDelayed(this::verifyPage, 500);
+                return;
+            }
+            BootLog.append("run: resume page not ready, reload");
+            showMask();
+            pageReady = false;
+            reloads = 0;
+            loadPage();
             return;
         }
         final long seq = ++maskSeq;
         healthChecking = true;
         view.evaluateJavascript(
                 "(function(){try{var m=document.querySelector('main.main-content');"
-                        + "var ok=document.readyState!=='loading'&&m&&m.textContent.trim().length>2;"
+                        + "var ok=document.readyState!=='loading'&&m&&m.textContent.trim().length>2&&m.offsetHeight>0;"
                         + "return ok&&document.documentElement.dataset.playerReady==='true'}catch(e){return false}})()",
                 value -> ui.post(() -> {
                     if (seq != maskSeq || view != web) return;
@@ -255,6 +285,7 @@ public class MainActivity extends Activity {
                         return;
                     }
                     BootLog.append("run: resume check failed, reload");
+                    showMask();
                     pageReady = false;
                     reloads = 0;
                     loadPage();
@@ -264,6 +295,7 @@ public class MainActivity extends Activity {
             if (seq != maskSeq || view != web || !healthChecking) return;
             healthChecking = false;
             BootLog.append("run: resume check timeout, reload");
+            showMask();
             pageReady = false;
             reloads = 0;
             loadPage();
@@ -296,20 +328,51 @@ public class MainActivity extends Activity {
     /** 只有页面确认有内容时才揭开遮罩，避免露出白底或重新加载中的空页。 */
     private void revealPage() {
         if (!pageReady) return;
-        final ImageView cover = mask;
-        if (cover == null || cover.getVisibility() != View.VISIBLE) return;
+        final View cover = mask != null && mask.getVisibility() == View.VISIBLE ? mask
+                : brandCover != null && brandCover.getVisibility() == View.VISIBLE ? brandCover : null;
+        if (cover == null) return;
         cover.animate().alpha(0f).setDuration(140).withEndAction(() -> {
             if (cover == mask) {
-                cover.setVisibility(View.GONE);
-                cover.setImageDrawable(null);
-                cover.setAlpha(1f);
+                mask.setVisibility(View.GONE);
+                mask.setImageDrawable(null);
+                mask.setAlpha(1f);
+            } else if (cover == brandCover) {
+                brandCover.setVisibility(View.GONE);
+                brandCover.setAlpha(1f);
             }
         }).start();
+    }
+
+    /** 遮罩淡出后再守一会儿：页面若在切回前台后再次变空，立刻重新盖上并重载。 */
+    private void watchAfterReveal() {
+        final WebView view = web;
+        final int seq = ++watchSeq;
+        ui.postDelayed(() -> {
+            if (seq != watchSeq || view == null || view != web || !pageReady || isFinishing()) return;
+            if (mask != null && mask.getVisibility() == View.VISIBLE) return;
+            view.evaluateJavascript(
+                    "(function(){try{var m=document.querySelector('main.main-content');"
+                            + "return !!(document.readyState!=='loading'&&m&&m.textContent.trim().length>2&&m.offsetHeight>0)}catch(e){return false}})()",
+                    value -> ui.post(() -> {
+                        if (seq != watchSeq || view != web || !pageReady) return;
+                        if ("true".equals(value)) return;
+                        BootLog.append("run: page blank after reveal, cover and reload");
+                        showMask();
+                        pageReady = false;
+                        reloads = 0;
+                        loadPage();
+                    }));
+        }, 1500);
     }
 
     /** 立刻收起遮罩（启动页/日志页这类主动展示的界面）。 */
     private void hideMaskNow() {
         maskSeq++;
+        if (brandCover != null) {
+            brandCover.animate().cancel();
+            brandCover.setAlpha(1f);
+            brandCover.setVisibility(View.GONE);
+        }
         if (mask == null) return;
         mask.animate().cancel();
         mask.setAlpha(1f);
@@ -462,7 +525,13 @@ public class MainActivity extends Activity {
             container.setBackgroundColor(background);
             container.addView(view, new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            // 上一帧遮罩：切回前台时盖住 WebView 尚未重绘的空白底
+            // 上一帧遮罩：切回前台时盖住 WebView 尚未重绘的空白底；
+            // 没抓到帧时用品牌占位页，绝不露出空白。
+            android.widget.LinearLayout brand = buildBrandCover(background);
+            if (brand != null) {
+                container.addView(brand, new ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            }
             ImageView cover = new ImageView(this);
             cover.setScaleType(ImageView.ScaleType.FIT_XY);
             cover.setBackgroundColor(background);
@@ -480,6 +549,7 @@ public class MainActivity extends Activity {
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             root = container;
             mask = cover;
+            brandCover = brand;
             web = view;
             playback = new PlaybackCenter(this, this::runRemoteCommand);
             BootLog.append("run: webview ready");
@@ -489,9 +559,57 @@ public class MainActivity extends Activity {
         }
     }
 
+    /** 恢复期间没有可用上一帧时显示的品牌占位页，完全不依赖 WebView。 */
+    private android.widget.LinearLayout buildBrandCover(int background) {
+        try {
+            float density = getResources().getDisplayMetrics().density;
+            android.widget.LinearLayout box = new android.widget.LinearLayout(this);
+            box.setOrientation(android.widget.LinearLayout.VERTICAL);
+            box.setGravity(Gravity.CENTER);
+            box.setBackgroundColor(background);
+            box.setClickable(false);
+            box.setFocusable(false);
+
+            ImageView logo = new ImageView(this);
+            try (InputStream in = getAssets().open("backend/public/picture/logo.png")) {
+                logo.setImageBitmap(BitmapFactory.decodeStream(in));
+            } catch (Throwable ignored) {
+            }
+            int size = Math.round(96 * density);
+            box.addView(logo, new android.widget.LinearLayout.LayoutParams(size, size));
+
+            TextView name = new TextView(this);
+            name.setText("未末音乐");
+            name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f);
+            name.setTextColor(0xFF3A2026);
+            name.setGravity(Gravity.CENTER);
+            name.setLetterSpacing(0.14f);
+            android.widget.LinearLayout.LayoutParams nameParams = new android.widget.LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            nameParams.topMargin = Math.round(18 * density);
+            box.addView(name, nameParams);
+
+            TextView tag = new TextView(this);
+            tag.setText("好音乐，马上就来");
+            tag.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f);
+            tag.setTextColor(0xFFA98A90);
+            tag.setGravity(Gravity.CENTER);
+            android.widget.LinearLayout.LayoutParams tagParams = new android.widget.LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            tagParams.topMargin = Math.round(8 * density);
+            box.addView(tag, tagParams);
+
+            box.setVisibility(View.GONE);
+            return box;
+        } catch (Throwable error) {
+            return null;
+        }
+    }
+
     /** 兜底界面：完全不依赖 WebView，至少能看到日志并重试。 */
     private void buildTextUi() {
         root = null;
+        brandCover = null;
         mask = null;
         TextView text = new TextView(this);
         text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f);
@@ -652,6 +770,8 @@ public class MainActivity extends Activity {
             }
             // 页面确认有内容后，再等一帧把上一帧遮罩淡出
             ui.postDelayed(this::revealPage, 60);
+            // 淡出后再守一会儿，防止切回前台后页面又变空
+            watchAfterReveal();
             return;
         }
         if (pageReady) {
@@ -789,6 +909,7 @@ public class MainActivity extends Activity {
             } catch (Throwable ignored) {
             }
             if (root != null) root.setBackgroundColor(Color.parseColor(pageColor));
+            if (brandCover != null) brandCover.setBackgroundColor(Color.parseColor(pageColor));
             if (mask != null) mask.setBackgroundColor(Color.parseColor(pageColor));
             if (!playerMode) applyBarTheme(false);
             BootLog.append("run: page color " + value);
@@ -842,6 +963,7 @@ public class MainActivity extends Activity {
         int background = player ? Color.parseColor("#0d0c11") : Color.parseColor(pageColor);
         window.getDecorView().setBackgroundColor(background);
         if (root != null) root.setBackgroundColor(background);
+        if (brandCover != null) brandCover.setBackgroundColor(background);
         if (mask != null) mask.setBackgroundColor(background);
         if (web != null) web.setBackgroundColor(background);
         if (Build.VERSION.SDK_INT >= 29) {

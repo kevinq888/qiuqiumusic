@@ -50,6 +50,8 @@
   let pkg = null;
   let state = 'idle';       // idle | checking | available | downloading | ready | latest | error
   let checking = false;
+  let checkStartedAt = 0;
+  let checkSeq = 0;
   let pendingInstall = false;
   let pollTimer = 0;
   let githubBlockedUntil = 0;
@@ -115,6 +117,21 @@
       button.dataset.progress = String(percent);
     }
     renderToast(label, detail);
+  }
+
+  // 手动点击时给一个短暂的明确反馈：这类状态本身不需要常驻浮层。
+  let toastTimer = 0;
+  function flashToast(text) {
+    clearTimeout(toastTimer);
+    toastTitle.textContent = text;
+    toastPct.textContent = '';
+    toastBar.style.width = '0%';
+    toastCta.hidden = true;
+    toast.dataset.state = 'latest';
+    toast.hidden = false;
+    toastTimer = setTimeout(() => {
+      if (state === 'latest' || state === 'error') toast.hidden = true;
+    }, 1800);
   }
 
   // 下载中显示百分比 + 速度，下载完成把按钮和浮层都变成明确的「一键更新」
@@ -188,14 +205,14 @@
     const local = location.hostname === '127.0.0.1' || location.hostname === 'localhost' || location.hostname === '::1';
     const remoteUrl = `${REMOTE}/api/app-release`;
     const urls = local
-      ? [remoteUrl, '/api/app-release']                                  // 内置 App：Render 部署版优先，内置服务兜底
+      ? ['/api/app-release', remoteUrl]                                  // 内置 App：先问本地服务（毫秒级），线上部署兜底
       : location.origin === REMOTE
         ? ['/api/app-release']
         : ['/api/app-release', remoteUrl];
     let best = null;
     for (const url of urls) {
       try {
-        const data = await fetchWithTimeout(url, 15000);
+        const data = await fetchWithTimeout(url, 8000);
         if (!data || !data.latest) continue;
         if (!best || compare(data.latest, best.latest) > 0) best = data;
         // 已经问到一个比当前更新的版本，就不必再等另一个站点（避免 Render 冷启动拖慢检查）。
@@ -205,7 +222,7 @@
     if (best) return best;
     if (Date.now() < githubBlockedUntil) throw Error('offline');
     try {
-      const json = await fetchWithTimeout(GITHUB_API, 8000);
+      const json = await fetchWithTimeout(GITHUB_API, 6000);
       return fromGithub(json);
     } catch (error) {
       githubBlockedUntil = Date.now() + 5 * 60 * 1000;
@@ -262,7 +279,10 @@
       setState('ready', `新版本 v${latest} 已就绪，点击更新`, { progress: 100 });
       return;
     }
-    if (typeof bridge.startUpdateDownload !== 'function') return;
+    if (typeof bridge.startUpdateDownload !== 'function') {
+      setState('error', '当前版本不支持应用内更新，请到官网下载');
+      return;
+    }
     const started = safe(() => bridge.startUpdateDownload(pkg.url, pkg.name, String(latest)), false);
     if (!started) { setState('available', `发现新版本 v${latest}，点击重试`); return; }
     pollNative();
@@ -334,19 +354,27 @@
   }
 
   async function check(manual = false) {
-    if (checking) return;
+    // 手动点击一律重新发起检查：这样即使上一次请求卡在网络里，点击也一定会有反馈。
+    if (checking && !manual) return;
+    const seq = ++checkSeq;
     checking = true;
+    checkStartedAt = Date.now();
     readCurrentVersion();
     if (manual || state === 'idle') setState('checking', '正在检查版本…');
     let data;
     try {
       data = await loadRelease();
     } catch {
+      if (seq !== checkSeq) return;
       checking = false;
       // 已有下载任务或已就绪时保留原状态，不让一次网络抖动把徽标抹掉。
-      if (state === 'checking') setState('error', '检查更新失败，点击重试');
+      if (state === 'checking') {
+        setState('error', '检查更新失败，点击重试');
+        if (manual) flashToast('检查更新失败，请检查网络后重试');
+      }
       return;
     }
+    if (seq !== checkSeq) return;
     checking = false;
     // iPhone 的「更新」只是清缓存重新拉取页面，版本必须以线上部署为准。
     // 用 GitHub 上的发布版本判断，会在部署尚未完成时出现“刷新→还是旧版→再提示”的死循环。
@@ -354,7 +382,7 @@
     const iosTarget = kind === 'ios' && deployed && compare(deployed, '0.0.0') > 0;
     latest = String(iosTarget ? deployed : data.latest || '');
     pkg = latest ? pkgOf(data) : null;
-    if (!latest) { setState('error', '检查更新失败，点击重试'); return; }
+    if (!latest) { setState('error', '检查更新失败，点击重试'); if (manual) flashToast('检查更新失败，请稍后再试'); return; }
     // 线上没返回部署版本时无从判断 PWA 是否需要刷新，直接按最新处理，绝不进入刷新循环。
     if (kind === 'ios' && !iosTarget) { setState('latest', upToDateLabel()); return; }
     if (compare(latest, readCurrentVersion()) <= 0) {
@@ -362,6 +390,7 @@
       // 页面已经追上线上版本，清掉上次的刷新标记，下个版本还能正常提示。
       if (stored(REFRESH_KEY) && compare(stored(REFRESH_KEY), currentVersion) <= 0) forget(REFRESH_KEY);
       setState('latest', upToDateLabel());
+      if (manual) flashToast(upToDateLabel());
       return;
     }
     if (kind === 'ios') {
@@ -383,6 +412,11 @@
       else install();
       return;
     }
+    if (state === 'available' && kind === 'android-native') {
+      // 已有新版本信息时直接开始/继续下载，不再先跑一遍网络检查
+      ensureDownload();
+      return;
+    }
     if (state === 'available' && kind === 'android-web' && pkg) {
       // 浏览器页面无法读取安装后的版本，记下来避免装完还反复提示同一个版本。
       store(DOWNLOAD_KEY, String(latest));
@@ -393,12 +427,22 @@
     if (state === 'downloading') {
       // 还没下完就点：记下意图，下载结束后自动拉起安装，不再需要第二次点击。
       pendingInstall = true;
+      toastDismissed = '';
+      renderToast('');
+      toastTitle.textContent = `下载完成后将自动更新 v${latest}`;
       button.title = `下载完成后自动安装 v${latest}`;
       button.setAttribute('aria-label', button.title);
-      if (!toast.hidden) toastTitle.textContent = `下载完成后将自动更新 v${latest}`;
       return;
     }
-    if (state === 'checking') return;
+    if (state === 'checking') {
+      // 上一次检查可能卡在网络超时里：超过 4 秒再点就重新发起，短时间连点则给出等待提示。
+      if (Date.now() - checkStartedAt > 4000) check(true);
+      else {
+        button.title = '正在检查版本，请稍候…';
+        button.setAttribute('aria-label', button.title);
+      }
+      return;
+    }
     check(true);
   });
 
