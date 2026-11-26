@@ -51,6 +51,8 @@
   const lyricsTrack = document.getElementById('np-lyrics-track');
   const lyricsToggle = document.getElementById('player-lyrics-toggle');
   const topLyricNode = document.getElementById('player-lyric-top');
+  const topLyricText = document.getElementById('player-lyric-top-text');
+  const appTopLyricText = document.getElementById('app-top-lyric-text');
   const npFloat = document.getElementById('np-float');
   const floatBefore = npFloat?.querySelector('[data-float-before]');
   const floatCurrent = npFloat?.querySelector('[data-float-current]');
@@ -825,6 +827,39 @@
     }
     return lines.sort((a, b) => a.time - b.time);
   }
+  // 逐字高亮：把一句歌词拆成字符 span，唱到哪个字就点亮哪个字
+  function paintLyricLine(container, text) {
+    if (!container) return;
+    const value = String(text || '');
+    container.textContent = '';
+    container.dataset.sung = '0';
+    if (!value) return;
+    const frag = document.createDocumentFragment();
+    for (const char of Array.from(value)) {
+      const span = document.createElement('span');
+      span.className = 'ktv-char';
+      span.textContent = char;
+      frag.append(span);
+    }
+    container.append(frag);
+  }
+  // 按本句已唱比例点亮字符：唱到第几个字就亮到第几个字
+  function singLyricLine(container, ratio) {
+    if (!container) return;
+    const chars = container.children;
+    const total = chars.length;
+    if (!total) return;
+    let sung = Math.ceil(ratio * total - 1e-6);
+    sung = Math.max(0, Math.min(total, sung));
+    const previous = Number(container.dataset.sung || 0);
+    if (sung === previous) return;
+    if (sung > previous) {
+      for (let i = previous; i < sung; i++) chars[i].classList.add('is-sung');
+    } else {
+      for (let i = sung; i < total; i++) chars[i].classList.remove('is-sung');
+    }
+    container.dataset.sung = String(sung);
+  }
   function clearLyric() {
     lyricLines = [];
     lyricIndex = -1;
@@ -833,8 +868,10 @@
       lyricNode.hidden = true;
       lyricNode.textContent = '';
     }
-    // 播放页顶栏的歌词与底部歌词同源：没有歌曲时回到品牌名
-    if (topLyricNode) topLyricNode.textContent = current ? '暂无歌词' : '未末音乐';
+    // 顶部（App 顶栏 / 播放页顶栏）的歌词与底部歌词同源：没有歌曲时回到品牌名
+    const empty = current ? '暂无歌词' : '未末音乐';
+    paintLyricLine(topLyricText, empty);
+    paintLyricLine(appTopLyricText, empty);
     renderLyricsTrack();
     if (npFloat) {
       npFloat.hidden = true;
@@ -880,11 +917,17 @@
     if (!lyricsTrack) return;
     const nodes = lyricsTrack.children;
     const previous = nodes[lyricsActiveLine];
-    if (previous) previous.classList.remove('is-active');
+    if (previous && lyricsActiveLine !== index) {
+      previous.classList.remove('is-active');
+      previous.textContent = (lyricLines[lyricsActiveLine] && lyricLines[lyricsActiveLine].text) || '♪';
+    }
     lyricsActiveLine = index;
     const node = nodes[index];
     if (!node) return;
-    node.classList.add('is-active');
+    if (!node.classList.contains('is-active')) {
+      node.classList.add('is-active');
+      paintLyricLine(node, (lyricLines[index] && lyricLines[index].text) || '♪');
+    }
     const top = node.offsetTop - lyricsTrack.clientHeight / 2 + node.offsetHeight / 2;
     lyricsTrack.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
   }
@@ -900,6 +943,8 @@
     }
     if (topLyricNode) topLyricNode.setAttribute('aria-pressed', String(lyricsMode));
     if (lyricsMode) {
+      // 重新进入歌词视图时清掉上一轮的当前行，交给 syncLyric 重新点亮
+      lyricsTrack?.querySelectorAll('.np-lyrics-line.is-active').forEach(node => node.classList.remove('is-active'));
       lyricsActiveLine = -1;
       syncLyric(Number.isFinite(audio.currentTime) ? audio.currentTime : 0);
     }
@@ -927,8 +972,11 @@
       updateFloatLyric(index);
       const node = lyricTextTarget();
       if (!node) return;
-      node.textContent = line ? line.text : '';
-      if (topLyricNode) topLyricNode.textContent = line ? line.text : '暂无歌词';
+      const text = line ? line.text : '';
+      const empty = current ? '暂无歌词' : '未末音乐';
+      paintLyricLine(node, text);
+      paintLyricLine(topLyricText, text || empty);
+      paintLyricLine(appTopLyricText, text || empty);
       const wasHidden = lyricNode.hidden;
       lyricNode.hidden = !line;
       if (!line) {
@@ -940,16 +988,15 @@
     }
     if (index !== lyricsActiveLine) syncLyricsTrack(index);
     if (!line) return;
-    // KTV 式填充：按本句已唱时长计算当前句的变色进度
+    // 按本句到下一句的真实时长逐字点亮，节奏与演唱同步（不再额外压缩）
     const next = lyricLines[index + 1];
-    // LRC 每句的时长通常包含尾音与留白，按整段时长线性填充会越唱越慢；
-    // 压缩到 80% 让高亮追平实际演唱速度
-    const length = Math.max(1.2, (next ? next.time : line.time + 5) - line.time) * 0.8;
+    const length = Math.max(0.4, (next ? next.time : line.time + 5) - line.time);
     const ratio = Math.max(0, Math.min(1, (time - line.time) / length));
-    const percent = `${(ratio * 100).toFixed(1)}%`;
-    lyricTextTarget().style.setProperty('--sing', percent);
+    singLyricLine(lyricTextNode, ratio);
+    singLyricLine(topLyricText, ratio);
+    singLyricLine(appTopLyricText, ratio);
     const activeLine = lyricsTrack && lyricsTrack.children[lyricsActiveLine];
-    if (activeLine) activeLine.style.setProperty('--sing', percent);
+    if (activeLine) singLyricLine(activeLine, ratio);
   }
   // 逐帧驱动歌词填充，避免只靠 timeupdate（约 4 次/秒）导致高亮落后于声音
   let lyricFrame = 0;
@@ -1611,6 +1658,18 @@
     if (event.target.closest('#theme-mobile-trigger') || event.target.closest('[data-open-theme]')) { openThemeSheet(); return; }
     if (event.target.closest('[data-theme-close]')) { closeThemeSheet(); return; }
     if (event.target.closest('#mobile-menu')) { setMobileMenuOpen(!document.body.classList.contains('nav-open')); return; }
+    // App 顶栏没有三横按钮：点 logo 与点三横完全一致，只开关导航抽屉，不跳首页
+    if (event.target.closest('.site-header .brand') && document.documentElement.classList.contains('is-app') && window.matchMedia('(max-width:680px)').matches) {
+      event.preventDefault();
+      setMobileMenuOpen(!document.body.classList.contains('nav-open'));
+      return;
+    }
+    // App 顶栏居中的当前歌词：点一下进入播放页，未播放时先播第一首
+    if (event.target.closest('#app-top-lyric')) {
+      if (current) expand();
+      else playFirstSong();
+      return;
+    }
     if (event.target.closest('[data-queue-toggle]')) { event.preventDefault(); event.stopPropagation(); setQueueOpen(queuePanel.hidden); return; }
     if (event.target.closest('[data-queue-close]')) { setQueueOpen(false); return; }
     if (event.target.closest('#queue-tab-queue')) { setQueueMode('queue'); return; }
@@ -1862,6 +1921,7 @@
     document.body.classList.toggle('nav-open', open);
     const button = document.getElementById('mobile-menu');
     if (button) button.setAttribute('aria-expanded', String(open));
+    document.querySelector('.site-header .brand')?.setAttribute('aria-expanded', String(open));
   }
   function toggleFollow(button) {
     const followed = button.classList.toggle('is-followed');

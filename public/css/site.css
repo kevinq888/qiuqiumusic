@@ -1055,8 +1055,8 @@ body{background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--mint) 4
   }
   .np-lyrics-line.is-active{
     font-size:19px;
-    background-image:linear-gradient(90deg,#fff var(--sing,0%),rgba(255,255,255,.4) var(--sing,0%));
-    -webkit-background-clip:text;background-clip:text;color:transparent;
+    color:rgba(255,255,255,.42);
+    --lyric-sung:#fff;
     transform:scale(1.01);
   }
   .np-lyrics-empty{margin:0;color:rgba(255,255,255,.5);font-size:14px}
@@ -1923,12 +1923,11 @@ html:not([data-theme="glass"]) body::before{
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
-  background-image:linear-gradient(90deg,var(--lyric-sung,var(--orange)) 0 var(--sing,0%),var(--lyric-dim,var(--muted)) var(--sing,0%) 100%);
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent;
-  -webkit-text-fill-color:transparent;
+  color:var(--lyric-dim,var(--muted));
 }
+/* 逐字点亮：未唱的字继承暗色，唱到的字换成高亮色 */
+.ktv-char{color:inherit;transition:color .09s linear}
+.ktv-char.is-sung{color:var(--lyric-sung,var(--orange))}
 .player-host.is-expanded .player-lyric-text{--lyric-sung:var(--orange);--lyric-dim:var(--dock-dim)}
 [data-theme="glass"] .player-host.is-expanded .player-lyric-text{--lyric-sung:#e8613a;--lyric-dim:rgba(12,58,49,.5)}
 @media(min-width:681px){
@@ -2203,7 +2202,8 @@ body{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility}
   /* 歌词：提高未唱部分的亮度并加暗影，避免白字压在毛玻璃/亮色封面上看不清 */
   .np-lyrics-line{color:rgba(255,255,255,.62);text-shadow:0 1px 4px rgba(0,0,0,.55)}
   .np-lyrics-line.is-active{
-    background-image:linear-gradient(90deg,#fff var(--sing,0%),rgba(255,255,255,.66) var(--sing,0%));
+    color:rgba(255,255,255,.66);
+    --lyric-sung:#fff;
     filter:drop-shadow(0 1px 4px rgba(0,0,0,.55));
   }
   .np-cover b{max-width:76%;line-height:1.1;letter-spacing:.04em}
@@ -2645,22 +2645,38 @@ body.player-open .player-host.is-expanded .player-panel-head #player-favorite.se
    电脑端与网页版不会命中 .is-app，样式完全不变。
    ============================================================ */
 .app-search{display:none}
+/* 顶栏中部当前歌词：只在手机 App 里出现（替代原搜索框位置） */
+.app-top-lyric{display:none}
 /* 播放页顶栏的「当前歌词」只在手机 App 里出现，桌面端与网页版继续用「正在播放 / 词」 */
 .np-top-lyric{display:none}
+/* 深色播放页顶栏：未唱部分浅灰，已唱部分暖橙 */
+.np-top-lyric-text{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,.62);--lyric-sung:#ffb26b}
 @media(max-width:680px){
   html.is-app .brand span{display:none}
   html.is-app .brand-logo{width:32px;height:32px;border-radius:9px;box-shadow:0 4px 10px rgba(204,34,54,.16)}
+  /* 顶栏左侧：logo 直接当导航开关用，右侧跟「未末」两个字 */
+  html.is-app .mobile-menu{display:none!important}
+  html.is-app .brand{gap:7px;padding:0;flex:none;border-radius:10px}
+  html.is-app .brand:after{content:'未末';font-size:16px;font-weight:800;letter-spacing:.04em;color:var(--ink);white-space:nowrap}
   html.is-app .mobile-search{display:none!important}
-  html.is-app .app-search{
-    display:flex;flex:1;min-width:0;align-items:center;gap:8px;
-    height:36px;padding:0 5px 0 13px;border-radius:999px;
-    background:rgba(255,255,255,.72);border:1px solid rgba(20,60,50,.1);
+  html.is-app .app-search{display:none!important}
+  /* 顶栏中部：当前播放歌词，宽度尽量放宽，与右侧图标均匀排布 */
+  html.is-app .app-top-lyric{
+    display:flex;align-items:center;justify-content:center;
+    flex:1 1 auto;min-width:0;height:36px;margin:0 2px;
+    padding:0 14px;border:1px solid rgba(20,60,50,.1);border-radius:999px;
+    background:rgba(255,255,255,.72);
     box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
+    text-align:center;
   }
-  html.is-app .app-search input{flex:1;min-width:0;border:0;outline:none;background:transparent;font-size:13px;font-weight:600;color:var(--ink)}
-  html.is-app .app-search input::placeholder{color:#9aa8a1;font-weight:500}
-  html.is-app .app-search button{width:28px;height:28px;flex:none;border:0;border-radius:50%;display:grid;place-items:center;background:var(--forest);color:#fff}
-  html.is-app .app-search button .icon{width:14px;height:14px}
+  html.is-app .app-top-lyric-text{
+    display:block;width:100%;min-width:0;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap;
+    font-size:13px;font-weight:700;letter-spacing:.01em;
+    color:var(--muted);--lyric-sung:var(--forest);
+  }
+  /* 底部播放条上方的悬浮歌词已经挪到顶栏，App 内不再重复显示 */
+  html.is-app .np-float{display:none!important}
   html.is-app .desktop-download-wrap,
   html.is-app .install-button{display:none!important}
   html.is-app .nav-shell{gap:8px}
@@ -2735,7 +2751,29 @@ body.player-open .player-host.is-expanded .player-panel-head #player-favorite.se
     [data-theme="dark"].is-app .mini-player,
     [data-theme="dark"].is-app .mobile-tabbar{background:rgba(21,34,29,.97)!important}
   }
-  [data-theme="dark"].is-app .app-search{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.14)}
-  [data-theme="dark"].is-app .app-search input{color:var(--ink)}
-  [data-theme="dark"].is-app .app-search input::placeholder{color:#7f968c}
+  [data-theme="dark"].is-app .app-top-lyric{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.14)}
+  [data-theme="dark"].is-app .app-top-lyric-text{color:rgba(234,246,241,.66);--lyric-sung:#7ff0d4}
+  [data-theme="glass"].is-app .app-top-lyric{background:rgba(255,255,255,.5);border-color:rgba(255,255,255,.62)}
+}
+
+/* ---------- 手机端导航抽屉：不透明主题底 + 高对比文字 ----------
+   抽屉背景是 --white（浅色皮肤为纯白），而顶栏链接色是 --header-dim
+   （薄荷/晴空/晨雾/日落/樱花/暗夜均为白色半透明），白字压白底导致看不清。
+   这里统一按抽屉自身的底色重新指定文字色，覆盖上面的顶栏配色。 */
+@media(max-width:680px){
+  .site-header .main-nav{
+    background:color-mix(in srgb,var(--white) 97%,var(--cream));
+    border-bottom:1px solid var(--line);
+    box-shadow:0 18px 34px rgba(12,40,34,.18);
+  }
+  .site-header .main-nav a{color:var(--ink);background:var(--subtle);font-weight:700}
+  .site-header .main-nav a:hover,.site-header .main-nav a.active{color:#fff;background:var(--forest)}
+  [data-theme="dark"] .site-header .main-nav{background:#12211c;box-shadow:0 18px 34px rgba(0,0,0,.5)}
+  [data-theme="dark"] .site-header .main-nav a{color:#e6f2ed;background:rgba(255,255,255,.08)}
+  [data-theme="dark"] .site-header .main-nav a:hover,
+  [data-theme="dark"] .site-header .main-nav a.active{color:#08211d;background:#4bcbb4}
+  [data-theme="glass"] .site-header .main-nav{background:rgba(255,255,255,.95)}
+  [data-theme="glass"] .site-header .main-nav a{color:#0b332b;background:rgba(16,68,58,.06)}
+  [data-theme="glass"] .site-header .main-nav a:hover,
+  [data-theme="glass"] .site-header .main-nav a.active{color:#fff;background:#10644f}
 }
