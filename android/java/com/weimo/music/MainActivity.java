@@ -82,6 +82,8 @@ public class MainActivity extends Activity {
     private boolean resumedOnce;
     private int activePort = PORT;
     private int reloads;
+    /** 页面反复空白时整块重建 WebView 的次数（等价于用户手动重开 App）。 */
+    private int rebuilds;
     private int variant;
     private int probeRound;
     private String shownLog = "";
@@ -758,6 +760,7 @@ public class MainActivity extends Activity {
         if (ok) {
             blankChecks = 0;
             healthChecking = false;
+            rebuilds = 0;
             if (!pageReady) {
                 pageReady = true;
                 resumedOnce = true;
@@ -793,6 +796,14 @@ public class MainActivity extends Activity {
         }
         blankChecks = 0;
         if (reloads >= 3) {
+            // 多次重载仍是空白：整块重建 WebView（等价用户手动重开 App），
+            // 这是白屏最后一道保险，避免只能“退出再登录”才能恢复。
+            if (rebuilds < 1) {
+                rebuilds++;
+                BootLog.append("run: blank persists, full webview rebuild");
+                onRenderGone();
+                return;
+            }
             BootLog.append("run: page stays blank");
             showLogPage("页面加载失败", BootLog.read());
             return;
@@ -809,6 +820,12 @@ public class MainActivity extends Activity {
         ready = false;
         BootLog.append("run: page load error");
         if (reloads >= 3) {
+            if (rebuilds < 1) {
+                rebuilds++;
+                BootLog.append("run: load error persists, full webview rebuild");
+                onRenderGone();
+                return;
+            }
             showLogPage("本地页面打开失败", BootLog.read());
             return;
         }

@@ -6,20 +6,20 @@
 
 桌面版提供 Windows 和 macOS 安装包。下载后按系统提示完成安装；桌面版支持系统托盘和黑胶悬浮球。手机和平板请直接访问[在线版](https://weimomusic.onrender.com/)，或按下方说明添加到主屏幕。
 
-### v1.2.46（当前版本）
+### v1.2.47（当前版本）
 
-- 手机 App 顶栏左侧改为品牌 logo +「未末」两个字，点 logo 与原来的三横按钮行为一致，直接打开导航抽屉，不再跳回首页。
-- 顶栏中部的搜索框换成当前播放歌词，底部播放条上方那三行悬浮歌词取消，同一句歌词不再重复出现；这一行图标重新排布，歌词宽度尽量放宽。
-- 修复导航抽屉在薄荷绿、晴空蓝、晨雾紫、日落橙、樱花粉、暗夜黑等皮肤下白字压白底、几乎看不清的问题：抽屉改用不透明底色 + 高对比文字，当前项为实色高亮胶囊，8 套皮肤逐一核对。
-- 恢复并统一「逐字高亮」：底部播放条、App 顶栏歌词、播放页顶栏和播放页完整歌词都按字点亮；进度直接取本句到下一句的真实时长，不再压缩，跟唱不易偏快或偏慢。
+- App 顶栏恢复「三横 + logo」原位：三横照旧打开导航抽屉，logo 点回首页；中间只保留当前播放歌词，去掉歌词框的边框和底色，整条顶栏改为 60% 磨砂半透明（带高斯模糊）。
+- 导航抽屉横向拉满整屏（高度不变），不再偏左留白。
+- 切到其他 App 再回来时的白屏：内置 Node 服务改为被系统回收后自动重启；页面反复空白时整块重建 WebView（等价手动重开 App）；网页侧增加回到前台的自检重载，不再需要退出 App 重进。
+- 歌词高亮改回连续的进度填充：按本句演唱时长推进，颜色边界跟着唱到的位置走，不再忽快忽慢。
 
 | 系统 | 下载 |
 | --- | --- |
-| Android（arm64-v8a） | [weimomusic-1.2.46-android-arm64-v8a.apk](https://github.com/kevinq888/weimomusic/releases/download/v1.2.46/weimomusic-1.2.46-android-arm64-v8a.apk) |
-| iPhone / iPad（PWA） | [weimomusic-1.2.46-iphone.zip](https://github.com/kevinq888/weimomusic/releases/download/v1.2.46/weimomusic-1.2.46-iphone.zip) |
-| macOS（Apple 芯片） | [weimomusic-1.2.46-mac-arm64.dmg](https://github.com/kevinq888/weimomusic/releases/download/v1.2.46/weimomusic-1.2.46-mac-arm64.dmg) |
-| macOS（Intel） | [weimomusic-1.2.46-mac-x64.dmg](https://github.com/kevinq888/weimomusic/releases/download/v1.2.46/weimomusic-1.2.46-mac-x64.dmg) |
-| Windows（64 位） | [weimomusic-1.2.46-windows-x64.exe](https://github.com/kevinq888/weimomusic/releases/download/v1.2.46/weimomusic-1.2.46-windows-x64.exe) |
+| Android（arm64-v8a） | [weimomusic-1.2.47-android-arm64-v8a.apk](https://github.com/kevinq888/weimomusic/releases/download/v1.2.47/weimomusic-1.2.47-android-arm64-v8a.apk) |
+| iPhone / iPad（PWA） | [weimomusic-1.2.47-iphone.zip](https://github.com/kevinq888/weimomusic/releases/download/v1.2.47/weimomusic-1.2.47-iphone.zip) |
+| macOS（Apple 芯片） | [weimomusic-1.2.47-mac-arm64.dmg](https://github.com/kevinq888/weimomusic/releases/download/v1.2.47/weimomusic-1.2.47-mac-arm64.dmg) |
+| macOS（Intel） | [weimomusic-1.2.47-mac-x64.dmg](https://github.com/kevinq888/weimomusic/releases/download/v1.2.47/weimomusic-1.2.47-mac-x64.dmg) |
+| Windows（64 位） | [weimomusic-1.2.47-windows-x64.exe](https://github.com/kevinq888/weimomusic/releases/download/v1.2.47/weimomusic-1.2.47-windows-x64.exe) |
 
 ## 本地运行
 

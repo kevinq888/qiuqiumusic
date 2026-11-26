@@ -41,7 +41,17 @@ public class NodeService extends Service {
                     "weimo-node", 16 * 1024 * 1024);
             worker.start();
         }
-        return START_NOT_STICKY;
+        // 被系统在后台回收后自动重启内置 Node，避免切回 App 时本地服务已死导致白屏
+        return START_STICKY;
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        // 用户从最近任务里划掉 App：停止服务并结束 :node 进程，
+        // 避免 START_STICKY 在后台把内置服务重新拉起形成僵尸进程。
+        BootLog.append("service: task removed, stop");
+        stopSelf();
+        super.onTaskRemoved(rootIntent);
     }
 
     @Override

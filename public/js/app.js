@@ -827,38 +827,11 @@
     }
     return lines.sort((a, b) => a.time - b.time);
   }
-  // 逐字高亮：把一句歌词拆成字符 span，唱到哪个字就点亮哪个字
-  function paintLyricLine(container, text) {
-    if (!container) return;
-    const value = String(text || '');
-    container.textContent = '';
-    container.dataset.sung = '0';
-    if (!value) return;
-    const frag = document.createDocumentFragment();
-    for (const char of Array.from(value)) {
-      const span = document.createElement('span');
-      span.className = 'ktv-char';
-      span.textContent = char;
-      frag.append(span);
-    }
-    container.append(frag);
-  }
-  // 按本句已唱比例点亮字符：唱到第几个字就亮到第几个字
+  // 按本句已唱比例推进渐变：颜色边界扫到哪个字就点亮哪个字
   function singLyricLine(container, ratio) {
     if (!container) return;
-    const chars = container.children;
-    const total = chars.length;
-    if (!total) return;
-    let sung = Math.ceil(ratio * total - 1e-6);
-    sung = Math.max(0, Math.min(total, sung));
-    const previous = Number(container.dataset.sung || 0);
-    if (sung === previous) return;
-    if (sung > previous) {
-      for (let i = previous; i < sung; i++) chars[i].classList.add('is-sung');
-    } else {
-      for (let i = sung; i < total; i++) chars[i].classList.remove('is-sung');
-    }
-    container.dataset.sung = String(sung);
+    const value = Math.max(0, Math.min(1, ratio));
+    container.style.setProperty('--sing', `${(value * 100).toFixed(1)}%`);
   }
   function clearLyric() {
     lyricLines = [];
@@ -870,8 +843,8 @@
     }
     // 顶部（App 顶栏 / 播放页顶栏）的歌词与底部歌词同源：没有歌曲时回到品牌名
     const empty = current ? '暂无歌词' : '未末音乐';
-    paintLyricLine(topLyricText, empty);
-    paintLyricLine(appTopLyricText, empty);
+    if (topLyricText) { topLyricText.textContent = empty; singLyricLine(topLyricText, 0); }
+    if (appTopLyricText) { appTopLyricText.textContent = empty; singLyricLine(appTopLyricText, 0); }
     renderLyricsTrack();
     if (npFloat) {
       npFloat.hidden = true;
@@ -917,17 +890,12 @@
     if (!lyricsTrack) return;
     const nodes = lyricsTrack.children;
     const previous = nodes[lyricsActiveLine];
-    if (previous && lyricsActiveLine !== index) {
-      previous.classList.remove('is-active');
-      previous.textContent = (lyricLines[lyricsActiveLine] && lyricLines[lyricsActiveLine].text) || '♪';
-    }
+    if (previous) previous.classList.remove('is-active');
     lyricsActiveLine = index;
     const node = nodes[index];
     if (!node) return;
-    if (!node.classList.contains('is-active')) {
-      node.classList.add('is-active');
-      paintLyricLine(node, (lyricLines[index] && lyricLines[index].text) || '♪');
-    }
+    node.classList.add('is-active');
+    node.style.setProperty('--sing', '0%');
     const top = node.offsetTop - lyricsTrack.clientHeight / 2 + node.offsetHeight / 2;
     lyricsTrack.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
   }
@@ -974,9 +942,12 @@
       if (!node) return;
       const text = line ? line.text : '';
       const empty = current ? '暂无歌词' : '未末音乐';
-      paintLyricLine(node, text);
-      paintLyricLine(topLyricText, text || empty);
-      paintLyricLine(appTopLyricText, text || empty);
+      node.textContent = text;
+      if (topLyricText) topLyricText.textContent = text || empty;
+      if (appTopLyricText) appTopLyricText.textContent = text || empty;
+      singLyricLine(node, 0);
+      singLyricLine(topLyricText, 0);
+      singLyricLine(appTopLyricText, 0);
       const wasHidden = lyricNode.hidden;
       lyricNode.hidden = !line;
       if (!line) {
@@ -988,9 +959,10 @@
     }
     if (index !== lyricsActiveLine) syncLyricsTrack(index);
     if (!line) return;
-    // 按本句到下一句的真实时长逐字点亮，节奏与演唱同步（不再额外压缩）
+    // KTV 式进度填充：LRC 的句长通常含尾音和留白，按整段会越唱越慢，
+    // 压缩到 85% 让颜色边界基本追平真实演唱
     const next = lyricLines[index + 1];
-    const length = Math.max(0.4, (next ? next.time : line.time + 5) - line.time);
+    const length = Math.max(1.2, (next ? next.time : line.time + 5) - line.time) * 0.85;
     const ratio = Math.max(0, Math.min(1, (time - line.time) / length));
     singLyricLine(lyricTextNode, ratio);
     singLyricLine(topLyricText, ratio);
@@ -1658,12 +1630,6 @@
     if (event.target.closest('#theme-mobile-trigger') || event.target.closest('[data-open-theme]')) { openThemeSheet(); return; }
     if (event.target.closest('[data-theme-close]')) { closeThemeSheet(); return; }
     if (event.target.closest('#mobile-menu')) { setMobileMenuOpen(!document.body.classList.contains('nav-open')); return; }
-    // App 顶栏没有三横按钮：点 logo 与点三横完全一致，只开关导航抽屉，不跳首页
-    if (event.target.closest('.site-header .brand') && document.documentElement.classList.contains('is-app') && window.matchMedia('(max-width:680px)').matches) {
-      event.preventDefault();
-      setMobileMenuOpen(!document.body.classList.contains('nav-open'));
-      return;
-    }
     // App 顶栏居中的当前歌词：点一下进入播放页，未播放时先播第一首
     if (event.target.closest('#app-top-lyric')) {
       if (current) expand();
@@ -1921,7 +1887,6 @@
     document.body.classList.toggle('nav-open', open);
     const button = document.getElementById('mobile-menu');
     if (button) button.setAttribute('aria-expanded', String(open));
-    document.querySelector('.site-header .brand')?.setAttribute('aria-expanded', String(open));
   }
   function toggleFollow(button) {
     const followed = button.classList.toggle('is-followed');
@@ -2017,6 +1982,26 @@
   try { localStorage.removeItem('qiuqiumusic.sound'); } catch {}
   updateInstallButton();
   updateNavScrollHint();
+  // 从后台切回时自检：WebView 偶发不重绘会停在空白页，这里主动重载一次，
+  // 不用再退出 App 重进（原生层还有遮罩与重建兜底）。
+  let hiddenAt = 0;
+  let blankReloadAt = 0;
+  function recoverFromBlank() {
+    if (document.visibilityState !== 'visible') return;
+    if (Date.now() - blankReloadAt < 8000) return;
+    const main = document.querySelector('main.main-content');
+    const loading = document.getElementById('route-loading');
+    if (loading && !loading.hidden) return;
+    if (main && main.offsetHeight > 0 && main.textContent.trim().length > 2) return;
+    blankReloadAt = Date.now();
+    location.reload();
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') { hiddenAt = Date.now(); return; }
+    if (hiddenAt && Date.now() - hiddenAt > 1500) setTimeout(recoverFromBlank, 1200);
+    hiddenAt = 0;
+  });
+  window.addEventListener('pageshow', event => { if (event.persisted) setTimeout(recoverFromBlank, 900); });
   message('hello');
   // 已保存的清单在后台逐首补缓存
   if (queue.length) scheduleCacheStatusRefresh();
