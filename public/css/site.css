@@ -2665,15 +2665,28 @@ body.player-open .player-host.is-expanded .player-panel-head #player-favorite.se
   html.is-app .install-button{display:none!important}
   html.is-app .nav-shell{gap:8px}
   html.is-app .header-actions{gap:6px;flex:none}
-  /* 顶栏与底部播放条/标签栏使用同一块磨砂底：82% 白，不依赖 color-mix，老 WebView 也不会失效 */
+  /* 顶栏使用稳定的半透明底色 + 阴影；不再叠加 backdrop-filter，
+     部分安卓 WebView 在 sticky + 模糊时会吃掉自身背景色，导致整条顶栏看起来全透明。 */
   html.is-app .site-header{
     position:sticky!important;top:0!important;z-index:40!important;
-    background:rgba(255,255,255,.82)!important;
-    border-bottom:1px solid rgba(255,255,255,.65)!important;
-    box-shadow:0 10px 26px rgba(20,60,50,.08)!important;
-    backdrop-filter:blur(30px) saturate(170%)!important;
-    -webkit-backdrop-filter:blur(30px) saturate(170%)!important;
+    background:rgba(255,255,255,.86)!important;
+    border-bottom:1px solid rgba(20,60,50,.09)!important;
+    box-shadow:0 8px 24px rgba(20,60,50,.1)!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
   }
+  /* 顶栏右侧图标按钮：实色圆形底，任何皮肤下都不会透出后面的内容 */
+  html.is-app .header-actions .update-button,
+  html.is-app .header-actions .theme-trigger{
+    width:34px!important;height:34px!important;padding:0!important;
+    border-radius:50%!important;display:inline-grid!important;place-items:center!important;
+    background:#fff!important;border:1px solid rgba(20,60,50,.1)!important;
+    box-shadow:0 2px 8px rgba(20,60,50,.08)!important;color:var(--forest)!important;
+  }
+  html.is-app .header-actions .update-button .icon,
+  html.is-app .header-actions .theme-trigger .icon{color:var(--forest)!important}
+  html.is-app .header-actions .theme-trigger span,
+  html.is-app .header-actions .theme-trigger:after{display:none!important}
   /* 首屏整体下移，给顶栏足够的呼吸区 */
   html.is-app .main-content{padding-top:54px!important}
   /* 播放页顶栏：居中显示当前歌词，点按进入完整歌词 */
@@ -2703,7 +2716,11 @@ body.player-open .player-host.is-expanded .player-panel-head #player-favorite.se
     backdrop-filter:blur(30px) saturate(170%)!important;
     -webkit-backdrop-filter:blur(30px) saturate(170%)!important;
   }
-  [data-theme="dark"].is-app .site-header{background:rgba(21,34,29,.86)!important;border-bottom-color:rgba(255,255,255,.1)!important;box-shadow:0 10px 26px rgba(0,0,0,.3)!important}
+  [data-theme="dark"].is-app .site-header{background:rgba(21,34,29,.9)!important;border-bottom-color:rgba(255,255,255,.1)!important;box-shadow:0 8px 24px rgba(0,0,0,.32)!important}
+  [data-theme="dark"].is-app .header-actions .update-button,
+  [data-theme="dark"].is-app .header-actions .theme-trigger{background:rgba(255,255,255,.14)!important;border-color:rgba(255,255,255,.18)!important;color:#fff!important}
+  [data-theme="dark"].is-app .header-actions .update-button .icon,
+  [data-theme="dark"].is-app .header-actions .theme-trigger .icon{color:#fff!important}
   [data-theme="dark"].is-app .mini-player,
   [data-theme="dark"].is-app .mobile-tabbar{background:rgba(21,34,29,.86)!important;border-top-color:rgba(255,255,255,.1)!important}
   [data-theme="glass"].is-app .site-header,
